@@ -6,6 +6,13 @@ set(TARGET_NAME dots-imgui)
 include(FetchContent)
 
 # CMake options
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    # use default build type if none was specified
+    set(DEFAULT_BUILD_TYPE "Release")
+    message(STATUS "Setting build type to '${DEFAULT_BUILD_TYPE}' as none was specified.")
+    set(CMAKE_BUILD_TYPE "${DEFAULT_BUILD_TYPE}" CACHE STRING "Choose the type of build." FORCE)
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
 set(Boost_USE_STATIC_LIBS ON)
 if (MSVC)
     # use standard C++ exception model and assume no exceptions for external C functions
