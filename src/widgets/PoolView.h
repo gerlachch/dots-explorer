@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <dots/dots.h>
+#include <widgets/ContainerView.h>
 
 struct PoolView
 {
@@ -9,5 +10,7 @@ struct PoolView
 
 private:
 
-    std::vector<dots::Subscription> m_subscriptions;
+    bool m_poolChanged;
+    std::vector<ContainerView> m_containerViews;
+    dots::Subscription m_subscription;
 };

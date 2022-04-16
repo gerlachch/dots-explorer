@@ -2,9 +2,15 @@
 #include <imgui.h>
 
 ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
-    m_descriptor{ descriptor }
+    m_container{ dots::container(descriptor) },
+    m_subscription{ dots::subscribe(descriptor, [](const dots::Event<>&/* event*/){}) }
 {
     /* do nothing */
+}
+
+const dots::Container<>& ContainerView::container() const
+{
+    return m_container;
 }
 
 void ContainerView::render()
@@ -23,7 +29,7 @@ void ContainerView::render()
         ImGuiTableFlags_Resizable
     ;
 
-    const dots::type::StructDescriptor<>& descriptor = m_descriptor;
+    const dots::type::StructDescriptor<>& descriptor = m_container.get().descriptor();
 
     if (ImGui::BeginTable(descriptor.name().data(), static_cast<int>(descriptor.propertyDescriptors().size()), TableFlags))
     {
