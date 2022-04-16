@@ -9,6 +9,11 @@ struct ContainerView
 
 private:
 
-    std::reference_wrapper<const dots::Container<>> m_container;
+    using struct_ref_t = std::reference_wrapper<const dots::type::Struct>;
+    using container_ref_t = std::reference_wrapper<const dots::Container<>>;
+
+    std::vector<struct_ref_t> m_instances;
+    bool m_containerChanged;
+    container_ref_t m_container;
     dots::Subscription m_subscription;
 };
