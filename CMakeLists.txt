@@ -43,6 +43,8 @@ if (NOT Vulkan_FOUND)
     find_package(OpenGL REQUIRED)
 endif()
 
+option(DOTS_BUILD_EXAMPLES "Build the examples" OFF)
+option(DOTS_BUILD_UNIT_TESTS "Build the unit tests" OFF)
 FetchContent_Declare(
     dots-cpp
     GIT_REPOSITORY https://github.com/pnxs/dots-cpp.git
