@@ -91,6 +91,7 @@ target_sources(${TARGET_NAME}
         $<$<BOOL:${Vulkan_FOUND}>:src/backends/GlfwVulkanBackend.cpp>
         $<$<BOOL:${OpenGL_FOUND}>:src/backends/GlfwOpenGl3Backend.cpp>
         src/components/MainWindow.cpp
+        src/widgets/ContainerView.cpp
         src/widgets/PoolView.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
         $<$<BOOL:${Vulkan_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp>

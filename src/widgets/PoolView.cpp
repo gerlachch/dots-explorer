@@ -1,5 +1,6 @@
 #include <widgets/PoolView.h>
 #include <imgui.h>
+#include <widgets/ContainerView.h>
 #include <DotsDescriptorRequest.dots.h>
 
 PoolView::PoolView()
@@ -17,7 +18,6 @@ void PoolView::render()
 {
     constexpr ImGuiTableFlags TableFlags = 
         ImGuiTableFlags_Borders       |
-        ImGuiTableFlags_RowBg         |
         ImGuiTableFlags_BordersH      |
         ImGuiTableFlags_BordersOuterH |
         ImGuiTableFlags_BordersInnerH |
@@ -25,11 +25,13 @@ void PoolView::render()
         ImGuiTableFlags_BordersOuterV |
         ImGuiTableFlags_BordersInnerV |
         ImGuiTableFlags_BordersOuter  |
-        ImGuiTableFlags_BordersInner
+        ImGuiTableFlags_BordersInner  |
+        ImGuiTableFlags_ScrollY
     ;
 
-    if (ImGui::BeginTable("Cached Types", 2, TableFlags))
+    if (ImGui::BeginTable("Cached Types", 2, TableFlags, ImGui::GetContentRegionAvail()))
     {
+        ImGui::TableSetupScrollFreeze(0, 1);
         ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableSetupColumn("No. Instances", ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableHeadersRow();
@@ -39,10 +41,19 @@ void PoolView::render()
             ImGui::TableNextRow();
 
             ImGui::TableNextColumn();
-            ImGui::TextUnformatted(descriptor->name().data());
+            bool containerOpen = ImGui::TreeNodeEx(descriptor->name().data(), ImGuiTreeNodeFlags_SpanFullWidth);
 
             ImGui::TableNextColumn();
             ImGui::Text("%zu", container.size());
+
+            if (containerOpen)
+            {
+                ImGui::TableNextColumn();
+                ContainerView containerView{ *descriptor };
+                containerView.render();
+
+                ImGui::TreePop();
+            }
         }
 
         ImGui::EndTable();
