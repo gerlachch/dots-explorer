@@ -1,4 +1,4 @@
-#include <backends/GlfwOpenGl3Backend.h>
+#include <backends/GlfwBackend.h>
 #include <stdexcept>
 
 // Dear ImGui: standalone example application for GLFW + OpenGL 3, using programmable pipeline
@@ -29,7 +29,7 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
-GlfwOpenGl3Backend::GlfwOpenGl3Backend(std::string_view title)
+GlfwBackend::GlfwBackend(std::string_view title)
 {
     if (M_initialized.test_and_set())
     {
@@ -110,7 +110,7 @@ GlfwOpenGl3Backend::GlfwOpenGl3Backend(std::string_view title)
     //IM_ASSERT(font != NULL);
 }
 
-GlfwOpenGl3Backend::~GlfwOpenGl3Backend()
+GlfwBackend::~GlfwOpenGl3Backend()
 {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -122,7 +122,7 @@ GlfwOpenGl3Backend::~GlfwOpenGl3Backend()
     M_initialized.clear();
 }
 
-void GlfwOpenGl3Backend::run(std::function<void()> renderHandler)
+void GlfwBackend::run(std::function<void()> renderHandler)
 {
     // Our state
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);

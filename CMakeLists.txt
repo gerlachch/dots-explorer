@@ -30,6 +30,12 @@ if (MSVC)
 endif()
 
 # dependencies
+find_package(Vulkan)
+if (NOT Vulkan_FOUND)
+    message("Vulkan SDK not found. Attempting to fall back to OpenGL instead.")
+    find_package(OpenGL REQUIRED)
+endif()
+
 FetchContent_Declare(
     dots-cpp
     GIT_REPOSITORY https://github.com/pnxs/dots-cpp.git
@@ -54,7 +60,6 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(dots-cpp fmt glfw)
-find_package(OpenGL REQUIRED)
 
 FetchContent_Declare(
     imgui
@@ -63,7 +68,7 @@ FetchContent_Declare(
 )
 # Check if population has already been performed
 FetchContent_GetProperties(imgui)
-if(NOT imgui_POPULATED)
+if (NOT imgui_POPULATED)
   FetchContent_Populate(imgui)
 endif()
 
@@ -74,11 +79,13 @@ add_executable(${TARGET_NAME})
 target_sources(${TARGET_NAME}
     PRIVATE
         src/main.cpp
-        src/backends/GlfwOpenGl3Backend.cpp
+        $<$<BOOL:${Vulkan_FOUND}>:src/backends/GlfwVulkanBackend.cpp>
+        $<$<BOOL:${OpenGL_FOUND}>:src/backends/GlfwOpenGl3Backend.cpp>
         src/components/MainWindow.cpp
         src/widgets/PoolView.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
-        ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+        $<$<BOOL:${Vulkan_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp>
+        $<$<BOOL:${OpenGL_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp>
         ${imgui_SOURCE_DIR}/imgui.cpp
         ${imgui_SOURCE_DIR}/imgui_draw.cpp
         ${imgui_SOURCE_DIR}/imgui_demo.cpp
@@ -101,6 +108,8 @@ target_compile_definitions(${TARGET_NAME}
     PRIVATE
         # suppress warning for usage of unsafe C runtime functions (e.g. getenv)
         $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>
+        $<$<BOOL:${Vulkan_FOUND}>:ImTextureID=ImU64>
+        $<$<BOOL:${Vulkan_FOUND}>:VK_PROTOTYPES>
 )
 target_compile_features(${TARGET_NAME}
     PRIVATE
@@ -111,7 +120,8 @@ target_link_libraries(${TARGET_NAME}
         DOTS::DOTS
         fmt::fmt
         glfw
-        opengl32
+        $<$<BOOL:${Vulkan_FOUND}>:Vulkan::Vulkan>
+        $<$<BOOL:${OpenGL_FOUND}>:opengl32>
 )
 
 # install

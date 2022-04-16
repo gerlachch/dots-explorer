@@ -1,4 +1,4 @@
-#include <backends/GlfwOpenGl3Backend.h>
+#include <backends/GlfwBackend.h>
 #include <components/MainWindow.h>
 #include <boost/asio.hpp>
 #include <dots/Application.h>
@@ -6,7 +6,7 @@
 int main()
 {
     dots::Application app{ "dots-imgui" };
-    GlfwOpenGl3Backend backend{ "dots-imgui" };
+    GlfwBackend backend{ "dots-imgui" };
 
     dots::publish(DotsDescriptorRequest{});
 
