@@ -7,13 +7,13 @@ int main()
 {
     dots::Application app{ "dots-imgui" };
     GlfwBackend backend{ 1280, 720, "dots-imgui" };
+    MainWindow mainWindow;
 
     dots::publish(DotsDescriptorRequest{});
 
     backend.run([&]
     {
         app.transceiver().ioContext().poll();
-        MainWindow mainWindow;
         mainWindow.render();
     });
 }

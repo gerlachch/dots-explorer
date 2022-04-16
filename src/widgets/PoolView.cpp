@@ -9,7 +9,7 @@ PoolView::PoolView() :
     {
         if (descriptor.cached() && !descriptor.substructOnly() && !descriptor.internal())
         {
-            m_containerViews.emplace_back(descriptor);
+            m_containerViews.emplace_back(std::make_unique<ContainerView>(descriptor));
             m_poolChanged = true;
         }
     }) }
@@ -44,7 +44,7 @@ void PoolView::render()
         // sort container views
         if (ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs(); m_poolChanged || sortSpecs->SpecsDirty)
         {
-            std::sort(m_containerViews.begin(), m_containerViews.end(), [sortSpecs](const ContainerView& lhs, const ContainerView& rhs)
+            std::sort(m_containerViews.begin(), m_containerViews.end(), [sortSpecs](const auto& lhs, const auto& rhs)
             {
                 for (int i = 0; i < sortSpecs->SpecsCount; ++i)
                 {
@@ -66,8 +66,8 @@ void PoolView::render()
 
                     switch (sortSpec.ColumnIndex)
                     {
-                        case 0:  less = compare(lhs.container().descriptor().name(), rhs.container().descriptor().name()); break;
-                        case 1:  less = compare(lhs.container().size(), rhs.container().size()); break;
+                        case 0:  less = compare(lhs->container().descriptor().name(), rhs->container().descriptor().name()); break;
+                        case 1:  less = compare(lhs->container().size(), rhs->container().size()); break;
                         default: IM_ASSERT(0); break;
                     }
 
@@ -85,20 +85,20 @@ void PoolView::render()
         }
 
         // render container views
-        for (ContainerView& containerView : m_containerViews) 
+        for (auto& containerView : m_containerViews) 
         {
             ImGui::TableNextRow();
 
             ImGui::TableNextColumn();
-            bool containerOpen = ImGui::TreeNodeEx(containerView.container().descriptor().name().data(), ImGuiTreeNodeFlags_SpanFullWidth);
+            bool containerOpen = ImGui::TreeNodeEx(containerView->container().descriptor().name().data(), ImGuiTreeNodeFlags_SpanFullWidth);
 
             ImGui::TableNextColumn();
-            ImGui::Text("%zu", containerView.container().size());
+            ImGui::Text("%zu", containerView->container().size());
 
             if (containerOpen)
             {
                 ImGui::TableNextColumn();
-                containerView.render();
+                containerView->render();
 
                 ImGui::TreePop();
             }

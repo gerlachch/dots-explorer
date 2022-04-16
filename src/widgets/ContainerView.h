@@ -4,6 +4,13 @@
 struct ContainerView
 {
     ContainerView(const dots::type::StructDescriptor<>& descriptor);
+    ContainerView(const ContainerView& other) = delete;
+    ContainerView(ContainerView&& other) = delete;
+    ~ContainerView() = default;
+
+    ContainerView& operator = (const ContainerView& rhs) = delete;
+    ContainerView& operator = (ContainerView&& rhs) = delete;
+
     const dots::Container<>& container() const;
     void render();
 
