@@ -5,7 +5,7 @@
 
 struct GlfwBackend
 {
-    GlfwBackend(std::string_view title);
+    GlfwBackend(int width, int height, std::string_view title);
     GlfwBackend(const GlfwBackend& other) = default;
     GlfwBackend(GlfwBackend&& other) = default;
     ~GlfwBackend();

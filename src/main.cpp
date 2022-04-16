@@ -6,7 +6,7 @@
 int main()
 {
     dots::Application app{ "dots-imgui" };
-    GlfwBackend backend{ "dots-imgui" };
+    GlfwBackend backend{ 1280, 720, "dots-imgui" };
 
     dots::publish(DotsDescriptorRequest{});
 

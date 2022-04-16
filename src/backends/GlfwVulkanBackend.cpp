@@ -356,7 +356,7 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
-GlfwBackend::GlfwBackend(std::string_view title)
+GlfwBackend::GlfwBackend(int width, int height, std::string_view title)
 {
     if (M_initialized.test_and_set())
     {
@@ -372,7 +372,7 @@ GlfwBackend::GlfwBackend(std::string_view title)
     }
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    g_window = glfwCreateWindow(1280, 720, title.data(), NULL, NULL);
+    g_window = glfwCreateWindow(width, height, title.data(), NULL, NULL);
 
     // Setup Vulkan
     if (!glfwVulkanSupported())
