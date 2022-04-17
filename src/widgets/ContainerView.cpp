@@ -9,18 +9,22 @@ ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
 
         if (event.isCreate())
         {
-            m_instances.emplace_back(event.updated());
+            m_instanceViews.emplace_back(event.updated());
         }
-        else if (event.isRemove())
+        else
         {
-            auto it = std::find_if(m_instances.begin(), m_instances.end(), [&event](const dots::type::Struct& instance)
+            auto it = std::find_if(m_instanceViews.begin(), m_instanceViews.end(), [&event](const InstanceView& instanceView)
             {
-                return instance._same(event.updated());
+                return instanceView.instance()._same(event.updated());
             });
 
-            if (it != m_instances.end())
+            if (event.isUpdate())
             {
-                m_instances.erase(it);
+                it->update();
+            }
+            else/* if (event.isRemove())*/
+            {
+                m_instanceViews.erase(it);
             }
         }
     }) }
@@ -66,8 +70,11 @@ void ContainerView::render()
         // sort instance views
         if (ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs(); m_containerChanged || sortSpecs->SpecsDirty)
         {
-            std::sort(m_instances.begin(), m_instances.end(), [&descriptor, sortSpecs](const dots::type::Struct& lhs, const dots::type::Struct& rhs)
+            std::sort(m_instanceViews.begin(), m_instanceViews.end(), [&descriptor, sortSpecs](const InstanceView& lhsView, const InstanceView& rhsView)
             {
+                const dots::type::Struct& lhs = lhsView.instance();
+                const dots::type::Struct& rhs = rhsView.instance();
+
                 for (int i = 0; i < sortSpecs->SpecsCount; ++i)
                 {
                     const ImGuiTableColumnSortSpecs& sortSpec = sortSpecs->Specs[i];
@@ -106,55 +113,9 @@ void ContainerView::render()
         }
 
         // render instance views
-        for (const dots::type::Struct& instance : m_instances)
+        for (InstanceView& instanceView : m_instanceViews)
         {
-            for (auto property : instance)
-            {
-                ImGui::TableNextColumn();
-
-                if (property.isValid())
-                {
-                    std::string value = dots::to_string(property);
-                    
-                    switch (property.descriptor().valueDescriptor().type())
-                    {
-                        case dots::type::Type::boolean:
-                            ImGui::TextColored(ImVec4{ 0.34f, 0.61f, 0.84f, 1.0f }, value.data());
-                            break;
-                        case dots::type::Type::string:
-                            ImGui::TextColored(ImVec4{ 0.91f, 0.79f, 0.73f, 1.0f }, "\"%s\"", value.data());
-                            break;
-                        case dots::type::Type::int8:
-                        case dots::type::Type::uint8:
-                        case dots::type::Type::int16:
-                        case dots::type::Type::uint16:
-                        case dots::type::Type::int32:
-                        case dots::type::Type::uint32:
-                        case dots::type::Type::int64:
-                        case dots::type::Type::uint64:
-                        case dots::type::Type::float32:
-                        case dots::type::Type::float64:
-                            ImGui::TextColored(ImVec4{ 0.72f, 0.84f, 0.64f, 1.0f }, value.data());
-                            break;
-                        case dots::type::Type::Enum:
-                            ImGui::TextColored(ImVec4{ 0.31f, 0.79f, 0.69f, 1.0f }, value.data());
-                            break;
-                        case dots::type::Type::property_set:
-                        case dots::type::Type::timepoint:
-                        case dots::type::Type::steady_timepoint:
-                        case dots::type::Type::duration:
-                        case dots::type::Type::uuid:
-                        case dots::type::Type::Vector:
-                        case dots::type::Type::Struct:
-                        default: 
-                            ImGui::TextUnformatted(value.data());
-                    }
-                }
-                else
-                {
-                    ImGui::TextDisabled("<invalid>");
-                }
-            }
+            instanceView.render();
         }
 
         ImGui::EndTable();

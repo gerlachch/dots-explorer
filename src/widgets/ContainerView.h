@@ -1,5 +1,6 @@
 #pragma once
 #include <dots/dots.h>
+#include <widgets/InstanceView.h>
 
 struct ContainerView
 {
@@ -16,10 +17,9 @@ struct ContainerView
 
 private:
 
-    using struct_ref_t = std::reference_wrapper<const dots::type::Struct>;
     using container_ref_t = std::reference_wrapper<const dots::Container<>>;
 
-    std::vector<struct_ref_t> m_instances;
+    std::vector<InstanceView> m_instanceViews;
     bool m_containerChanged;
     container_ref_t m_container;
     dots::Subscription m_subscription;
