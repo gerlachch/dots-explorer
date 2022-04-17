@@ -38,7 +38,7 @@ void PoolView::render()
         // create headers
         ImGui::TableSetupScrollFreeze(0, 1);
         ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableSetupColumn("No. Instances", ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableHeadersRow();
 
         // sort container views
