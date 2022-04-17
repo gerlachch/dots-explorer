@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <vector>
 #include <dots/dots.h>
 #include <widgets/ContainerView.h>
@@ -18,7 +19,10 @@ struct PoolView
 
 private:
 
+    std::vector<std::shared_ptr<ContainerView>> m_containerViews;
+    std::vector<std::shared_ptr<ContainerView>> m_containerViewsFiltered;
+    std::array<char, 64> m_containerFilter;
+    bool m_containerFilterChanged;
     bool m_poolChanged;
-    std::vector<std::unique_ptr<ContainerView>> m_containerViews;
     dots::Subscription m_subscription;
 };

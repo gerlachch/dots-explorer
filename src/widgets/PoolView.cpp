@@ -1,9 +1,12 @@
 #include <widgets/PoolView.h>
+#include <string_view>
+#include <regex>
 #include <imgui.h>
 #include <widgets/ContainerView.h>
 #include <DotsDescriptorRequest.dots.h>
 
 PoolView::PoolView() :
+    m_containerFilter{},
     m_poolChanged(false),
     m_subscription{ dots::subscribe<dots::type::StructDescriptor<>>({ &PoolView::update, this }) }
 {
@@ -14,13 +17,51 @@ void PoolView::update(const dots::type::StructDescriptor<>& descriptor)
 {
     if (descriptor.cached() && !descriptor.substructOnly() && !descriptor.internal())
     {
-        m_containerViews.emplace_back(std::make_unique<ContainerView>(descriptor));
+        m_containerViews.emplace_back(std::make_shared<ContainerView>(descriptor));
         m_poolChanged = true;
     }
 }
 
 void PoolView::render()
 {
+    // control area
+    {
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Filter");
+
+        ImGui::SameLine();
+        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.2f);
+        if (ImGui::InputTextWithHint("##containerFilter", "<none>", m_containerFilter.data(), m_containerFilter.size()) || m_poolChanged)
+        {
+            if (std::string_view containerFilter = m_containerFilter.data(); containerFilter.empty())
+            {
+                m_containerViewsFiltered = m_containerViews;
+            }
+            else
+            {
+                m_containerViewsFiltered.clear();
+                std::regex regex{ containerFilter.data() };
+                std::copy_if(m_containerViews.begin(), m_containerViews.end(), std::back_inserter(m_containerViewsFiltered), [&regex](const auto& containerView)
+                {
+                    return std::regex_search(containerView->container().descriptor().name(), regex);
+                });
+            }
+        }
+        ImGui::PopItemWidth();
+
+        ImGui::SameLine();
+        ImGui::TextDisabled("(?)");
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+            ImGui::TextUnformatted("Types can be filtered by specifying substrings or ECMAScript regular expressions.");
+            ImGui::PopTextWrapPos();
+            ImGui::EndTooltip();
+        }
+    }
+
+    // container views
     constexpr ImGuiTableFlags TableFlags = 
         ImGuiTableFlags_Borders       |
         ImGuiTableFlags_BordersH      |
@@ -34,7 +75,7 @@ void PoolView::render()
         ImGuiTableFlags_ScrollY       |
         ImGuiTableFlags_Sortable
     ;
-
+    
     if (ImGui::BeginTable("Cached Types", 2, TableFlags, ImGui::GetContentRegionAvail()))
     {
         // create headers
@@ -46,7 +87,7 @@ void PoolView::render()
         // sort container views
         if (ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs(); m_poolChanged || sortSpecs->SpecsDirty)
         {
-            std::sort(m_containerViews.begin(), m_containerViews.end(), [sortSpecs](const auto& lhs, const auto& rhs)
+            std::sort(m_containerViewsFiltered.begin(), m_containerViewsFiltered.end(), [sortSpecs](const auto& lhs, const auto& rhs)
             {
                 return lhs->less(*sortSpecs, *rhs);
             });
@@ -56,7 +97,7 @@ void PoolView::render()
         }
 
         // render container views
-        for (auto& containerView : m_containerViews) 
+        for (auto& containerView : m_containerViewsFiltered) 
         {
             ImGui::TableNextRow();
 
