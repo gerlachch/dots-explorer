@@ -16,6 +16,8 @@ struct ContainerView
 
     const dots::Container<>& container() const;
     bool less(const ImGuiTableSortSpecs& sortSpecs, const ContainerView& other) const;
+
+    void update(const dots::Event<>& event);
     void render();
 
 private:

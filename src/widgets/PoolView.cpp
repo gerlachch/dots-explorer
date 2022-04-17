@@ -5,16 +5,18 @@
 
 PoolView::PoolView() :
     m_poolChanged(false),
-    m_subscription{ dots::subscribe<dots::type::StructDescriptor<>>([this](const dots::type::StructDescriptor<>& descriptor)
-    {
-        if (descriptor.cached() && !descriptor.substructOnly() && !descriptor.internal())
-        {
-            m_containerViews.emplace_back(std::make_unique<ContainerView>(descriptor));
-            m_poolChanged = true;
-        }
-    }) }
+    m_subscription{ dots::subscribe<dots::type::StructDescriptor<>>({ &PoolView::update, this }) }
 {
     /* do nothing */
+}
+
+void PoolView::update(const dots::type::StructDescriptor<>& descriptor)
+{
+    if (descriptor.cached() && !descriptor.substructOnly() && !descriptor.internal())
+    {
+        m_containerViews.emplace_back(std::make_unique<ContainerView>(descriptor));
+        m_poolChanged = true;
+    }
 }
 
 void PoolView::render()

@@ -13,6 +13,7 @@ struct PoolView
     PoolView& operator = (const PoolView& rhs) = delete;
     PoolView& operator = (PoolView&& rhs) = delete;
 
+    void update(const dots::type::StructDescriptor<>& descriptor);
     void render();
 
 private:

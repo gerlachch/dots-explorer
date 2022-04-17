@@ -3,31 +3,7 @@
 
 ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
     m_container{ dots::container(descriptor) },
-    m_subscription{ dots::subscribe(descriptor, [this](const dots::Event<>& event)
-    {
-        m_containerChanged = true;
-
-        if (event.isCreate())
-        {
-            m_instanceViews.emplace_back(event.updated());
-        }
-        else
-        {
-            auto it = std::find_if(m_instanceViews.begin(), m_instanceViews.end(), [&event](const InstanceView& instanceView)
-            {
-                return instanceView.instance()._same(event.updated());
-            });
-
-            if (event.isUpdate())
-            {
-                it->update();
-            }
-            else/* if (event.isRemove())*/
-            {
-                m_instanceViews.erase(it);
-            }
-        }
-    }) }
+    m_subscription{ dots::subscribe(descriptor, { &ContainerView::update, this }) }
 {
     /* do nothing */
 }
@@ -71,6 +47,32 @@ bool ContainerView::less(const ImGuiTableSortSpecs& sortSpecs, const ContainerVi
     }
 
     return false;
+}
+
+void ContainerView::update(const dots::Event<>& event)
+{
+    m_containerChanged = true;
+
+    if (event.isCreate())
+    {
+        m_instanceViews.emplace_back(event.updated());
+    }
+    else
+    {
+        auto it = std::find_if(m_instanceViews.begin(), m_instanceViews.end(), [&event](const InstanceView& instanceView)
+        {
+            return instanceView.instance()._same(event.updated());
+        });
+
+        if (event.isUpdate())
+        {
+            it->update();
+        }
+        else/* if (event.isRemove())*/
+        {
+            m_instanceViews.erase(it);
+        }
+    }
 }
 
 void ContainerView::render()
