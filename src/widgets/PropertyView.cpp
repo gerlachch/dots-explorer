@@ -47,6 +47,23 @@ dots::type::ProxyProperty<> PropertyView::property() const
     return m_property;
 }
 
+bool PropertyView::less(const ImGuiTableColumnSortSpecs& sortSpec, const PropertyView& other) const
+{
+    auto compare = [&sortSpec](const auto& lhs, const auto& rhs)
+    {
+        if (sortSpec.SortDirection == ImGuiSortDirection_Ascending)
+        {
+            return std::less{}(lhs, rhs);
+        }
+        else
+        {
+            return std::greater{}(lhs, rhs);
+        }
+    };
+
+    return compare(m_property, other.m_property);
+}
+
 void PropertyView::update()
 {
     if (m_valueQuoted)

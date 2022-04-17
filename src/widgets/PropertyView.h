@@ -3,6 +3,8 @@
 #include <dots/dots.h>
 #include <imgui.h>
 
+struct ImGuiTableColumnSortSpecs;
+
 struct PropertyView
 {
     PropertyView(dots::type::ProxyProperty<> property);
@@ -14,6 +16,7 @@ struct PropertyView
     PropertyView& operator = (PropertyView&& rhs) = default;
 
     dots::type::ProxyProperty<> property() const;
+    bool less(const ImGuiTableColumnSortSpecs& sortSpec, const PropertyView& other) const;
 
     void update();
     void render();

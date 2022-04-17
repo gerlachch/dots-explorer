@@ -37,6 +37,42 @@ const dots::Container<>& ContainerView::container() const
     return m_container;
 }
 
+bool ContainerView::less(const ImGuiTableSortSpecs& sortSpecs, const ContainerView& other) const
+{
+    for (int i = 0; i < sortSpecs.SpecsCount; ++i)
+    {
+        const ImGuiTableColumnSortSpecs& sortSpec = sortSpecs.Specs[i];
+
+        auto compare = [&sortSpec](const auto& lhs, const auto& rhs)
+        {
+            if (sortSpec.SortDirection == ImGuiSortDirection_Ascending)
+            {
+                return std::less{}(lhs, rhs);
+            }
+            else
+            {
+                return std::greater{}(lhs, rhs);
+            }
+        };
+
+        bool less = false;
+
+        switch (sortSpec.ColumnIndex)
+        {
+            case 0:  less = compare(container().descriptor().name(), other.container().descriptor().name()); break;
+            case 1:  less = compare(container().size(), other.container().size()); break;
+            default: IM_ASSERT(0); break;
+        }
+
+        if (less)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void ContainerView::render()
 {
     constexpr ImGuiTableFlags TableFlags = 
@@ -70,42 +106,9 @@ void ContainerView::render()
         // sort instance views
         if (ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs(); m_containerChanged || sortSpecs->SpecsDirty)
         {
-            std::sort(m_instanceViews.begin(), m_instanceViews.end(), [&descriptor, sortSpecs](const InstanceView& lhsView, const InstanceView& rhsView)
+            std::sort(m_instanceViews.begin(), m_instanceViews.end(), [sortSpecs](const InstanceView& lhs, const InstanceView& rhs)
             {
-                const dots::type::Struct& lhs = lhsView.instance();
-                const dots::type::Struct& rhs = rhsView.instance();
-
-                for (int i = 0; i < sortSpecs->SpecsCount; ++i)
-                {
-                    const ImGuiTableColumnSortSpecs& sortSpec = sortSpecs->Specs[i];
-
-                    auto compare = [&sortSpec](const auto& lhs, const auto& rhs)
-                    {
-                        if (sortSpec.SortDirection == ImGuiSortDirection_Ascending)
-                        {
-                            return std::less{}(lhs, rhs);
-                        }
-                        else
-                        {
-                            return std::greater{}(lhs, rhs);
-                        }
-                    };
-
-                    const dots::type::PropertyDescriptor& propertyDescriptor = descriptor.propertyDescriptors()[sortSpec.ColumnIndex];
-                    const dots::type::ProxyProperty<> lhsProperty{ const_cast<dots::type::Struct&>(lhs), propertyDescriptor };
-                    const dots::type::ProxyProperty<> rhsProperty{ const_cast<dots::type::Struct&>(rhs), propertyDescriptor };
-
-                    if (compare(lhsProperty, rhsProperty))
-                    {
-                        return true;
-                    }
-                    else if (compare(rhsProperty, lhsProperty))
-                    {
-                        return false;
-                    }
-                }
-
-                return lhs._less(rhs, descriptor.keyProperties());
+                return lhs.less(*sortSpecs, rhs);
             });
 
             m_containerChanged = false;

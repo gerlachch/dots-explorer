@@ -2,6 +2,8 @@
 #include <dots/dots.h>
 #include <widgets/InstanceView.h>
 
+struct ImGuiTableSortSpecs;
+
 struct ContainerView
 {
     ContainerView(const dots::type::StructDescriptor<>& descriptor);
@@ -13,6 +15,7 @@ struct ContainerView
     ContainerView& operator = (ContainerView&& rhs) = delete;
 
     const dots::Container<>& container() const;
+    bool less(const ImGuiTableSortSpecs& sortSpecs, const ContainerView& other) const;
     void render();
 
 private:

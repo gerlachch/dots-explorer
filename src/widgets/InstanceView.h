@@ -3,6 +3,8 @@
 #include <dots/dots.h>
 #include <widgets/PropertyView.h>
 
+struct ImGuiTableSortSpecs;
+
 struct InstanceView
 {
     InstanceView(const dots::type::Struct& instance);
@@ -14,6 +16,7 @@ struct InstanceView
     InstanceView& operator = (InstanceView&& rhs) = default;
 
     const dots::type::Struct& instance() const;
+    bool less(const ImGuiTableSortSpecs& sortSpecs, const InstanceView& other) const;
 
     void update();
     void render();

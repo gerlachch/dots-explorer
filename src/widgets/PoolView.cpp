@@ -46,38 +46,7 @@ void PoolView::render()
         {
             std::sort(m_containerViews.begin(), m_containerViews.end(), [sortSpecs](const auto& lhs, const auto& rhs)
             {
-                for (int i = 0; i < sortSpecs->SpecsCount; ++i)
-                {
-                    const ImGuiTableColumnSortSpecs& sortSpec = sortSpecs->Specs[i];
-
-                    auto compare = [&sortSpec](const auto& lhs, const auto& rhs)
-                    {
-                        if (sortSpec.SortDirection == ImGuiSortDirection_Ascending)
-                        {
-                            return std::less{}(lhs, rhs);
-                        }
-                        else
-                        {
-                            return std::greater{}(lhs, rhs);
-                        }
-                    };
-
-                    bool less = false;
-
-                    switch (sortSpec.ColumnIndex)
-                    {
-                        case 0:  less = compare(lhs->container().descriptor().name(), rhs->container().descriptor().name()); break;
-                        case 1:  less = compare(lhs->container().size(), rhs->container().size()); break;
-                        default: IM_ASSERT(0); break;
-                    }
-
-                    if (less)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
+                return lhs->less(*sortSpecs, *rhs);
             });
 
             m_poolChanged = false;
