@@ -94,6 +94,7 @@ target_sources(${TARGET_NAME}
         src/widgets/ContainerView.cpp
         src/widgets/InstanceView.cpp
         src/widgets/PoolView.cpp
+        src/widgets/PropertyView.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
         $<$<BOOL:${Vulkan_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp>
         $<$<BOOL:${OpenGL_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp>
