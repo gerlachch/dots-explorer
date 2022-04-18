@@ -66,6 +66,11 @@ bool PropertyView::less(const ImGuiTableColumnSortSpecs& sortSpec, const Propert
     return compare(m_property, other.m_property);
 }
 
+bool PropertyView::isSelected() const
+{
+    return m_isSelected;
+}
+
 void PropertyView::update()
 {
     if (m_valueQuoted)
@@ -92,6 +97,6 @@ void PropertyView::render()
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
     }
 
-    ImGui::Selectable(m_value.data(), false, ImGuiSelectableFlags_SpanAllColumns);
+    ImGui::Selectable(m_value.data(), &m_isSelected, ImGuiSelectableFlags_SpanAllColumns);
     ImGui::PopStyleColor();
 }

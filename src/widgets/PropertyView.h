@@ -17,6 +17,7 @@ struct PropertyView
 
     const dots::type::ProxyProperty<>& property() const;
     bool less(const ImGuiTableColumnSortSpecs& sortSpec, const PropertyView& other) const;
+    bool isSelected() const;
 
     void update();
     void render();

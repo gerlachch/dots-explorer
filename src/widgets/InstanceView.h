@@ -18,6 +18,7 @@ struct InstanceView
     const dots::type::Struct& instance() const;
 
     bool less(const ImGuiTableSortSpecs& sortSpecs, const InstanceView& other) const;
+    bool isSelected() const;
 
     void update();
     void render();

@@ -44,6 +44,11 @@ bool InstanceView::less(const ImGuiTableSortSpecs& sortSpecs, const InstanceView
     return instance()._less(other.instance(), instance()._keyProperties());
 }
 
+bool InstanceView::isSelected() const
+{
+    return std::any_of(m_propertyViews.begin(), m_propertyViews.end(), [](const PropertyView& propertyView){ return propertyView.isSelected(); });
+}
+
 void InstanceView::update()
 {
     for (PropertyView& propertyView : m_propertyViews)

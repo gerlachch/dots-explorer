@@ -174,9 +174,28 @@ void ContainerView::renderEnd()
 
                     ImGui::Separator();
 
-                    if (ImGui::MenuItem("View/Update"))
+                    std::vector<std::reference_wrapper<const InstanceView>> selection;
+                    std::copy_if(m_instanceViews.begin(), m_instanceViews.end(), std::back_inserter(selection), [](const InstanceView& instanceView)
+                    {
+                        return instanceView.isSelected();
+                    });
+
+                    if (selection.empty() && ImGui::MenuItem("View/Update"))
                     {
                         editInstance = instanceView.instance();
+                    }
+
+                    if (selection.empty() && ImGui::MenuItem("Remove"))
+                    {
+                        dots::remove(instanceView.instance());
+                    }
+
+                    if (!selection.empty() && ImGui::MenuItem("Remove Selection"))
+                    {
+                        for (const InstanceView& selected : selection)
+                        {
+                            dots::remove(selected.instance());
+                        }
                     }
 
                     ImGui::EndPopup();
