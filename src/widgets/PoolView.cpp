@@ -80,6 +80,16 @@ void PoolView::render()
                 ;
             });
         }
+
+        ImGui::SameLine();
+        if (m_containerViewsFiltered.size() == 1)
+        {
+            ImGui::TextDisabled("(1 type)");
+        }
+        else
+        {
+            ImGui::TextDisabled("(%zu types)", m_containerViewsFiltered.size());
+        }
     }
 
     // container views
