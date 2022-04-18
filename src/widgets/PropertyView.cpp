@@ -1,6 +1,6 @@
 #include <widgets/PropertyView.h>
 
-PropertyView::PropertyView(dots::type::ProxyProperty<> property) :
+PropertyView::PropertyView(const dots::type::ProxyProperty<>& property) :
     m_valueQuoted(false),
     m_property{ property }
 {
@@ -42,7 +42,7 @@ PropertyView::PropertyView(dots::type::ProxyProperty<> property) :
     update();
 }
 
-dots::type::ProxyProperty<> PropertyView::property() const
+const dots::type::ProxyProperty<>& PropertyView::property() const
 {
     return m_property;
 }
