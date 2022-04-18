@@ -1,3 +1,6 @@
+#if defined(_MSC_VER) && defined (NDEBUG)
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+#endif
 #include <backends/GlfwBackend.h>
 #include <components/MainWindow.h>
 #include <boost/asio.hpp>
