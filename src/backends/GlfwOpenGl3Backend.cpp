@@ -110,7 +110,7 @@ GlfwBackend::GlfwBackend(int width, int height, std::string_view title)
     //IM_ASSERT(font != NULL);
 }
 
-GlfwBackend::~GlfwOpenGl3Backend()
+GlfwBackend::~GlfwBackend()
 {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();

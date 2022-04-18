@@ -134,7 +134,7 @@ target_link_libraries(${TARGET_NAME}
         fmt::fmt
         glfw
         $<$<BOOL:${Vulkan_FOUND}>:Vulkan::Vulkan>
-        $<$<BOOL:${OpenGL_FOUND}>:opengl32>
+        $<$<BOOL:${OpenGL_FOUND}>:${OPENGL_LIBRARIES}>
 )
 
 # install
