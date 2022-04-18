@@ -47,6 +47,14 @@ void PoolView::render()
             }
         }
         ImGui::PopItemWidth();
+        
+        ImGui::SameLine();
+        if (ImGui::Button("Clear"))
+        {
+            m_containerFilterBuffer.assign(m_containerFilterBuffer.size(), '\0');
+            m_containerViewsFiltered = m_containerViews;
+            m_poolChanged = true;
+        }
 
         ImGui::SameLine();
         ImGui::TextDisabled("(?)");
