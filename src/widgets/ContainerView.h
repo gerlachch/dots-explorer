@@ -1,6 +1,8 @@
 #pragma once
+#include <optional>
 #include <dots/dots.h>
 #include <widgets/InstanceView.h>
+#include <widgets/InstanceEdit.h>
 
 struct ImGuiTableSortSpecs;
 
@@ -18,12 +20,14 @@ struct ContainerView
     bool less(const ImGuiTableSortSpecs& sortSpecs, const ContainerView& other) const;
 
     void update(const dots::Event<>& event);
-    void render();
+    bool renderBegin();
+    void renderEnd();
 
 private:
 
     using container_ref_t = std::reference_wrapper<const dots::Container<>>;
 
+    std::optional<InstanceEdit> m_instanceEdit;
     std::vector<InstanceView> m_instanceViews;
     bool m_containerChanged;
     container_ref_t m_container;

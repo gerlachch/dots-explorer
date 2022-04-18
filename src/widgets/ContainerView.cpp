@@ -1,5 +1,6 @@
 #include <widgets/ContainerView.h>
 #include <imgui.h>
+#include <fmt/format.h>
 
 ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
     m_containerChanged(false),
@@ -76,7 +77,46 @@ void ContainerView::update(const dots::Event<>& event)
     }
 }
 
-void ContainerView::render()
+bool ContainerView::renderBegin()
+{
+    bool containerOpen = ImGui::TreeNodeEx(container().descriptor().name().data(), ImGuiTreeNodeFlags_SpanFullWidth);
+    bool openInstanceEdit = false;
+
+    // context menu
+    {
+        if (ImGui::BeginPopupContextItem())
+        {
+            ImGui::TextColored(ImVec4{ 0.34f, 0.61f, 0.84f, 1.0f }, "struct");
+            ImGui::SameLine();
+            ImGui::TextColored(ImVec4{ 0.31f, 0.79f, 0.69f, 1.0f }, "%s", container().descriptor().name().data());
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Create/Update"))
+            {
+                openInstanceEdit = true;
+            }
+
+            ImGui::EndPopup();
+        }
+    }
+
+    // instance edit
+    {
+        if (openInstanceEdit)
+        {
+            m_instanceEdit.emplace(container().descriptor());
+        }
+
+        if (m_instanceEdit != std::nullopt && !m_instanceEdit->render())
+        {
+            m_instanceEdit = std::nullopt;
+        }
+    }
+
+    return containerOpen;
+}
+
+void ContainerView::renderEnd()
 {
     constexpr ImGuiTableFlags TableFlags = 
         ImGuiTableFlags_Borders        |
@@ -95,6 +135,7 @@ void ContainerView::render()
     ;
 
     const dots::type::StructDescriptor<>& descriptor = m_container.get().descriptor();
+    std::optional<dots::type::AnyStruct> editInstance;
 
     if (ImGui::BeginTable(descriptor.name().data(), static_cast<int>(descriptor.propertyDescriptors().size()), TableFlags))
     {
@@ -122,8 +163,37 @@ void ContainerView::render()
         for (InstanceView& instanceView : m_instanceViews)
         {
             instanceView.render();
+
+            // context menu
+            {
+                if (ImGui::BeginPopupContextItem(instanceView.widgetId()))
+                {
+                    ImGui::TextColored(ImVec4{ 0.34f, 0.61f, 0.84f, 1.0f }, "struct");
+                    ImGui::SameLine();
+                    ImGui::TextColored(ImVec4{ 0.31f, 0.79f, 0.69f, 1.0f }, "%s", instanceView.instance()._descriptor().name().data());
+
+                    ImGui::Separator();
+
+                    if (ImGui::MenuItem("View/Update"))
+                    {
+                        editInstance = instanceView.instance();
+                    }
+
+                    ImGui::EndPopup();
+                }
+            }
         }
 
         ImGui::EndTable();
     }
+
+    // instance edit
+    {
+        if (editInstance != std::nullopt)
+        {
+            m_instanceEdit.emplace(std::move(*editInstance));
+        }
+    }
+
+    ImGui::TreePop();
 }

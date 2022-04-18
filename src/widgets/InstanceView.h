@@ -1,8 +1,6 @@
 #pragma once
-#include <optional>
 #include <dots/dots.h>
 #include <widgets/PropertyView.h>
-#include <widgets/InstanceEdit.h>
 
 struct ImGuiTableSortSpecs;
 
@@ -16,7 +14,9 @@ struct InstanceView
     InstanceView& operator = (const InstanceView& rhs) = delete;
     InstanceView& operator = (InstanceView&& rhs) = default;
 
+    const char* widgetId() const;
     const dots::type::Struct& instance() const;
+
     bool less(const ImGuiTableSortSpecs& sortSpecs, const InstanceView& other) const;
 
     void update();
@@ -26,10 +26,9 @@ private:
 
     using struct_ref_t = std::reference_wrapper<const dots::type::Struct>;
 
-    inline static uint64_t M_id;
+    inline static uint64_t M_nextWidgetId = 0;
 
-    std::optional<InstanceEdit> m_instanceEdit;
-    std::string m_id;
+    std::string m_widgetId;
     struct_ref_t m_instance;
     std::vector<PropertyView> m_propertyViews;
 };
