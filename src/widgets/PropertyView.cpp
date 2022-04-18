@@ -35,7 +35,8 @@ PropertyView::PropertyView(const dots::type::ProxyProperty<>& property) :
         case dots::type::Type::uuid:
         case dots::type::Type::Vector:
         case dots::type::Type::Struct:
-        default: 
+        default:
+            m_color = ImGui::GetStyle().Colors[ImGuiCol_Text];
             break;
     }
 
@@ -83,17 +84,13 @@ void PropertyView::render()
 {
     if (m_property.isValid())
     {
-        if (m_color == std::nullopt)
-        {
-            ImGui::TextUnformatted(m_value.data());
-        }
-        else
-        {
-            ImGui::TextColored(*m_color, m_value.data());
-        }
+        ImGui::PushStyleColor(ImGuiCol_Text, *m_color);
     }
     else
     {
-        ImGui::TextDisabled(m_value.data());
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
     }
+
+    ImGui::TextUnformatted(m_value.data());
+    ImGui::PopStyleColor();
 }
