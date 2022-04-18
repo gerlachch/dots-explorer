@@ -2,6 +2,7 @@
 #include <string>
 #include <optional>
 #include <dots/dots.h>
+#include <imgui.h>
 
 struct PropertyEdit
 {
@@ -19,9 +20,10 @@ struct PropertyEdit
 
 private:
 
+    std::string m_buffer;
+    std::optional<ImVec4> m_color;
     std::optional<bool> m_inputParsable;
     dots::type::ProxyProperty<> m_property;
-    std::string m_buffer;
     std::string m_header;
     std::string m_label;
 };
