@@ -22,5 +22,6 @@ private:
     std::vector<std::shared_ptr<ContainerView>> m_containerViewsFiltered;
     std::string m_containerFilterBuffer;
     bool m_poolChanged;
+    bool m_showInternal;
     dots::Subscription m_subscription;
 };
