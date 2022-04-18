@@ -1,4 +1,5 @@
 #include <widgets/InstanceEdit.h>
+#include <algorithm>
 #include <imgui.h>
 #include <fmt/format.h>
 
@@ -11,7 +12,7 @@ InstanceEdit::InstanceEdit(dots::type::AnyStruct instance) :
         const dots::type::ProxyProperty<>& property = m_properties.emplace_back(m_instance, propertyPath);
         m_headers.emplace_back(fmt::format("{: >{}}{: >2}: {}", "", 2 * (propertyPath.elements().size() - 1), propertyPath.destination().tag(), propertyPath.destination().name()));
         std::string value = dots::to_string(property);
-        std::string& buffer = m_buffers.emplace_back(128, '\0');
+        std::string& buffer = m_buffers.emplace_back(std::max(value.size(), size_t{ 256 }), '\0');
         std::copy(value.begin(), value.end(), buffer.begin());
         m_labels.emplace_back(fmt::format("##{}", propertyPath.destination().name()));
         m_inputParsable.emplace_back(std::nullopt);
