@@ -1,8 +1,10 @@
 #pragma once
 #include <array>
 #include <vector>
+#include <optional>
 #include <dots/dots.h>
 #include <widgets/ContainerView.h>
+#include <widgets/InstanceEdit.h>
 
 struct PoolView
 {
@@ -19,6 +21,7 @@ struct PoolView
 
 private:
 
+    std::optional<InstanceEdit> m_instanceEdit;
     std::vector<std::shared_ptr<ContainerView>> m_containerViews;
     std::vector<std::shared_ptr<ContainerView>> m_containerViewsFiltered;
     std::array<char, 64> m_containerFilter;

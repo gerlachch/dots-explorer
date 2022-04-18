@@ -75,6 +75,8 @@ void PoolView::render()
         ImGuiTableFlags_ScrollY       |
         ImGuiTableFlags_Sortable
     ;
+
+    const dots::type::StructDescriptor<>* instanceEditDescriptor = nullptr;
     
     if (ImGui::BeginTable("Cached Types", 2, TableFlags, ImGui::GetContentRegionAvail()))
     {
@@ -104,6 +106,24 @@ void PoolView::render()
             ImGui::TableNextColumn();
             bool containerOpen = ImGui::TreeNodeEx(containerView->container().descriptor().name().data(), ImGuiTreeNodeFlags_SpanFullWidth);
 
+            // context menu
+            {
+                if (ImGui::BeginPopupContextItem())
+                {
+                    ImGui::TextColored(ImVec4{ 0.34f, 0.61f, 0.84f, 1.0f }, "struct");
+                    ImGui::SameLine();
+                    ImGui::TextColored(ImVec4{ 0.31f, 0.79f, 0.69f, 1.0f }, "%s", containerView->container().descriptor().name().data());
+                    ImGui::Separator();
+
+                    if (ImGui::MenuItem("Create/Update"))
+                    {
+                        instanceEditDescriptor = &containerView.get()->container().descriptor();
+                    }
+
+                    ImGui::EndPopup();
+                }
+            }
+
             ImGui::TableNextColumn();
             ImGui::Text("%zu", containerView->container().size());
 
@@ -117,5 +137,18 @@ void PoolView::render()
         }
 
         ImGui::EndTable();
+    }
+
+    // instance edit
+    {
+        if (instanceEditDescriptor != nullptr)
+        {
+            m_instanceEdit.emplace(*instanceEditDescriptor);
+        }
+
+        if (m_instanceEdit != std::nullopt && !m_instanceEdit->render())
+        {
+            m_instanceEdit = std::nullopt;
+        }
     }
 }
