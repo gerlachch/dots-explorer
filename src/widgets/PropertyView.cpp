@@ -1,6 +1,7 @@
 #include <widgets/PropertyView.h>
 
 PropertyView::PropertyView(const dots::type::ProxyProperty<>& property) :
+    m_isSelected(false),
     m_valueQuoted(false),
     m_property{ property }
 {
@@ -91,6 +92,6 @@ void PropertyView::render()
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
     }
 
-    ImGui::TextUnformatted(m_value.data());
+    ImGui::Selectable(m_value.data(), false, ImGuiSelectableFlags_SpanAllColumns);
     ImGui::PopStyleColor();
 }

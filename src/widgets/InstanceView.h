@@ -2,6 +2,7 @@
 #include <optional>
 #include <dots/dots.h>
 #include <widgets/PropertyView.h>
+#include <widgets/InstanceEdit.h>
 
 struct ImGuiTableSortSpecs;
 
@@ -24,7 +25,11 @@ struct InstanceView
 private:
 
     using struct_ref_t = std::reference_wrapper<const dots::type::Struct>;
-    
+
+    inline static uint64_t M_id;
+
+    std::optional<InstanceEdit> m_instanceEdit;
+    std::string m_id;
     struct_ref_t m_instance;
     std::vector<PropertyView> m_propertyViews;
 };

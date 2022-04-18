@@ -25,6 +25,7 @@ private:
 
     std::string m_value;
     std::optional<ImVec4> m_color;
+    bool m_isSelected;
     bool m_valueQuoted;
     const dots::type::ProxyProperty<> m_property;
 };
