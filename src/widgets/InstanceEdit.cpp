@@ -49,7 +49,7 @@ bool InstanceEdit::render()
                 ImGui::TableNextColumn();
                 if (property.descriptor().valueDescriptor().type() != dots::type::Type::Struct)
                 {
-                    ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.5f);
+                    ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.65f);
                     std::string& buffer = m_buffers[i];
 
                     if (ImGui::InputText(m_labels[i].data(), buffer.data(), buffer.size()))
