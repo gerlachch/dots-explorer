@@ -204,17 +204,28 @@ void ContainerView::renderEnd()
                         editInstance = instanceView.instance();
                     }
 
-                    if (selection.empty() && ImGui::MenuItem("Remove"))
+                    if (selection.empty() && ImGui::MenuItem("Remove", nullptr, false, ImGui::GetIO().KeyCtrl))
                     {
                         dots::remove(instanceView.instance());
                     }
 
-                    if (!selection.empty() && ImGui::MenuItem("Remove Selection"))
+                    if (!selection.empty() && ImGui::MenuItem("Remove Selection", nullptr, false, ImGui::GetIO().KeyCtrl))
                     {
                         for (const InstanceView& selected : selection)
                         {
                             dots::remove(selected.instance());
                         }
+                    }
+
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("(?)");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+                        ImGui::TextUnformatted("Hold CTRL key to enable.");
+                        ImGui::PopTextWrapPos();
+                        ImGui::EndTooltip();
                     }
 
                     ImGui::EndPopup();
