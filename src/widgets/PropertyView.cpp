@@ -70,7 +70,7 @@ void PropertyView::update()
     {
         m_value.clear();
         m_value += '"';
-        m_value = dots::to_string(m_property);
+        m_value += dots::to_string(m_property);
         m_value += '"';
     }
     else
