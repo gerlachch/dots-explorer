@@ -3,10 +3,9 @@
 #include <regex>
 #include <imgui.h>
 #include <widgets/ContainerView.h>
-#include <DotsDescriptorRequest.dots.h>
 
 PoolView::PoolView() :
-    m_containerFilterBuffer(64, '\0'),
+    m_containerFilterBuffer(256, '\0'),
     m_poolChanged(false),
     m_subscription{ dots::subscribe<dots::type::StructDescriptor<>>({ &PoolView::update, this }) }
 {
