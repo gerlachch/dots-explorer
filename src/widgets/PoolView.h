@@ -24,8 +24,7 @@ private:
     std::optional<InstanceEdit> m_instanceEdit;
     std::vector<std::shared_ptr<ContainerView>> m_containerViews;
     std::vector<std::shared_ptr<ContainerView>> m_containerViewsFiltered;
-    std::array<char, 64> m_containerFilter;
-    bool m_containerFilterChanged;
+    std::string m_containerFilterBuffer;
     bool m_poolChanged;
     dots::Subscription m_subscription;
 };

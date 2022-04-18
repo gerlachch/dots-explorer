@@ -6,7 +6,7 @@
 #include <DotsDescriptorRequest.dots.h>
 
 PoolView::PoolView() :
-    m_containerFilter{},
+    m_containerFilterBuffer(64, '\0'),
     m_poolChanged(false),
     m_subscription{ dots::subscribe<dots::type::StructDescriptor<>>({ &PoolView::update, this }) }
 {
@@ -31,9 +31,9 @@ void PoolView::render()
 
         ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.2f);
-        if (ImGui::InputTextWithHint("##containerFilter", "<none>", m_containerFilter.data(), m_containerFilter.size()) || m_poolChanged)
+        if (ImGui::InputTextWithHint("##containerFilter", "<none>", m_containerFilterBuffer.data(), m_containerFilterBuffer.size()) || m_poolChanged)
         {
-            if (std::string_view containerFilter = m_containerFilter.data(); containerFilter.empty())
+            if (std::string_view containerFilter = m_containerFilterBuffer.data(); containerFilter.empty())
             {
                 m_containerViewsFiltered = m_containerViews;
             }
