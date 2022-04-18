@@ -3,6 +3,7 @@
 #include <fmt/format.h>
 
 InstanceEdit::InstanceEdit(dots::type::AnyStruct instance) :
+    m_popupId{ fmt::format("InstanceEdit-{}_Popup", ++M_id) },
     m_instance{ std::move(instance) }
 {
     for (const dots::type::PropertyPath& propertyPath : m_instance->_descriptor().propertyPaths())
@@ -16,14 +17,14 @@ InstanceEdit::InstanceEdit(dots::type::AnyStruct instance) :
         m_inputParsable.emplace_back(std::nullopt);
     }
 
-    ImGui::OpenPopup("InstanceEdit");
+    ImGui::OpenPopup(m_popupId.data());
 }
 
 bool InstanceEdit::render()
 {
     ImGui::SetNextWindowPos(ImVec2{ ImGui::GetWindowWidth() / 2, ImGui::GetWindowHeight() / 2 }, 0, ImVec2{ 0.5f, 0.5f });
 
-    if (ImGui::BeginPopup("InstanceEdit", ImGuiWindowFlags_NoMove))
+    if (ImGui::BeginPopup(m_popupId.data(), ImGuiWindowFlags_NoMove))
     {
         // header
         {

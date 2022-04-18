@@ -16,7 +16,9 @@ struct InstanceEdit
 
 private:
 
-    bool m_firstRender;
+    inline static uint64_t M_id;
+
+    std::string m_popupId;
     dots::type::AnyStruct m_instance;
     std::vector<dots::type::ProxyProperty<>> m_properties;
     std::vector<std::string> m_headers;
