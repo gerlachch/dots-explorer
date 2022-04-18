@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
-project(dots-imgui LANGUAGES CXX)
-set(TARGET_NAME dots-imgui)
+project(dots-explorer LANGUAGES CXX)
+set(TARGET_NAME dots-explorer)
 
 # includes
 include(FetchContent)
