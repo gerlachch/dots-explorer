@@ -8,6 +8,7 @@ PoolView::PoolView() :
     m_containerFilterBuffer(256, '\0'),
     m_poolChanged(false),
     m_showInternal(false),
+    m_showEmpty(false),
     m_subscription{ dots::subscribe<dots::type::StructDescriptor<>>({ &PoolView::update, this }) }
 {
     /* do nothing */
@@ -58,6 +59,12 @@ void PoolView::render()
             m_poolChanged = true;
         }
 
+        ImGui::SameLine();
+        if (ImGui::Checkbox("Empty", &m_showEmpty))
+        {
+            m_poolChanged = true;
+        }
+
         if (m_poolChanged)
         {
             m_containerViewsFiltered.clear();
@@ -67,7 +74,10 @@ void PoolView::render()
             std::copy_if(m_containerViews.begin(), m_containerViews.end(), std::back_inserter(m_containerViewsFiltered), [&](const auto& containerView)
             {
                 const dots::type::StructDescriptor<>& descriptor = containerView->container().descriptor();
-                return (!descriptor.internal() || m_showInternal) && (containerFilter.empty() || std::regex_search(descriptor.name(), regex));
+                return (!descriptor.internal() || m_showInternal) && 
+                       (containerView->container().size() > 0 || m_showEmpty) &&
+                       (containerFilter.empty() || std::regex_search(descriptor.name(), regex))
+                ;
             });
         }
     }
