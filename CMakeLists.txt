@@ -95,6 +95,7 @@ target_sources(${TARGET_NAME}
         src/widgets/InstanceEdit.cpp
         src/widgets/InstanceView.cpp
         src/widgets/PoolView.cpp
+        src/widgets/PropertyEdit.cpp
         src/widgets/PropertyView.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
         $<$<BOOL:${Vulkan_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp>
