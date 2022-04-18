@@ -1,6 +1,7 @@
 #include <widgets/ContainerView.h>
 #include <imgui.h>
 #include <fmt/format.h>
+#include <DotsClearCache.dots.h>
 
 ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
     m_containerChanged(false),
@@ -94,6 +95,24 @@ bool ContainerView::renderBegin()
             if (ImGui::MenuItem("Create/Update"))
             {
                 openInstanceEdit = true;
+            }
+
+            if (ImGui::MenuItem("Remove All", nullptr, false, ImGui::GetIO().KeyCtrl))
+            {
+                dots::publish(DotsClearCache{ 
+                    DotsClearCache::typeNames_i{ dots::vector_t<dots::string_t>{ container().descriptor().name() } }
+                });
+            }
+
+            ImGui::SameLine();
+            ImGui::TextDisabled("(?)");
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+                ImGui::TextUnformatted("Hold CTRL key to enable.");
+                ImGui::PopTextWrapPos();
+                ImGui::EndTooltip();
             }
 
             ImGui::EndPopup();
