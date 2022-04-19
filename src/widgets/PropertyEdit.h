@@ -23,8 +23,8 @@ private:
     std::string m_buffer;
     std::optional<ImVec4> m_color;
     std::optional<bool> m_inputParsable;
-    dots::type::ProxyProperty<> m_property;
     std::string m_header;
+    dots::type::ProxyProperty<> m_property;
     std::string m_inputLabel;
     std::string m_invalidateLabel;
 };

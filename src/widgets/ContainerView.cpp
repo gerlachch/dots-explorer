@@ -8,7 +8,11 @@ ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
     m_container{ dots::container(descriptor) },
     m_subscription{ dots::subscribe(descriptor, { &ContainerView::update, this }) }
 {
-    /* do nothing */
+    for (const dots::type::PropertyDescriptor& propertyDescriptor : descriptor.propertyDescriptors())
+    {
+        const std::string& name = propertyDescriptor.name();
+        m_headers.emplace_back(propertyDescriptor.isKey() ? fmt::format("{} [key]", name) : name);
+    }
 }
 
 const dots::Container<>& ContainerView::container() const
@@ -159,9 +163,9 @@ void ContainerView::renderEnd()
     if (ImGui::BeginTable(descriptor.name().data(), static_cast<int>(descriptor.propertyDescriptors().size()), TableFlags))
     {
         // create headers
-        for (const dots::type::PropertyDescriptor& propertyDescriptor : descriptor.propertyDescriptors())
+        for (const std::string& header : m_headers)
         {
-            ImGui::TableSetupColumn(propertyDescriptor.name().data());
+            ImGui::TableSetupColumn(header.data());
         }
 
         ImGui::TableHeadersRow();

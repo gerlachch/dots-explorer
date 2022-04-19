@@ -5,7 +5,6 @@
 
 PropertyEdit::PropertyEdit(dots::type::Struct& instance, const dots::type::PropertyPath& propertyPath) :
     m_property{ instance, propertyPath },
-    m_header{ fmt::format("{: >{}}{: >2}: {}", "", 2 * (propertyPath.elements().size() - 1), m_property.descriptor().tag(), m_property.descriptor().name()) },
     m_inputLabel{ fmt::format("##PropertyEdit_{}_Input", m_property.descriptor().name()) },
     m_invalidateLabel{ fmt::format("X##PropertyEdit_{}_Invalidate", m_property.descriptor().name()) }
 {
@@ -45,6 +44,12 @@ PropertyEdit::PropertyEdit(dots::type::Struct& instance, const dots::type::Prope
             m_color = ImVec4{ 0.72f, 0.84f, 0.64f, 1.0f };
             break;
     }
+
+    m_header = fmt::format("{: >{}}{: >2}: {}{}", "", 2 * (propertyPath.elements().size() - 1), 
+        m_property.descriptor().tag(),
+        m_property.descriptor().isKey() ? "[key] " : "",
+        m_property.descriptor().name()
+    );
 }
 
 std::optional<bool> PropertyEdit::inputParsable() const
