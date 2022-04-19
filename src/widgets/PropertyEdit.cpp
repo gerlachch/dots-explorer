@@ -6,7 +6,8 @@
 PropertyEdit::PropertyEdit(dots::type::Struct& instance, const dots::type::PropertyPath& propertyPath) :
     m_property{ instance, propertyPath },
     m_header{ fmt::format("{: >{}}{: >2}: {}", "", 2 * (propertyPath.elements().size() - 1), m_property.descriptor().tag(), m_property.descriptor().name()) },
-    m_label{ fmt::format("##{}", m_property.descriptor().name()) }
+    m_inputLabel{ fmt::format("##PropertyEdit_{}_Input", m_property.descriptor().name()) },
+    m_invalidateLabel{ fmt::format("X##PropertyEdit_{}_Invalidate", m_property.descriptor().name()) }
 {
     std::string value = dots::to_string(m_property);
     m_buffer.assign(std::max(value.size(), size_t{ 256 }), '\0');
@@ -72,21 +73,12 @@ void PropertyEdit::render()
             ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
         }
         ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.65f);
-        if (ImGui::InputText(m_label.data(), m_buffer.data(), m_buffer.size()))
+        if (ImGui::InputText(m_inputLabel.data(), m_buffer.data(), m_buffer.size()))
         {
             try
             {
                 std::string bufferNullTerminated = m_buffer.data();
-
-                if (bufferNullTerminated == "<invalid>")
-                {
-                    m_property.destroy();
-                }
-                else
-                {
-                    dots::from_string(bufferNullTerminated, m_property);
-                }
-
+                dots::from_string(bufferNullTerminated, m_property);
                 m_inputParsable = true;
             }
             catch (...)
@@ -96,6 +88,15 @@ void PropertyEdit::render()
         }
         ImGui::PopItemWidth();
         ImGui::PopStyleColor();
+
+        ImGui::SameLine();
+        if (ImGui::Button(m_invalidateLabel.data()))
+        {
+            constexpr char Invalid[] = "<invalid>";
+            std::copy(Invalid, Invalid + sizeof Invalid, m_buffer.begin());
+            m_inputParsable = true;
+            m_property.destroy();
+        }
 
         ImGui::SameLine();
         if (m_inputParsable != std::nullopt)

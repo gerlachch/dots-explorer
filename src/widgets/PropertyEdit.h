@@ -25,5 +25,6 @@ private:
     std::optional<bool> m_inputParsable;
     dots::type::ProxyProperty<> m_property;
     std::string m_header;
-    std::string m_label;
+    std::string m_inputLabel;
+    std::string m_invalidateLabel;
 };
