@@ -90,6 +90,7 @@ target_sources(${TARGET_NAME}
         src/main.cpp
         $<$<BOOL:${Vulkan_FOUND}>:src/backends/GlfwVulkanBackend.cpp>
         $<$<BOOL:${OpenGL_FOUND}>:src/backends/GlfwOpenGl3Backend.cpp>
+        src/components/HostPanel.cpp
         src/components/MainWindow.cpp
         src/widgets/ContainerView.cpp
         src/widgets/InstanceEdit.cpp
