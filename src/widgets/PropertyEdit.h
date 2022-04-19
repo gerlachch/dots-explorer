@@ -20,10 +20,12 @@ struct PropertyEdit
 
 private:
 
+    using header_part_t = std::pair<std::string, ImVec4>;
+
     std::string m_buffer;
     std::optional<ImVec4> m_color;
     std::optional<bool> m_inputParseable;
-    std::string m_header;
+    std::vector<header_part_t> m_descriptionParts;
     dots::type::ProxyProperty<> m_property;
     std::string m_inputLabel;
     std::string m_invalidateLabel;

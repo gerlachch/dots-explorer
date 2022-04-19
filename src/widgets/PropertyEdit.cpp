@@ -45,11 +45,26 @@ PropertyEdit::PropertyEdit(dots::type::Struct& instance, const dots::type::Prope
             break;
     }
 
-    m_header = fmt::format("{: >{}}{: >2}: {}{}", "", 2 * (propertyPath.elements().size() - 1), 
-        m_property.descriptor().tag(),
-        m_property.descriptor().isKey() ? "[key] " : "",
-        m_property.descriptor().name()
-    );
+    {
+        const dots::type::PropertyDescriptor& descriptor = m_property.descriptor();
+
+        m_descriptionParts.emplace_back(
+            fmt::format("{: >{}}{: >2}:", "", 2 * (propertyPath.elements().size() - 1), descriptor.tag()),
+            ImVec4{ 0.72f, 0.84f, 0.64f, 1.0f }
+        );
+
+        if (descriptor.isKey())
+        {
+            m_descriptionParts.emplace_back("[key]", ImVec4{ 0.34f, 0.61f, 0.84f, 1.0f });
+        }
+
+        m_descriptionParts.emplace_back(
+            descriptor.valueDescriptor().name(),
+            descriptor.valueDescriptor().isFundamentalType() ? ImVec4{ 0.34f, 0.61f, 0.84f, 1.0f } : ImVec4{ 0.31f, 0.79f, 0.69f, 1.0f }
+        );
+
+        m_descriptionParts.emplace_back(descriptor.name(), ImGui::GetStyle().Colors[ImGuiCol_Text]);
+    }
 }
 
 std::optional<bool> PropertyEdit::inputParseable() const
@@ -61,8 +76,26 @@ void PropertyEdit::render()
 {
     ImGui::TableNextRow();
 
-    ImGui::TableNextColumn();
-    ImGui::TextUnformatted(m_header.data());
+    {
+        bool first = true;
+
+        for (const auto& [description, color] : m_descriptionParts)
+        {
+            if (first)
+            {
+                ImGui::TableNextColumn();
+                first = false;
+            }
+            else
+            {
+                ImGui::SameLine();
+            }
+
+            ImGui::PushStyleColor(ImGuiCol_Text, color);
+            ImGui::TextUnformatted(description.data());
+            ImGui::PopStyleColor();
+        }
+    }
 
     ImGui::TableNextColumn();
     if (dots::type::Type type = m_property.descriptor().valueDescriptor().type(); type != dots::type::Type::Struct)
