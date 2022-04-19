@@ -14,7 +14,7 @@ struct PropertyEdit
     PropertyEdit& operator = (const PropertyEdit& rhs) = delete;
     PropertyEdit& operator = (PropertyEdit&& rhs) = default;
 
-    std::optional<bool> inputParsable() const;
+    std::optional<bool> inputParseable() const;
 
     void render();
 
@@ -22,7 +22,7 @@ private:
 
     std::string m_buffer;
     std::optional<ImVec4> m_color;
-    std::optional<bool> m_inputParsable;
+    std::optional<bool> m_inputParseable;
     std::string m_header;
     dots::type::ProxyProperty<> m_property;
     std::string m_inputLabel;

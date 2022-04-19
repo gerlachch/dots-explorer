@@ -42,12 +42,12 @@ bool InstanceEdit::render()
 
         // buttons
         {
-            bool allInputParsable = std::none_of(m_propertyEdits.begin(), m_propertyEdits.end(), [](const PropertyEdit& propertyEdit)
+            bool allInputParseable = std::none_of(m_propertyEdits.begin(), m_propertyEdits.end(), [](const PropertyEdit& propertyEdit)
             {
-                return propertyEdit.inputParsable() == false;
+                return propertyEdit.inputParseable() == false;
             });
 
-            if (allInputParsable)
+            if (allInputParseable)
             {
                 if (ImGui::Button("Publish"))
                 {

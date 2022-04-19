@@ -52,9 +52,9 @@ PropertyEdit::PropertyEdit(dots::type::Struct& instance, const dots::type::Prope
     );
 }
 
-std::optional<bool> PropertyEdit::inputParsable() const
+std::optional<bool> PropertyEdit::inputParseable() const
 {
-    return m_inputParsable;
+    return m_inputParseable;
 }
 
 void PropertyEdit::render()
@@ -89,12 +89,12 @@ void PropertyEdit::render()
                 if (ImGui::Selectable(Items[2], itemIndex == 2))
                 {
                     property.constructOrAssign(true);
-                    m_inputParsable = true;
+                    m_inputParseable = true;
                 }
                 if (ImGui::Selectable(Items[1], itemIndex == 1))
                 {
                     property.constructOrAssign(false);
-                    m_inputParsable = true;
+                    m_inputParseable = true;
                 }
                 ImGui::PopStyleColor();
 
@@ -116,7 +116,7 @@ void PropertyEdit::render()
                     if (ImGui::Selectable(enumeratorDescriptor.name().data(), m_property == value))
                     {
                         m_property.constructOrAssign(value);
-                        m_inputParsable = true;
+                        m_inputParseable = true;
                     }
                 }
                 ImGui::PopStyleColor();
@@ -132,11 +132,11 @@ void PropertyEdit::render()
                 {
                     std::string bufferNullTerminated = m_buffer.data();
                     dots::from_string(bufferNullTerminated, m_property);
-                    m_inputParsable = true;
+                    m_inputParseable = true;
                 }
                 catch (...)
                 {
-                    m_inputParsable = false;
+                    m_inputParseable = false;
                 }
             }
         }
@@ -149,14 +149,14 @@ void PropertyEdit::render()
         {
             constexpr char Invalid[] = "<invalid>";
             std::copy(Invalid, Invalid + sizeof Invalid, m_buffer.begin());
-            m_inputParsable = true;
+            m_inputParseable = true;
             m_property.destroy();
         }
 
         ImGui::SameLine();
-        if (m_inputParsable != std::nullopt)
+        if (m_inputParseable != std::nullopt)
         {
-            if (*m_inputParsable)
+            if (*m_inputParseable)
             {
                 ImGui::TextColored(ImVec4{ 0.0f, 1.0f, 0.0f, 1.0f }, "Ok   ");
             }
