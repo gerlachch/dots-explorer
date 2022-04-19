@@ -75,7 +75,7 @@ void PropertyEdit::render()
         {
             ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
         }
-        ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.65f);
+        ImGui::PushItemWidth(ImGui::GetIO().DisplaySize.x * 0.25f);
 
         if (type == dots::type::Type::boolean)
         {
