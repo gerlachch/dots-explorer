@@ -62,7 +62,7 @@ void PropertyEdit::render()
     ImGui::TextUnformatted(m_header.data());
 
     ImGui::TableNextColumn();
-    if (m_property.descriptor().valueDescriptor().type() != dots::type::Type::Struct)
+    if (dots::type::Type type = m_property.descriptor().valueDescriptor().type(); type != dots::type::Type::Struct)
     {
         if (m_property.isValid())
         {
@@ -73,19 +73,71 @@ void PropertyEdit::render()
             ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
         }
         ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.65f);
-        if (ImGui::InputText(m_inputLabel.data(), m_buffer.data(), m_buffer.size()))
+
+        if (type == dots::type::Type::boolean)
         {
-            try
+            constexpr const char* Items[] = { "<invalid>", "false", "true" };
+            auto property = m_property.to<dots::bool_t>();
+            size_t itemIndex = property.isValid() + property.equal(true);
+
+            if (ImGui::BeginCombo(m_inputLabel.data(), Items[itemIndex]))
             {
-                std::string bufferNullTerminated = m_buffer.data();
-                dots::from_string(bufferNullTerminated, m_property);
-                m_inputParsable = true;
-            }
-            catch (...)
-            {
-                m_inputParsable = false;
+                ImGui::PushStyleColor(ImGuiCol_Text, *m_color);
+                if (ImGui::Selectable(Items[2], itemIndex == 2))
+                {
+                    property.constructOrAssign(true);
+                    m_inputParsable = true;
+                }
+                if (ImGui::Selectable(Items[1], itemIndex == 1))
+                {
+                    property.constructOrAssign(false);
+                    m_inputParsable = true;
+                }
+                ImGui::PopStyleColor();
+
+                ImGui::EndCombo();
             }
         }
+        else if (type == dots::type::Type::Enum)
+        {
+            const auto& enumDescriptor = m_property.descriptor().valueDescriptor().to<dots::type::EnumDescriptor<>>();
+            const char* previewValue = m_property.isValid() ? enumDescriptor.enumeratorFromValue(*m_property).name().data() : "<invalid>";
+
+            if (ImGui::BeginCombo(m_inputLabel.data(), previewValue))
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, *m_color);
+                for (const dots::type::EnumeratorDescriptor<>& enumeratorDescriptor : enumDescriptor.enumeratorsTypeless())
+                {
+                    const auto& value = enumeratorDescriptor.valueTypeless();
+
+                    if (ImGui::Selectable(enumeratorDescriptor.name().data(), m_property == value))
+                    {
+                        m_property.constructOrAssign(value);
+                        m_inputParsable = true;
+                    }
+                }
+                ImGui::PopStyleColor();
+
+                ImGui::EndCombo();
+            }
+        }
+        else
+        {
+            if (ImGui::InputText(m_inputLabel.data(), m_buffer.data(), m_buffer.size()))
+            {
+                try
+                {
+                    std::string bufferNullTerminated = m_buffer.data();
+                    dots::from_string(bufferNullTerminated, m_property);
+                    m_inputParsable = true;
+                }
+                catch (...)
+                {
+                    m_inputParsable = false;
+                }
+            }
+        }
+
         ImGui::PopItemWidth();
         ImGui::PopStyleColor();
 
