@@ -154,7 +154,8 @@ void ContainerView::renderEnd()
         ImGuiTableFlags_SizingFixedFit |
         ImGuiTableFlags_Resizable      |
         ImGuiTableFlags_Sortable       |
-        ImGuiTableFlags_SortMulti
+        ImGuiTableFlags_SortMulti      |
+        ImGuiTableFlags_Hideable
     ;
 
     const dots::type::StructDescriptor<>& descriptor = m_container.get().descriptor();
