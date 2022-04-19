@@ -22,8 +22,8 @@ private:
 
     using header_part_t = std::pair<std::string, ImVec4>;
 
-    std::string m_buffer;
-    std::optional<ImVec4> m_color;
+    std::string m_inputBuffer;
+    std::optional<ImVec4> m_inputColor;
     std::optional<bool> m_inputParseable;
     std::vector<header_part_t> m_descriptionParts;
     dots::type::ProxyProperty<> m_property;

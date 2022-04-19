@@ -8,20 +8,24 @@ PropertyEdit::PropertyEdit(dots::type::Struct& instance, const dots::type::Prope
     m_inputLabel{ fmt::format("##PropertyEdit_{}_Input", m_property.descriptor().name()) },
     m_invalidateLabel{ fmt::format("X##PropertyEdit_{}_Invalidate", m_property.descriptor().name()) }
 {
-    std::string value = dots::to_string(m_property);
-    m_buffer.assign(std::max(value.size(), size_t{ 256 }), '\0');
-    std::copy(value.begin(), value.end(), m_buffer.begin());
+    // init input buffer
+    {
+        std::string value = dots::to_string(m_property);
+        m_inputBuffer.assign(std::max(value.size(), size_t{ 256 }), '\0');
+        std::copy(value.begin(), value.end(), m_inputBuffer.begin());
+    }
 
+    // init input colors
     switch (m_property.descriptor().valueDescriptor().type())
     {
         case dots::type::Type::boolean:
-            m_color = ImVec4{ 0.34f, 0.61f, 0.84f, 1.0f };
+            m_inputColor = ImVec4{ 0.34f, 0.61f, 0.84f, 1.0f };
             break;
         case dots::type::Type::string:
-            m_color = ImVec4{0.91f, 0.79f, 0.73f, 1.0f };
+            m_inputColor = ImVec4{0.91f, 0.79f, 0.73f, 1.0f };
             break;
         case dots::type::Type::Enum:
-            m_color = ImVec4{ 0.75f, 0.72f, 1.00f, 1.0f };
+            m_inputColor = ImVec4{ 0.75f, 0.72f, 1.00f, 1.0f };
             break;
         case dots::type::Type::int8:
         case dots::type::Type::uint8:
@@ -41,10 +45,11 @@ PropertyEdit::PropertyEdit(dots::type::Struct& instance, const dots::type::Prope
         case dots::type::Type::Vector:
         case dots::type::Type::Struct:
         default:
-            m_color = ImVec4{ 0.72f, 0.84f, 0.64f, 1.0f };
+            m_inputColor = ImVec4{ 0.72f, 0.84f, 0.64f, 1.0f };
             break;
     }
 
+    // init description
     {
         const dots::type::PropertyDescriptor& descriptor = m_property.descriptor();
 
@@ -76,6 +81,7 @@ void PropertyEdit::render()
 {
     ImGui::TableNextRow();
 
+    // render description
     {
         bool first = true;
 
@@ -97,12 +103,13 @@ void PropertyEdit::render()
         }
     }
 
+    // render input
     ImGui::TableNextColumn();
     if (dots::type::Type type = m_property.descriptor().valueDescriptor().type(); type != dots::type::Type::Struct)
     {
         if (m_property.isValid())
         {
-            ImGui::PushStyleColor(ImGuiCol_Text, *m_color);
+            ImGui::PushStyleColor(ImGuiCol_Text, *m_inputColor);
         }
         else
         {
@@ -118,7 +125,7 @@ void PropertyEdit::render()
 
             if (ImGui::BeginCombo(m_inputLabel.data(), Items[itemIndex]))
             {
-                ImGui::PushStyleColor(ImGuiCol_Text, *m_color);
+                ImGui::PushStyleColor(ImGuiCol_Text, *m_inputColor);
                 if (ImGui::Selectable(Items[2], itemIndex == 2))
                 {
                     property.constructOrAssign(true);
@@ -141,7 +148,7 @@ void PropertyEdit::render()
 
             if (ImGui::BeginCombo(m_inputLabel.data(), previewValue))
             {
-                ImGui::PushStyleColor(ImGuiCol_Text, *m_color);
+                ImGui::PushStyleColor(ImGuiCol_Text, *m_inputColor);
                 for (const dots::type::EnumeratorDescriptor<>& enumeratorDescriptor : enumDescriptor.enumeratorsTypeless())
                 {
                     const auto& value = enumeratorDescriptor.valueTypeless();
@@ -159,11 +166,11 @@ void PropertyEdit::render()
         }
         else
         {
-            if (ImGui::InputText(m_inputLabel.data(), m_buffer.data(), m_buffer.size()))
+            if (ImGui::InputText(m_inputLabel.data(), m_inputBuffer.data(), m_inputBuffer.size()))
             {
                 try
                 {
-                    std::string bufferNullTerminated = m_buffer.data();
+                    std::string bufferNullTerminated = m_inputBuffer.data();
                     dots::from_string(bufferNullTerminated, m_property);
                     m_inputParseable = true;
                 }
@@ -181,7 +188,7 @@ void PropertyEdit::render()
         if (ImGui::Button(m_invalidateLabel.data()))
         {
             constexpr char Invalid[] = "<invalid>";
-            std::copy(Invalid, Invalid + sizeof Invalid, m_buffer.begin());
+            std::copy(Invalid, Invalid + sizeof Invalid, m_inputBuffer.begin());
             m_inputParseable = true;
             m_property.destroy();
         }
