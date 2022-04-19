@@ -6,7 +6,8 @@
 PropertyEdit::PropertyEdit(dots::type::Struct& instance, const dots::type::PropertyPath& propertyPath) :
     m_property{ instance, propertyPath },
     m_inputLabel{ fmt::format("##PropertyEdit_{}_Input", m_property.descriptor().name()) },
-    m_invalidateLabel{ fmt::format("X##PropertyEdit_{}_Invalidate", m_property.descriptor().name()) }
+    m_invalidateLabel{ fmt::format("X##PropertyEdit_{}_Invalidate", m_property.descriptor().name()) },
+    m_randomizeLabel{ fmt::format("R##PropertyEdit_{}_Randomize", m_property.descriptor().name()) }
 {
     // init input buffer
     {
@@ -191,6 +192,22 @@ void PropertyEdit::render()
             std::copy(Invalid, Invalid + sizeof Invalid, m_inputBuffer.begin());
             m_inputParseable = true;
             m_property.destroy();
+        }
+
+        ImGui::SameLine();
+        if (ImGui::Button(m_randomizeLabel.data()))
+        {
+            if (m_randomizer == std::nullopt)
+            {
+                m_randomizer.emplace(std::random_device{}());
+            }
+
+            m_randomizer->randomize(m_property);
+            std::string value = dots::to_string(m_property);
+            m_inputBuffer.assign(std::max(value.size(), m_inputBuffer.size()), '\0');
+            std::copy(value.begin(), value.end(), m_inputBuffer.begin());
+            
+            m_inputParseable = true;
         }
 
         ImGui::SameLine();

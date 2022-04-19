@@ -3,6 +3,7 @@
 #include <optional>
 #include <dots/dots.h>
 #include <imgui.h>
+#include <tools/TypeRandomizer.h>
 
 struct PropertyEdit
 {
@@ -26,7 +27,9 @@ private:
     std::optional<ImVec4> m_inputColor;
     std::optional<bool> m_inputParseable;
     std::vector<header_part_t> m_descriptionParts;
+    std::optional<dots::type::TypeRandomizer<>> m_randomizer;
     dots::type::ProxyProperty<> m_property;
     std::string m_inputLabel;
     std::string m_invalidateLabel;
+    std::string m_randomizeLabel;
 };
