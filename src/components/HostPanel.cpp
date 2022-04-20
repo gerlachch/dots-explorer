@@ -31,7 +31,7 @@ void HostPanel::render()
             constexpr std::pair<const char*, ImVec4> StateStrs[] =
             {
                 { "[pending]   ", ImVec4{ 0.0f, 1.0f, 0.0f, 1.0f } },
-                { "[connecting]", ImVec4{ 0.0f, 1.0f, 0.0f, 1.0f } },
+                { "[connecting]", ImVec4{ 1.0f, 0.75f, 0.0f, 1.0f } },
                 { "[connected] ", ImVec4{ 0.0f, 1.0f, 0.0f, 1.0f } },
                 { "[error]     ", ImVec4{ 1.0f, 0.0f, 0.0f, 1.0f } }
             };
