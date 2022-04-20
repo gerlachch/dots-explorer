@@ -2,8 +2,9 @@
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
 #include <backends/GlfwBackend.h>
-#include <components/MainWindow.h>
 #include <fmt/format.h>
+#include <components/MainWindow.h>
+#include <common/Settings.h>
 
 int main(int argc, char* argv[])
 {
@@ -16,6 +17,7 @@ int main(int argc, char* argv[])
     ImGui::GetIO().IniFilename = appConfig.data();
     ImGui::GetIO().LogFilename = appLog.data();
 
+    Settings::Init();
     MainWindow mainWindow{ appName, argc, argv };
 
     backend.run([&]

@@ -92,6 +92,7 @@ target_sources(${TARGET_NAME}
         $<$<BOOL:${OpenGL_FOUND}>:src/backends/GlfwOpenGl3Backend.cpp>
         src/components/HostPanel.cpp
         src/components/MainWindow.cpp
+        src/common/Settings.cpp
         src/widgets/ContainerView.cpp
         src/widgets/InstanceEdit.cpp
         src/widgets/InstanceView.cpp
