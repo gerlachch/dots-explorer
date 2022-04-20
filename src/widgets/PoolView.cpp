@@ -8,7 +8,7 @@ PoolView::PoolView() :
     m_containerFilterBuffer(256, '\0'),
     m_poolChanged(false),
     m_showInternal(false),
-    m_showEmpty(false),
+    m_showEmpty(true),
     m_subscription{ dots::subscribe<dots::type::StructDescriptor<>>({ &PoolView::update, this }) }
 {
     /* do nothing */
