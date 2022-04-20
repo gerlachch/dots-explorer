@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <dots/dots.h>
+#include <widgets/PropertyEdit.h>
 
 struct InstanceEdit
 {
@@ -20,9 +21,5 @@ private:
 
     std::string m_popupId;
     dots::type::AnyStruct m_instance;
-    std::vector<dots::type::ProxyProperty<>> m_properties;
-    std::vector<std::string> m_headers;
-    std::vector<std::string> m_buffers;
-    std::vector<std::string> m_labels;
-    std::vector<std::optional<bool>> m_inputParsable;
+    std::vector<PropertyEdit> m_propertyEdits;
 };

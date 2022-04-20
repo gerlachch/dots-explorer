@@ -8,7 +8,11 @@ ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
     m_container{ dots::container(descriptor) },
     m_subscription{ dots::subscribe(descriptor, { &ContainerView::update, this }) }
 {
-    /* do nothing */
+    for (const dots::type::PropertyDescriptor& propertyDescriptor : descriptor.propertyDescriptors())
+    {
+        const std::string& name = propertyDescriptor.name();
+        m_headers.emplace_back(propertyDescriptor.isKey() ? fmt::format("{} [key]", name) : name);
+    }
 }
 
 const dots::Container<>& ContainerView::container() const
@@ -150,7 +154,8 @@ void ContainerView::renderEnd()
         ImGuiTableFlags_SizingFixedFit |
         ImGuiTableFlags_Resizable      |
         ImGuiTableFlags_Sortable       |
-        ImGuiTableFlags_SortMulti
+        ImGuiTableFlags_SortMulti      |
+        ImGuiTableFlags_Hideable
     ;
 
     const dots::type::StructDescriptor<>& descriptor = m_container.get().descriptor();
@@ -159,9 +164,9 @@ void ContainerView::renderEnd()
     if (ImGui::BeginTable(descriptor.name().data(), static_cast<int>(descriptor.propertyDescriptors().size()), TableFlags))
     {
         // create headers
-        for (const dots::type::PropertyDescriptor& propertyDescriptor : descriptor.propertyDescriptors())
+        for (const std::string& header : m_headers)
         {
-            ImGui::TableSetupColumn(propertyDescriptor.name().data());
+            ImGui::TableSetupColumn(header.data());
         }
 
         ImGui::TableHeadersRow();
@@ -204,17 +209,28 @@ void ContainerView::renderEnd()
                         editInstance = instanceView.instance();
                     }
 
-                    if (selection.empty() && ImGui::MenuItem("Remove"))
+                    if (selection.empty() && ImGui::MenuItem("Remove", nullptr, false, ImGui::GetIO().KeyCtrl))
                     {
                         dots::remove(instanceView.instance());
                     }
 
-                    if (!selection.empty() && ImGui::MenuItem("Remove Selection"))
+                    if (!selection.empty() && ImGui::MenuItem("Remove Selection", nullptr, false, ImGui::GetIO().KeyCtrl))
                     {
                         for (const InstanceView& selected : selection)
                         {
                             dots::remove(selected.instance());
                         }
+                    }
+
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("(?)");
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+                        ImGui::TextUnformatted("Hold CTRL key to enable.");
+                        ImGui::PopTextWrapPos();
+                        ImGui::EndTooltip();
                     }
 
                     ImGui::EndPopup();

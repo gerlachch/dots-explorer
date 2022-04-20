@@ -1,21 +1,32 @@
 #include <components/MainWindow.h>
+#include <boost/asio.hpp>
 #include <imgui.h>
+#include <fmt/format.h>
+
+MainWindow::MainWindow(std::string appName, int argc, char** argv) :
+    m_hostPanel{ std::move(appName), argc, argv }
+{
+    /* do nothing */
+}
 
 void MainWindow::render()
 {
-    constexpr ImGuiWindowFlags WindowFlags =
-        ImGuiWindowFlags_NoTitleBar |
-        ImGuiWindowFlags_NoResize   |
-        ImGuiWindowFlags_NoMove
-    ;
-
-    ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
-    ImGui::SetNextWindowPos(ImVec2{ 0.0f, 0.0f });
-
-    if (ImGui::Begin("MainWindow", nullptr, WindowFlags))
+    // render window
     {
-        m_containerPool.render();
-    }
+        constexpr ImGuiWindowFlags WindowFlags =
+           ImGuiWindowFlags_NoTitleBar |
+           ImGuiWindowFlags_NoResize   |
+           ImGuiWindowFlags_NoMove
+       ;
 
-    ImGui::End();
+        ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+        ImGui::SetNextWindowPos(ImVec2{ 0.0f, 0.0f });
+
+        if (ImGui::Begin("MainWindow", nullptr, WindowFlags))
+        {
+            m_hostPanel.render();
+        }
+
+        ImGui::End();
+    }
 }

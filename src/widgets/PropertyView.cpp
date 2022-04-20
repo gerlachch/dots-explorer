@@ -14,6 +14,9 @@ PropertyView::PropertyView(const dots::type::ProxyProperty<>& property) :
             m_color = ImVec4{0.91f, 0.79f, 0.73f, 1.0f };
             m_valueQuoted = true;
             break;
+        case dots::type::Type::Enum:
+            m_color = ImVec4{ 0.75f, 0.72f, 1.00f, 1.0f };
+            break;
         case dots::type::Type::int8:
         case dots::type::Type::uint8:
         case dots::type::Type::int16:
@@ -24,11 +27,6 @@ PropertyView::PropertyView(const dots::type::ProxyProperty<>& property) :
         case dots::type::Type::uint64:
         case dots::type::Type::float32:
         case dots::type::Type::float64:
-            m_color = ImVec4{ 0.72f, 0.84f, 0.64f, 1.0f };
-            break;
-        case dots::type::Type::Enum:
-            m_color = ImVec4{ 0.31f, 0.79f, 0.69f, 1.0f };
-            break;
         case dots::type::Type::property_set:
         case dots::type::Type::timepoint:
         case dots::type::Type::steady_timepoint:
@@ -37,7 +35,7 @@ PropertyView::PropertyView(const dots::type::ProxyProperty<>& property) :
         case dots::type::Type::Vector:
         case dots::type::Type::Struct:
         default:
-            m_color = ImGui::GetStyle().Colors[ImGuiCol_Text];
+            m_color = ImVec4{ 0.72f, 0.84f, 0.64f, 1.0f };
             break;
     }
 

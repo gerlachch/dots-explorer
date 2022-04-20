@@ -9,13 +9,7 @@ InstanceEdit::InstanceEdit(dots::type::AnyStruct instance) :
 {
     for (const dots::type::PropertyPath& propertyPath : m_instance->_descriptor().propertyPaths())
     {
-        const dots::type::ProxyProperty<>& property = m_properties.emplace_back(m_instance, propertyPath);
-        m_headers.emplace_back(fmt::format("{: >{}}{: >2}: {}", "", 2 * (propertyPath.elements().size() - 1), propertyPath.destination().tag(), propertyPath.destination().name()));
-        std::string value = dots::to_string(property);
-        std::string& buffer = m_buffers.emplace_back(std::max(value.size(), size_t{ 256 }), '\0');
-        std::copy(value.begin(), value.end(), buffer.begin());
-        m_labels.emplace_back(fmt::format("##{}", propertyPath.destination().name()));
-        m_inputParsable.emplace_back(std::nullopt);
+        m_propertyEdits.emplace_back(m_instance, propertyPath);
     }
 
     ImGui::OpenPopup(m_popupId.data());
@@ -38,55 +32,9 @@ bool InstanceEdit::render()
         // properties
         if (ImGui::BeginTable("InstanceEditTable", 2))
         {
-            size_t i = 0;
-
-            for (dots::type::ProxyProperty<>& property : m_properties)
+            for (PropertyEdit& propertyEdit : m_propertyEdits)
             {
-                ImGui::TableNextRow();
-
-                ImGui::TableNextColumn();
-                ImGui::TextUnformatted(m_headers[i].data());
-
-                ImGui::TableNextColumn();
-                if (property.descriptor().valueDescriptor().type() != dots::type::Type::Struct)
-                {
-                    ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.65f);
-                    std::string& buffer = m_buffers[i];
-
-                    if (ImGui::InputText(m_labels[i].data(), buffer.data(), buffer.size()))
-                    {
-                        try
-                        {
-                            std::string bufferNullTerminated = buffer.data();
-                            dots::from_string(buffer.data(), property);
-                            m_inputParsable[i] = true;
-                        }
-                        catch (...)
-                        {
-                            m_inputParsable[i] = false;
-                        }
-                    }
-                    ImGui::PopItemWidth();
-
-                    ImGui::SameLine();
-                    if (std::optional<bool> parsable = m_inputParsable[i]; parsable != std::nullopt)
-                    {
-                        if (*parsable)
-                        {
-                            ImGui::TextColored(ImVec4{ 0.0f, 1.0f, 0.0f, 1.0f }, "Ok   ");
-                        }
-                        else
-                        {
-                            ImGui::TextColored(ImVec4{ 1.0f, 0.0f, 0.0f, 1.0f }, "Error");
-                        }
-                    }
-                    else
-                    {
-                        ImGui::TextUnformatted("     ");
-                    }
-                }
-
-                ++i;
+                propertyEdit.render();
             }
             
             ImGui::EndTable();
@@ -94,9 +42,12 @@ bool InstanceEdit::render()
 
         // buttons
         {
-            bool allInputParsable = std::none_of(m_inputParsable.begin(), m_inputParsable.end(), [](std::optional<bool> b){ return b == false; });
+            bool allInputParseable = std::none_of(m_propertyEdits.begin(), m_propertyEdits.end(), [](const PropertyEdit& propertyEdit)
+            {
+                return propertyEdit.inputParseable() == false;
+            });
 
-            if (allInputParsable)
+            if (allInputParseable)
             {
                 if (ImGui::Button("Publish"))
                 {

@@ -29,6 +29,7 @@ private:
 
     std::optional<InstanceEdit> m_instanceEdit;
     std::vector<InstanceView> m_instanceViews;
+    std::vector<std::string> m_headers;
     bool m_containerChanged;
     container_ref_t m_container;
     dots::Subscription m_subscription;
