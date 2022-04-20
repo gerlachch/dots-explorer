@@ -6,7 +6,7 @@ The *dots-explorer* is a utility application for the DOTS IPC system (see [dots-
 
 1. Download latest [official release](https://github.com/gerlachch/dots-explorer/releases).
 2. Unpack to suitable directory.
-3. Launch without arguments to connect to local DOTS host or specify endpoint via `--dots-endpoint` (see [here](https://github.com/pnxs/dots-cpp/tree/master/bin/dotsd#usage) for details).
+3. Launch without arguments.
 
 # Overview
 
@@ -61,11 +61,7 @@ cmake -G Ninja -B ./build/ && cmake --build ./build/
 Run:
 
 ```sh
-# connect to default tcp://127.0.0.1:11234 endpoint
 ./build/dots-explorer
-
-# connect to custom endpoint (e.g. a UNIX domain socket)
-./build/dots-explorer --dots-endpoint=uds:/run/dots.socket
 ```
 
 # License

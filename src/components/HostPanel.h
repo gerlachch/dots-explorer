@@ -2,11 +2,18 @@
 #include <string>
 #include <future>
 #include <widgets/PoolView.h>
-#include <dots/Application.h>
+#include <dots/dots.h>
 
 struct HostPanel
 {
-    HostPanel(std::string appName, int argc, char** argv);
+    HostPanel(std::string appName, std::string endpoint);
+    HostPanel(const HostPanel& other) = delete;
+    HostPanel(HostPanel&& other) = delete;
+    ~HostPanel();
+
+    HostPanel& operator =(const HostPanel& rhs) = delete;
+    HostPanel& operator =(HostPanel&& rhs) = delete;
+
     void render();
 
 private:
@@ -20,13 +27,13 @@ private:
     };
 
     void update();
+    void handleTransceiverTransition(const dots::Connection& connection, std::exception_ptr ePtr);
 
-    std::optional<dots::Application> m_application;
     std::optional<PoolView> m_poolView;
     std::optional<std::future<void>> m_connectTask;
+    std::exception_ptr m_connectionError;
     State m_state;
     bool m_autoReconnect;
     std::string m_appName;
-    int m_argc;
-    char** m_argv;
+    std::string m_endpoint;
 };

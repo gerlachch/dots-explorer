@@ -2,16 +2,26 @@
 #include <boost/asio.hpp>
 #include <imgui.h>
 #include <fmt/format.h>
+#include <dots/io/Io.h>
 #include <common/Colors.h>
+#include <DotsDescriptorRequest.dots.h>
 
-HostPanel::HostPanel(std::string appName, int argc, char** argv) :
+HostPanel::HostPanel(std::string appName, std::string endpoint) :
     m_state(State::Pending),
     m_autoReconnect(false),
     m_appName{ std::move(appName) },
-    m_argc(argc),
-    m_argv(argv)
+    m_endpoint{ std::move(endpoint) }
 {
     /* do nothing */
+}
+
+HostPanel::~HostPanel()
+{
+    boost::asio::io_context& ioContext = dots::io::global_io_context();
+    ioContext.stop();
+    dots::global_transceiver().reset();
+    ioContext.restart();
+    ioContext.poll();
 }
 
 void HostPanel::render()
@@ -21,31 +31,9 @@ void HostPanel::render()
 
     // render panel
     {
-        // render host label
-        {
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Host  ");
-        }
-
-        // render connection state
-        {
-            constexpr std::pair<const char*, ImVec4> StateStrs[] =
-            {
-                { "[pending]   ", ColorThemeActive.Pending },
-                { "[connecting]", ColorThemeActive.Pending },
-                { "[connected] ", ColorThemeActive.Success },
-                { "[error]     ", ColorThemeActive.Error }
-            };
-
-            auto [stateStr, stateColor] = StateStrs[static_cast<uint8_t>(m_state)];
-            ImGui::SameLine();
-            ImGui::TextColored(stateColor, stateStr);
-        }
-
         // render reconnect button
         {
             constexpr char ConnectLabel[] = "Reconnect";
-            ImGui::SameLine();
 
             if (m_state == State::Error)
             {
@@ -73,6 +61,21 @@ void HostPanel::render()
             }
         }
 
+        // render connection state
+        {
+            constexpr std::pair<const char*, ImVec4> StateStrs[] =
+            {
+                { "[pending]   ", ColorThemeActive.Pending },
+                { "[connecting]", ColorThemeActive.Pending },
+                { "[connected] ", ColorThemeActive.Success },
+                { "[error]     ", ColorThemeActive.Error }
+            };
+
+            auto [stateStr, stateColor] = StateStrs[static_cast<uint8_t>(m_state)];
+            ImGui::SameLine();
+            ImGui::TextColored(stateColor, stateStr);
+        }
+
         // render pool view
         if (m_state == State::Connected)
         {
@@ -89,7 +92,31 @@ void HostPanel::update()
         case State::Pending:
             m_connectTask = std::async(std::launch::async, [this]
             {
-                m_application.emplace(m_appName, m_argc, m_argv);
+                using transition_handler_t = dots::GuestTransceiver::transition_handler_t;
+                dots::GuestTransceiver& transceiver = dots::global_transceiver().emplace(
+                    m_appName,
+                    dots::io::global_io_context(),
+                    dots::type::Registry::StaticTypePolicy::All,
+                    transition_handler_t{ &HostPanel::handleTransceiverTransition, this }
+                );
+                transceiver.open(dots::io::Endpoint{ m_endpoint });
+
+                for (;;)
+                {
+                    if (m_connectionError != nullptr)
+                    {
+                        std::rethrow_exception(m_connectionError);
+                    }
+
+                    if (transceiver.connected())
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        dots::global_transceiver()->ioContext().run_one();
+                    }
+                }
             });
             m_state = State::Connecting;
             break;
@@ -110,9 +137,19 @@ void HostPanel::update()
             }
             break;
         case State::Connected:
-            m_application->transceiver().ioContext().poll();
+            dots::global_transceiver()->ioContext().poll();
             break;
         case State::Error:
             break;
+    }
+}
+
+void HostPanel::handleTransceiverTransition(const dots::Connection& connection, std::exception_ptr ePtr)
+{
+    m_connectionError = ePtr;
+
+    if (connection.closed())
+    {
+        m_state = State::Error;
     }
 }

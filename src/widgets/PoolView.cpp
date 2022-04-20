@@ -43,7 +43,7 @@ void PoolView::render()
         ImGui::TextUnformatted("Filter");
 
         ImGui::SameLine();
-        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.2f);
+        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f);
         m_poolChanged |= ImGui::InputTextWithHint("##containerFilter", "<none>", m_containerFilterBuffer.data(), m_containerFilterBuffer.size());
         ImGui::PopItemWidth();
         

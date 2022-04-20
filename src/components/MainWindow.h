@@ -4,10 +4,12 @@
 
 struct MainWindow
 {
-    MainWindow(std::string appName, int argc, char** argv);
+    MainWindow(std::string appName);
     void render();
 
 private:
 
-    HostPanel m_hostPanel;
+    std::optional<HostPanel> m_hostPanel;
+    std::string m_endpointBuffer;
+    std::string m_appName;
 };

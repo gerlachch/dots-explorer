@@ -6,7 +6,7 @@
 #include <components/MainWindow.h>
 #include <common/Settings.h>
 
-int main(int argc, char* argv[])
+int main()
 {
     std::string appName = "dots-explorer";
     std::string appTitle = fmt::format("{}", appName);
@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
     ImGui::GetIO().LogFilename = appLog.data();
 
     Settings::Init();
-    MainWindow mainWindow{ appName, argc, argv };
+    MainWindow mainWindow{ appName };
 
     backend.run([&]
     {
