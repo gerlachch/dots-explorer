@@ -8,18 +8,30 @@ PoolView::PoolView() :
     m_containerFilterBuffer(256, '\0'),
     m_poolChanged(false),
     m_showInternal(false),
-    m_showEmpty(true),
-    m_subscription{ dots::subscribe<dots::type::StructDescriptor<>>({ &PoolView::update, this }) }
+    m_showEmpty(false)
 {
     /* do nothing */
+    m_subscriptions.emplace_back(dots::subscribe<dots::type::StructDescriptor<>>({ &PoolView::update, this }));
 }
 
 void PoolView::update(const dots::type::StructDescriptor<>& descriptor)
 {
     if (descriptor.cached() && !descriptor.substructOnly())
     {
-        m_containerViews.emplace_back(std::make_shared<ContainerView>(descriptor));
+        ContainerView& containerView = *m_containerViews.emplace_back(std::make_shared<ContainerView>(descriptor));
         m_poolChanged = true;
+
+        m_subscriptions.emplace_back(dots::subscribe(descriptor, [this, &containerView](const dots::Event<>& event)
+        {
+            containerView.update(event);
+
+            if (!m_showEmpty &&
+                (event.isCreate() && containerView.container().size() == 1) || 
+                (event.isRemove() && containerView.container().empty()))
+            {
+                m_poolChanged = true;
+            }
+        }));
     }
 }
 

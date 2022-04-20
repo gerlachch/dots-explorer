@@ -5,8 +5,7 @@
 
 ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
     m_containerChanged(false),
-    m_container{ dots::container(descriptor) },
-    m_subscription{ dots::subscribe(descriptor, { &ContainerView::update, this }) }
+    m_container{ dots::container(descriptor) }
 {
     for (const dots::type::PropertyDescriptor& propertyDescriptor : descriptor.propertyDescriptors())
     {
