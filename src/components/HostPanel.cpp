@@ -5,6 +5,7 @@
 
 HostPanel::HostPanel(std::string appName, int argc, char** argv) :
     m_state(State::Pending),
+    m_autoReconnect(false),
     m_appName{ std::move(appName) },
     m_argc(argc),
     m_argv(argv)
@@ -25,7 +26,22 @@ void HostPanel::render()
             ImGui::TextUnformatted("Host  ");
         }
 
-        // render connect button
+        // render connection state
+        {
+            constexpr std::pair<const char*, ImVec4> StateStrs[] =
+            {
+                { "[pending]   ", ImVec4{ 0.0f, 1.0f, 0.0f, 1.0f } },
+                { "[connecting]", ImVec4{ 0.0f, 1.0f, 0.0f, 1.0f } },
+                { "[connected] ", ImVec4{ 0.0f, 1.0f, 0.0f, 1.0f } },
+                { "[error]     ", ImVec4{ 1.0f, 0.0f, 0.0f, 1.0f } }
+            };
+
+            auto [stateStr, stateColor] = StateStrs[static_cast<uint8_t>(m_state)];
+            ImGui::SameLine();
+            ImGui::TextColored(stateColor, stateStr);
+        }
+
+        // render reconnect button
         {
             constexpr char ConnectLabel[] = "Reconnect";
             ImGui::SameLine();
@@ -45,19 +61,15 @@ void HostPanel::render()
             }
         }
 
-        // render connection state
+        // render auto reconnect option
         {
-            constexpr std::pair<const char*, ImVec4> StateStrs[] =
-            {
-                { "[pending]   ", ImVec4{ 0.0f, 1.0f, 0.0f, 1.0f } },
-                { "[connecting]", ImVec4{ 0.0f, 1.0f, 0.0f, 1.0f } },
-                { "[connected] ", ImVec4{ 0.0f, 1.0f, 0.0f, 1.0f } },
-                { "[error]     ", ImVec4{ 1.0f, 0.0f, 0.0f, 1.0f } }
-            };
-
-            auto [stateStr, stateColor] = StateStrs[static_cast<uint8_t>(m_state)];
             ImGui::SameLine();
-            ImGui::TextColored(stateColor, stateStr);
+            ImGui::Checkbox("Auto", &m_autoReconnect);
+
+            if (m_autoReconnect && m_state == State::Error)
+            {
+                m_state = State::Pending;
+            }
         }
 
         // render pool view

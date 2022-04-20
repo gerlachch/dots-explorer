@@ -25,6 +25,7 @@ private:
     std::optional<PoolView> m_poolView;
     std::optional<std::future<void>> m_connectTask;
     State m_state;
+    bool m_autoReconnect;
     std::string m_appName;
     int m_argc;
     char** m_argv;
