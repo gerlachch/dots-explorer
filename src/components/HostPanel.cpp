@@ -2,6 +2,7 @@
 #include <boost/asio.hpp>
 #include <imgui.h>
 #include <fmt/format.h>
+#include <common/Colors.h>
 
 HostPanel::HostPanel(std::string appName, int argc, char** argv) :
     m_state(State::Pending),
@@ -30,10 +31,10 @@ void HostPanel::render()
         {
             constexpr std::pair<const char*, ImVec4> StateStrs[] =
             {
-                { "[pending]   ", ImVec4{ 0.0f, 1.0f, 0.0f, 1.0f } },
-                { "[connecting]", ImVec4{ 1.0f, 0.75f, 0.0f, 1.0f } },
-                { "[connected] ", ImVec4{ 0.0f, 1.0f, 0.0f, 1.0f } },
-                { "[error]     ", ImVec4{ 1.0f, 0.0f, 0.0f, 1.0f } }
+                { "[pending]   ", ColorThemeActive.Pending },
+                { "[connecting]", ColorThemeActive.Pending },
+                { "[connected] ", ColorThemeActive.Success },
+                { "[error]     ", ColorThemeActive.Error }
             };
 
             auto [stateStr, stateColor] = StateStrs[static_cast<uint8_t>(m_state)];

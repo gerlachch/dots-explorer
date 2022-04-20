@@ -1,6 +1,7 @@
 #include <widgets/ContainerView.h>
 #include <imgui.h>
 #include <fmt/format.h>
+#include <common/Colors.h>
 #include <DotsClearCache.dots.h>
 
 ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
@@ -90,9 +91,9 @@ bool ContainerView::renderBegin()
     {
         if (ImGui::BeginPopupContextItem())
         {
-            ImGui::TextColored(ImVec4{ 0.34f, 0.61f, 0.84f, 1.0f }, "struct");
+            ImGui::TextColored(ColorThemeActive.Keyword, "struct");
             ImGui::SameLine();
-            ImGui::TextColored(ImVec4{ 0.31f, 0.79f, 0.69f, 1.0f }, "%s", container().descriptor().name().data());
+            ImGui::TextColored(ColorThemeActive.UserType, "%s", container().descriptor().name().data());
             ImGui::Separator();
 
             if (ImGui::MenuItem("Create/Update"))
@@ -191,9 +192,9 @@ void ContainerView::renderEnd()
             {
                 if (ImGui::BeginPopupContextItem(instanceView.widgetId()))
                 {
-                    ImGui::TextColored(ImVec4{ 0.34f, 0.61f, 0.84f, 1.0f }, "struct");
+                    ImGui::TextColored(ColorThemeActive.Keyword, "struct");
                     ImGui::SameLine();
-                    ImGui::TextColored(ImVec4{ 0.31f, 0.79f, 0.69f, 1.0f }, "%s", instanceView.instance()._descriptor().name().data());
+                    ImGui::TextColored(ColorThemeActive.UserType, "%s", instanceView.instance()._descriptor().name().data());
 
                     ImGui::Separator();
 

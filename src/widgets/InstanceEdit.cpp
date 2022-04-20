@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <imgui.h>
 #include <fmt/format.h>
+#include <common/Colors.h>
 
 InstanceEdit::InstanceEdit(dots::type::AnyStruct instance) :
     m_popupId{ fmt::format("InstanceEdit-{}_Popup", ++M_id) },
@@ -23,9 +24,9 @@ bool InstanceEdit::render()
     {
         // header
         {
-            ImGui::TextColored(ImVec4{ 0.34f, 0.61f, 0.84f, 1.0f }, "struct");
+            ImGui::TextColored(ColorThemeActive.Keyword, "struct");
             ImGui::SameLine();
-            ImGui::TextColored(ImVec4{ 0.31f, 0.79f, 0.69f, 1.0f }, "%s", m_instance->_descriptor().name().data());
+            ImGui::TextColored(ColorThemeActive.UserType, "%s", m_instance->_descriptor().name().data());
             ImGui::Separator();
         }
 
