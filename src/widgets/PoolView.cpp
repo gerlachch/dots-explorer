@@ -47,11 +47,24 @@ void PoolView::render()
         m_poolChanged |= ImGui::InputTextWithHint("##containerFilter", "<none>", m_containerFilterBuffer.data(), m_containerFilterBuffer.size());
         ImGui::PopItemWidth();
         
-        ImGui::SameLine();
-        if (ImGui::Button("Clear"))
         {
-            m_containerFilterBuffer.assign(m_containerFilterBuffer.size(), '\0');
-            m_poolChanged = true;
+            ImGui::SameLine();
+            constexpr char ClearLabel[] = "Clear";
+
+            if (m_containerFilterBuffer.front() == '\0')
+            {
+                ImGui::BeginDisabled();
+                ImGui::Button(ClearLabel);
+                ImGui::EndDisabled();
+            }
+            else
+            {
+                if (ImGui::Button(ClearLabel))
+                {
+                    m_containerFilterBuffer.assign(m_containerFilterBuffer.size(), '\0');
+                    m_poolChanged = true;
+                }
+            }
         }
 
         ImGui::SameLine();
