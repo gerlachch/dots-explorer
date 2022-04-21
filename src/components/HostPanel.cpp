@@ -136,9 +136,20 @@ void HostPanel::render()
         {
             ImGui::SameLine();
 
-            if (ImGui::Button("Connect"))
+            if (m_state == State::Connected)
             {
-                m_state = State::Pending;
+                if (ImGui::Button("Disconnect"))
+                {
+                    *m_hostSettings.autoConnect = false;
+                    disconnect();
+                }
+            }
+            else
+            {
+                if (ImGui::Button("Connect"))
+                {
+                    m_state = State::Pending;
+                }
             }
         }
         ImGui::EndDisabled();
