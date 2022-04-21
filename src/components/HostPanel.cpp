@@ -6,22 +6,19 @@
 #include <common/Colors.h>
 #include <DotsDescriptorRequest.dots.h>
 
-HostPanel::HostPanel(std::string appName, std::string endpoint) :
-    m_state(State::Pending),
-    m_autoReconnect(false),
-    m_appName{ std::move(appName) },
-    m_endpoint{ std::move(endpoint) }
+HostPanel::HostPanel(std::string appName) :
+    m_state(State::Disconnected),
+    m_autoConnect(false),
+    m_endpointBuffer(256, '\0'),
+    m_appName{ std::move(appName) }
 {
-    /* do nothing */
+    std::string_view defaultHost = "tcp://127.0.0.1:11234";
+    std::copy(defaultHost.begin(), defaultHost.end(), m_endpointBuffer.begin());
 }
 
 HostPanel::~HostPanel()
 {
-    boost::asio::io_context& ioContext = dots::io::global_io_context();
-    ioContext.stop();
-    dots::global_transceiver().reset();
-    ioContext.restart();
-    ioContext.poll();
+    disconnect();
 }
 
 void HostPanel::render()
@@ -31,44 +28,49 @@ void HostPanel::render()
 
     // render panel
     {
-        // render reconnect button
+        // render host label
         {
-            constexpr char ConnectLabel[] = "Reconnect";
-
-            if (m_state == State::Error)
-            {
-                if (ImGui::Button(ConnectLabel))
-                {
-                    m_state = State::Pending;
-                }
-            }
-            else
-            {
-                ImGui::BeginDisabled();
-                ImGui::Button(ConnectLabel);
-                ImGui::EndDisabled();
-            }
+            ImGui::AlignTextToFramePadding();
+            ImGui::TextUnformatted("Host  ");
         }
 
-        // render auto reconnect option
+        // render host input
         {
             ImGui::SameLine();
-            ImGui::Checkbox("Auto", &m_autoReconnect);
-
-            if (m_autoReconnect && m_state == State::Error)
+            ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f);
+            if (ImGui::InputTextWithHint("##Host", "<host-endpoint>",  m_endpointBuffer.data(), m_endpointBuffer.size(), ImGuiInputTextFlags_EnterReturnsTrue))
             {
+                m_state = State::Pending;
+            }
+            ImGui::PopItemWidth();
+        }
+
+        // render auto connect option
+        {
+            ImGui::SameLine();
+            ImGui::Checkbox("Auto", &m_autoConnect);
+        }
+
+        // render connect button
+        {
+            ImGui::SameLine();
+
+            if (ImGui::Button("Connect") || (m_autoConnect && (m_state == State::Disconnected || m_state == State::Error)))
+            {
+                disconnect();
                 m_state = State::Pending;
             }
         }
 
         // render connection state
         {
-            constexpr std::pair<const char*, ImVec4> StateStrs[] =
+            std::pair<const char*, ImVec4> StateStrs[] =
             {
-                { "[pending]   ", ColorThemeActive.Pending },
-                { "[connecting]", ColorThemeActive.Pending },
-                { "[connected] ", ColorThemeActive.Success },
-                { "[error]     ", ColorThemeActive.Error }
+                { "[disconnected]", ImGui::GetStyle().Colors[ImGuiCol_TextDisabled] },
+                { "[pending]     ", ColorThemeActive.Pending },
+                { "[connecting]  ", ColorThemeActive.Pending },
+                { "[connected]   ", ColorThemeActive.Success },
+                { "[error]       ", ColorThemeActive.Error }
             };
 
             auto [stateStr, stateColor] = StateStrs[static_cast<uint8_t>(m_state)];
@@ -85,10 +87,31 @@ void HostPanel::render()
     }
 }
 
+void HostPanel::disconnect()
+{
+    boost::asio::io_context& ioContext = dots::io::global_io_context();
+
+    try
+    {
+        ioContext.stop();
+        dots::global_transceiver().reset();
+        ioContext.restart();
+        ioContext.poll();
+    }
+    catch (...)
+    {
+    }
+
+    ioContext.restart();
+    m_state = State::Disconnected;
+}
+
 void HostPanel::update()
 {
     switch (m_state)
     {
+        case State::Disconnected:
+            break;
         case State::Pending:
             m_connectTask = std::async(std::launch::async, [this]
             {
@@ -99,7 +122,7 @@ void HostPanel::update()
                     dots::type::Registry::StaticTypePolicy::All,
                     transition_handler_t{ &HostPanel::handleTransceiverTransition, this }
                 );
-                transceiver.open(dots::io::Endpoint{ m_endpoint });
+                transceiver.open(dots::io::Endpoint{ m_endpointBuffer.data() });
 
                 for (;;)
                 {

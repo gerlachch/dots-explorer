@@ -9,7 +9,5 @@ struct MainWindow
 
 private:
 
-    std::optional<HostPanel> m_hostPanel;
-    std::string m_endpointBuffer;
-    std::string m_appName;
+    HostPanel m_hostPanel;
 };
