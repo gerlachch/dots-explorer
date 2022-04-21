@@ -4,16 +4,17 @@
 #include <fmt/format.h>
 #include <dots/io/Io.h>
 #include <common/Colors.h>
+#include <common/Settings.h>
 #include <DotsDescriptorRequest.dots.h>
 
 HostPanel::HostPanel(std::string appName) :
     m_state(State::Disconnected),
-    m_autoConnect(false),
-    m_endpointBuffer(256, '\0'),
+    m_selectedHost(nullptr),
+    m_deltaSinceError(0.0f),
+    m_hostSettings{ Settings::Register<HostSettings>() },
     m_appName{ std::move(appName) }
 {
-    std::string_view defaultHost = "tcp://127.0.0.1:11234";
-    std::copy(defaultHost.begin(), defaultHost.end(), m_endpointBuffer.begin());
+    /* do nothing */
 }
 
 HostPanel::~HostPanel()
@@ -26,6 +27,9 @@ void HostPanel::render()
     // update state
     update();
 
+    bool openHostSettingsEdit = false;
+    Host* editHost = nullptr;
+
     // render panel
     {
         // render host label
@@ -34,13 +38,85 @@ void HostPanel::render()
             ImGui::TextUnformatted("Host  ");
         }
 
-        // render host input
+        dots::vector_t<Host>& hosts = m_hostSettings.hosts.constructOrValue();
+
+        // ensure hosts are valid
         {
+            if (hosts.empty() || !std::all_of(hosts.begin(), hosts.end(), [](const Host& host){ return host._hasProperties(host._properties()); }))
+            {
+                hosts.clear();
+                hosts.emplace_back(Host::endpoint_i{ "tcp://127.0.0.1:11234" }, Host::description_i{ "localhost (default)" });
+            }
+
+            if (!m_hostSettings.selectedHost.isValid() || *m_hostSettings.selectedHost >= hosts.size())
+            {
+                m_hostSettings.selectedHost = 0;
+            }
+
+            m_hostSettings.autoConnect.constructOrValue();
+        }
+
+        ImGui::BeginDisabled(m_state == State::Connecting);
+        m_selectedHost = &hosts[m_hostSettings.selectedHost];
+
+        // render hosts list
+        {
+            auto create_host_label = [this](const Host& host)
+            {
+                m_hostLabel.clear();
+                m_hostLabel += host.description;
+                m_hostLabel += " [";
+                m_hostLabel += host.endpoint;
+                m_hostLabel += "]";
+                return m_hostLabel.data();
+            };
+
             ImGui::SameLine();
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f);
-            if (ImGui::InputTextWithHint("##Host", "<host-endpoint>",  m_endpointBuffer.data(), m_endpointBuffer.size(), ImGuiInputTextFlags_EnterReturnsTrue))
+            if (ImGui::BeginCombo("##Hosts", create_host_label(*m_selectedHost)))
             {
-                m_state = State::Pending;
+                if (ImGui::Selectable("<New"))
+                {
+                    openHostSettingsEdit = true;
+                }
+
+                if (ImGui::Selectable("<Edit>"))
+                {
+                    openHostSettingsEdit = true;
+                    editHost = m_selectedHost;
+                }
+
+                if (hosts.size() > 1)
+                {
+                    if (ImGui::Selectable("<Remove>"))
+                    {
+                        hosts.erase(hosts.begin() + m_hostSettings.selectedHost);
+
+                        if (*m_hostSettings.selectedHost >= hosts.size())
+                        {
+                            --*m_hostSettings.selectedHost;
+                            m_selectedHost = &hosts[m_hostSettings.selectedHost];
+                        }
+                    }
+                }
+
+                ImGui::Separator();
+
+                uint32_t i = 0;
+
+                for (Host& host : hosts)
+                {
+                    if (ImGui::Selectable(create_host_label(host), i == m_hostSettings.selectedHost) && i != m_hostSettings.selectedHost)
+                    {
+                        m_hostSettings.selectedHost = i;
+                        m_selectedHost = &host;
+                        m_state = State::Pending;
+                    }
+
+                    ++i;
+                }
+
+                ImGui::EndCombo();
             }
             ImGui::PopItemWidth();
         }
@@ -48,19 +124,24 @@ void HostPanel::render()
         // render auto connect option
         {
             ImGui::SameLine();
-            ImGui::Checkbox("Auto", &m_autoConnect);
+            ImGui::Checkbox("Auto", &*m_hostSettings.autoConnect);
+
+            if (*m_hostSettings.autoConnect && (m_state == State::Disconnected || m_state == State::Error && m_deltaSinceError > 5.0f))
+            {
+                m_state = State::Pending;
+            }
         }
 
         // render connect button
         {
             ImGui::SameLine();
 
-            if (ImGui::Button("Connect") || (m_autoConnect && (m_state == State::Disconnected || m_state == State::Error)))
+            if (ImGui::Button("Connect"))
             {
-                disconnect();
                 m_state = State::Pending;
             }
         }
+        ImGui::EndDisabled();
 
         // render connection state
         {
@@ -78,11 +159,25 @@ void HostPanel::render()
             ImGui::TextColored(stateColor, stateStr);
         }
 
+        ImGui::Separator();
+
         // render pool view
         if (m_state == State::Connected)
         {
-            ImGui::Separator();
             m_poolView->render();
+        }
+    }
+
+    // render host settings edit
+    {
+        if (openHostSettingsEdit)
+        {
+            m_hostSettingsEdit.emplace(m_hostSettings, editHost);
+        }
+
+        if (m_hostSettingsEdit != std::nullopt && !m_hostSettingsEdit->render())
+        {
+            m_hostSettingsEdit = std::nullopt;
         }
     }
 }
@@ -113,6 +208,7 @@ void HostPanel::update()
         case State::Disconnected:
             break;
         case State::Pending:
+            disconnect();
             m_connectTask = std::async(std::launch::async, [this]
             {
                 using transition_handler_t = dots::GuestTransceiver::transition_handler_t;
@@ -122,7 +218,7 @@ void HostPanel::update()
                     dots::type::Registry::StaticTypePolicy::All,
                     transition_handler_t{ &HostPanel::handleTransceiverTransition, this }
                 );
-                transceiver.open(dots::io::Endpoint{ m_endpointBuffer.data() });
+                transceiver.open(dots::io::Endpoint{ m_selectedHost->endpoint->data() });
 
                 for (;;)
                 {
@@ -156,6 +252,7 @@ void HostPanel::update()
             }
             catch (...)
             {
+                m_deltaSinceError = 0.0f;
                 m_state = State::Error;
             }
             break;
@@ -163,6 +260,7 @@ void HostPanel::update()
             dots::global_transceiver()->ioContext().poll();
             break;
         case State::Error:
+            m_deltaSinceError += ImGui::GetIO().DeltaTime;
             break;
     }
 }
@@ -173,6 +271,7 @@ void HostPanel::handleTransceiverTransition(const dots::Connection& connection, 
 
     if (connection.closed())
     {
+        m_deltaSinceError = 0.0f;
         m_state = State::Error;
     }
 }

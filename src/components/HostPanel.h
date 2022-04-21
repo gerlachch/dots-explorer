@@ -1,8 +1,10 @@
 #pragma once
 #include <string>
 #include <future>
-#include <widgets/PoolView.h>
 #include <dots/dots.h>
+#include <widgets/HostSettingsEdit.h>
+#include <widgets/PoolView.h>
+#include <HostSettings.dots.h>
 
 struct HostPanel
 {
@@ -31,11 +33,14 @@ private:
     void update();
     void handleTransceiverTransition(const dots::Connection& connection, std::exception_ptr ePtr);
 
+    std::optional<HostSettingsEdit> m_hostSettingsEdit;
     std::optional<PoolView> m_poolView;
     std::optional<std::future<void>> m_connectTask;
     std::exception_ptr m_connectionError;
     State m_state;
-    bool m_autoConnect;
-    std::string m_endpointBuffer;
+    Host* m_selectedHost;
+    float m_deltaSinceError;
+    HostSettings& m_hostSettings;
+    std::string m_hostLabel;
     std::string m_appName;
 };
