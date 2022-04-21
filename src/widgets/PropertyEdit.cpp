@@ -115,7 +115,7 @@ void PropertyEdit::render()
         }
         else
         {
-            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+            ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.Disabled);
         }
         ImGui::PushItemWidth(ImGui::GetIO().DisplaySize.x * 0.25f);
 

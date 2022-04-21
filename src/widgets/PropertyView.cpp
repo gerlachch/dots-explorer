@@ -93,7 +93,7 @@ void PropertyView::render()
     }
     else
     {
-        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+        ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.Disabled);
     }
 
     ImGui::Selectable(m_value.data(), &m_isSelected, ImGuiSelectableFlags_SpanAllColumns);

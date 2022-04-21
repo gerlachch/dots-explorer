@@ -64,9 +64,9 @@ void HostPanel::render()
 
         // render connection state
         {
-            std::pair<const char*, ImVec4> StateStrs[] =
+            constexpr std::pair<const char*, ImVec4> StateStrs[] =
             {
-                { "[disconnected]", ImGui::GetStyle().Colors[ImGuiCol_TextDisabled] },
+                { "[disconnected]", ColorThemeActive.Disabled },
                 { "[pending]     ", ColorThemeActive.Pending },
                 { "[connecting]  ", ColorThemeActive.Pending },
                 { "[connected]   ", ColorThemeActive.Success },

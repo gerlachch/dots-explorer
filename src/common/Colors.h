@@ -3,6 +3,8 @@
 
 struct Colors
 {
+    ImVec4 Disabled;
+
     ImVec4 Success;
     ImVec4 Error;
     ImVec4 Pending;
@@ -15,6 +17,8 @@ struct Colors
 };
 
 inline constexpr Colors ColorThemeDark{
+    ImVec4{ 0.50f, 0.50f, 0.50f, 1.00f },
+
     ImVec4{ 0.00f, 1.00f, 0.00f, 1.00f },
     ImVec4{ 1.00f, 0.00f, 0.00f, 1.00f },
     ImVec4{ 1.00f, 0.75f, 0.00f, 1.00f },
