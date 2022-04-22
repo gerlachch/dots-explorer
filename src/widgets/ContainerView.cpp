@@ -62,22 +62,22 @@ void ContainerView::update(const dots::Event<>& event)
 
     if (event.isCreate())
     {
-        m_instanceViews.emplace_back(event.updated());
+        InstanceView& instanceView = m_instanceViewsStorage.try_emplace(&event.updated(), event.updated()).first->second;
+        m_instanceViews.emplace_back(instanceView);
     }
     else
     {
-        auto it = std::find_if(m_instanceViews.begin(), m_instanceViews.end(), [&event](const InstanceView& instanceView)
-        {
-            return instanceView.instance()._same(event.updated());
-        });
-
         if (event.isUpdate())
         {
-            it->update();
+            m_instanceViewsStorage.find(&event.updated())->second.update();
         }
         else/* if (event.isRemove())*/
         {
-            m_instanceViews.erase(it);
+            auto node = m_instanceViewsStorage.extract(&event.updated());
+            m_instanceViews.erase(std::find_if(m_instanceViews.begin(), m_instanceViews.end(), [&node](const InstanceView& instanceView)
+            {
+                return &instanceView == &node.mapped();
+            }));
         }
     }
 }
