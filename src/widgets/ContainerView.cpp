@@ -184,56 +184,63 @@ void ContainerView::renderEnd()
         }
 
         // render instance views
-        for (InstanceView& instanceView : m_instanceViews)
+        ImGuiListClipper clipper;
+        clipper.Begin(static_cast<int>(m_instanceViews.size()));
+
+        while (clipper.Step())
         {
-            instanceView.render();
-
-            // context menu
+            for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
             {
-                if (ImGui::BeginPopupContextItem(instanceView.widgetId()))
+                InstanceView& instanceView = m_instanceViews[row];
+                instanceView.render();
+
+                // context menu
                 {
-                    ImGui::TextColored(ColorThemeActive.Keyword, "struct");
-                    ImGui::SameLine();
-                    ImGui::TextColored(ColorThemeActive.UserType, "%s", instanceView.instance()._descriptor().name().data());
-
-                    ImGui::Separator();
-
-                    std::vector<std::reference_wrapper<const InstanceView>> selection;
-                    std::copy_if(m_instanceViews.begin(), m_instanceViews.end(), std::back_inserter(selection), [](const InstanceView& instanceView)
+                    if (ImGui::BeginPopupContextItem(instanceView.widgetId()))
                     {
-                        return instanceView.isSelected();
-                    });
+                        ImGui::TextColored(ColorThemeActive.Keyword, "struct");
+                        ImGui::SameLine();
+                        ImGui::TextColored(ColorThemeActive.UserType, "%s", instanceView.instance()._descriptor().name().data());
 
-                    if (selection.empty() && ImGui::MenuItem("View/Update"))
-                    {
-                        editInstance = instanceView.instance();
-                    }
+                        ImGui::Separator();
 
-                    if (selection.empty() && ImGui::MenuItem("Remove", nullptr, false, ImGui::GetIO().KeyCtrl))
-                    {
-                        dots::remove(instanceView.instance());
-                    }
-
-                    if (!selection.empty() && ImGui::MenuItem("Remove Selection", nullptr, false, ImGui::GetIO().KeyCtrl))
-                    {
-                        for (const InstanceView& selected : selection)
+                        std::vector<std::reference_wrapper<const InstanceView>> selection;
+                        std::copy_if(m_instanceViews.begin(), m_instanceViews.end(), std::back_inserter(selection), [](const InstanceView& instanceView)
                         {
-                            dots::remove(selected.instance());
+                            return instanceView.isSelected();
+                        });
+
+                        if (selection.empty() && ImGui::MenuItem("View/Update"))
+                        {
+                            editInstance = instanceView.instance();
                         }
-                    }
 
-                    ImGui::SameLine();
-                    ImGui::TextDisabled("(?)");
-                    if (ImGui::IsItemHovered())
-                    {
-                        ImGui::BeginTooltip();
-                        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                        ImGui::TextUnformatted("Hold CTRL key to enable.");
-                        ImGui::PopTextWrapPos();
-                        ImGui::EndTooltip();
-                    }
+                        if (selection.empty() && ImGui::MenuItem("Remove", nullptr, false, ImGui::GetIO().KeyCtrl))
+                        {
+                            dots::remove(instanceView.instance());
+                        }
 
-                    ImGui::EndPopup();
+                        if (!selection.empty() && ImGui::MenuItem("Remove Selection", nullptr, false, ImGui::GetIO().KeyCtrl))
+                        {
+                            for (const InstanceView& selected : selection)
+                            {
+                                dots::remove(selected.instance());
+                            }
+                        }
+
+                        ImGui::SameLine();
+                        ImGui::TextDisabled("(?)");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::BeginTooltip();
+                            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+                            ImGui::TextUnformatted("Hold CTRL key to enable.");
+                            ImGui::PopTextWrapPos();
+                            ImGui::EndTooltip();
+                        }
+
+                        ImGui::EndPopup();
+                    }
                 }
             }
         }
