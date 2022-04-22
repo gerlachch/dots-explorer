@@ -126,7 +126,7 @@ void HostPanel::render()
             ImGui::SameLine();
             ImGui::Checkbox("Auto", &*m_hostSettings.autoConnect);
 
-            if (*m_hostSettings.autoConnect && (m_state == State::Disconnected || m_state == State::Error && m_deltaSinceError > 5.0f))
+            if (*m_hostSettings.autoConnect && (m_state == State::Disconnected || (m_state == State::Error && m_deltaSinceError > 5.0f)))
             {
                 m_state = State::Pending;
             }
@@ -167,7 +167,7 @@ void HostPanel::render()
 
             auto [stateStr, stateColor] = StateStrs[static_cast<uint8_t>(m_state)];
             ImGui::SameLine();
-            ImGui::TextColored(stateColor, stateStr);
+            ImGui::TextColored(stateColor, "%s", stateStr);
         }
 
         ImGui::Separator();
