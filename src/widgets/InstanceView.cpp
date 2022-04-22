@@ -9,8 +9,6 @@ InstanceView::InstanceView(const dots::type::Struct& instance) :
     {
         m_propertyViews.emplace_back(property);
     }
-
-    update();
 }
 
 const char* InstanceView::widgetId() const
