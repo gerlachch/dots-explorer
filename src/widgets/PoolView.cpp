@@ -26,8 +26,8 @@ void PoolView::update(const dots::type::StructDescriptor<>& descriptor)
             containerView.update(event);
 
             if (!m_showEmpty &&
-                (event.isCreate() && containerView.container().size() == 1) || 
-                (event.isRemove() && containerView.container().empty()))
+                ((event.isCreate() && containerView.container().size() == 1) || 
+                (event.isRemove() && containerView.container().empty())))
             {
                 m_poolChanged = true;
             }
