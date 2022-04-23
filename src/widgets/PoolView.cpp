@@ -3,6 +3,8 @@
 #include <regex>
 #include <imgui.h>
 #include <widgets/ContainerView.h>
+#include <StructDescriptorData.dots.h>
+#include <EnumDescriptorData.dots.h>
 
 PoolView::PoolView() :
     m_containerFilterBuffer(256, '\0'),
@@ -10,7 +12,8 @@ PoolView::PoolView() :
     m_showInternal(false),
     m_showEmpty(false)
 {
-    /* do nothing */
+    m_subscriptions.emplace_back(dots::subscribe<StructDescriptorData>([](auto&){}));
+    m_subscriptions.emplace_back(dots::subscribe<EnumDescriptorData>([](auto&){}));
     m_subscriptions.emplace_back(dots::subscribe<dots::type::StructDescriptor<>>({ &PoolView::update, this }));
 }
 
