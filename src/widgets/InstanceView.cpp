@@ -1,13 +1,40 @@
 #include <widgets/InstanceView.h>
+#include <imgui_internal.h>
 #include <fmt/format.h>
 
 InstanceView::InstanceView(const dots::type::Struct& instance) :
     m_widgetId{ fmt::format("InstanceView-{}", M_nextWidgetId++) },
     m_instance{ instance }
 {
-    for (auto property : m_instance.get())
+    const auto& propertyPaths = m_instance.get()._descriptor().propertyPaths();
+
+    if (propertyPaths.size() <= IMGUI_TABLE_MAX_COLUMNS)
     {
-        m_propertyViews.emplace_back(property);
+        for (const dots::type::PropertyPath& propertyPath : propertyPaths)
+        {
+            const dots::type::PropertyDescriptor& propertyDescriptor = propertyPath.destination();
+
+            if (propertyDescriptor.valueDescriptor().type() == dots::type::Type::Struct)
+            {
+                continue;
+            }
+
+            if (propertyPath.elements().size() == 1)
+            {
+                m_propertyViews.emplace_back(dots::type::ProxyProperty<>{ const_cast<dots::type::Struct&>(m_instance.get()), propertyDescriptor });
+            }
+            else
+            {
+                m_propertyViews.emplace_back(dots::type::ProxyProperty<>{ const_cast<dots::type::Struct&>(m_instance.get()), propertyPath });
+            }
+        }
+    }
+    else
+    {
+        for (auto property : m_instance.get())
+        {
+            m_propertyViews.emplace_back(property);
+        }
     }
 }
 

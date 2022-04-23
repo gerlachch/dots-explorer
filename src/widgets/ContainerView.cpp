@@ -1,5 +1,6 @@
 #include <widgets/ContainerView.h>
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <fmt/format.h>
 #include <common/Colors.h>
 #include <DotsClearCache.dots.h>
@@ -8,10 +9,39 @@ ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
     m_containerChanged(false),
     m_container{ dots::container(descriptor) }
 {
-    for (const dots::type::PropertyDescriptor& propertyDescriptor : descriptor.propertyDescriptors())
+    const auto& propertyPaths = descriptor.propertyPaths();
+
+    if (propertyPaths.size() <= IMGUI_TABLE_MAX_COLUMNS)
     {
-        const std::string& name = propertyDescriptor.name();
-        m_headers.emplace_back(propertyDescriptor.isKey() ? fmt::format("{} [key]", name) : name);
+        for (const dots::type::PropertyPath& propertyPath : propertyPaths)
+        {
+            const dots::type::PropertyDescriptor& propertyDescriptor = propertyPath.destination();
+
+            if (propertyDescriptor.valueDescriptor().type() == dots::type::Type::Struct)
+            {
+                continue;
+            }
+
+            std::string pathName;
+
+            for (const auto& element : propertyPath.elements())
+            {
+                pathName += element.get().name();
+                pathName += '.';
+            }
+
+            pathName.pop_back();
+
+            m_headers.emplace_back(propertyDescriptor.isKey() ? fmt::format("{} [key]", pathName) : pathName);
+        }
+    }
+    else
+    {
+        for (const dots::type::PropertyDescriptor& propertyDescriptor : descriptor.propertyDescriptors())
+        {
+            const std::string& name = propertyDescriptor.name();
+            m_headers.emplace_back(propertyDescriptor.isKey() ? fmt::format("{} [key]", name) : name);
+        }
     }
 }
 
@@ -161,7 +191,7 @@ void ContainerView::renderEnd()
     const dots::type::StructDescriptor<>& descriptor = m_container.get().descriptor();
     std::optional<dots::type::AnyStruct> editInstance;
 
-    if (ImGui::BeginTable(descriptor.name().data(), static_cast<int>(descriptor.propertyDescriptors().size()), TableFlags))
+    if (ImGui::BeginTable(descriptor.name().data(), static_cast<int>(m_headers.size()), TableFlags))
     {
         // create headers
         for (const std::string& header : m_headers)
