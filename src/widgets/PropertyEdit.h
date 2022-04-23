@@ -15,6 +15,7 @@ struct PropertyEdit
     PropertyEdit& operator = (const PropertyEdit& rhs) = delete;
     PropertyEdit& operator = (PropertyEdit&& rhs) = default;
 
+    const dots::type::ProxyProperty<>& property() const;
     std::optional<bool> inputParseable() const;
 
     void render();

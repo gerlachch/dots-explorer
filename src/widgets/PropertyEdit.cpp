@@ -74,6 +74,11 @@ PropertyEdit::PropertyEdit(dots::type::Struct& instance, const dots::type::Prope
     }
 }
 
+const dots::type::ProxyProperty<>& PropertyEdit::property() const
+{
+    return m_property;
+}
+
 std::optional<bool> PropertyEdit::inputParseable() const
 {
     return m_inputParseable;

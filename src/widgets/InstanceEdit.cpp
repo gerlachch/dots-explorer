@@ -52,7 +52,17 @@ bool InstanceEdit::render()
             {
                 if (ImGui::Button("Publish"))
                 {
-                    dots::publish(m_instance);
+                    dots::property_set_t includedProperties;
+
+                    for (const PropertyEdit& propertyEdit : m_propertyEdits)
+                    {
+                        if (propertyEdit.inputParseable() == true)
+                        {
+                            includedProperties += propertyEdit.property().descriptor().set();
+                        }
+                    }
+
+                    dots::publish(m_instance, includedProperties);
                     ImGui::CloseCurrentPopup();
                 }
             }
