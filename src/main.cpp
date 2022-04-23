@@ -13,7 +13,7 @@ int main()
     std::string appConfig = fmt::format("{}.ini", appName);
     std::string appLog = fmt::format("{}.log", appName);
 
-    GlfwBackend backend{ 1280, 720, appTitle };
+    GlfwBackend backend{ 1600, 900, appTitle };
     ImGui::GetIO().IniFilename = appConfig.data();
     ImGui::GetIO().LogFilename = appLog.data();
 
