@@ -34,6 +34,11 @@ void* Settings::ReadOpenHandler(ImGuiContext*/* ctx*/, ImGuiSettingsHandler*/* h
 
 void Settings::ReadLineHandler(ImGuiContext*/* ctx*/, ImGuiSettingsHandler*/* handler*/, void*/* entry*/, const char* line)
 {
+    if (*line == '\0')
+    {
+        return;
+    }
+
     try
     {
         auto [name, value] = dots::tools::split_left_at_first_of(line, "=");
