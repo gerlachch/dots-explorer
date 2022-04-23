@@ -16,6 +16,11 @@ void Settings::Init()
     ImGui::GetCurrentContext()->SettingsHandlers.push_back(iniHandler);
 }
 
+void Settings::Clear()
+{
+    M_settingsMap.clear();
+}
+
 dots::type::Struct& Settings::Register(const dots::type::StructDescriptor<>& descriptor)
 {
     auto [it, emplaced] = M_settingsMap.try_emplace(descriptor.name(), descriptor);
@@ -24,7 +29,7 @@ dots::type::Struct& Settings::Register(const dots::type::StructDescriptor<>& des
 
 void Settings::ClearAllHandler(ImGuiContext*/* ctx*/, ImGuiSettingsHandler*/* handler*/)
 {
-    M_settingsMap.clear();
+    Clear();
 }
 
 void* Settings::ReadOpenHandler(ImGuiContext*/* ctx*/, ImGuiSettingsHandler*/* handler*/, const char*/* name*/)

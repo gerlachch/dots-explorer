@@ -1,8 +1,9 @@
 #if defined(_MSC_VER) && defined (NDEBUG)
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
-#include <backends/GlfwBackend.h>
+#include <optional>
 #include <fmt/format.h>
+#include <backends/GlfwBackend.h>
 #include <components/MainWindow.h>
 #include <common/Settings.h>
 
@@ -13,15 +14,18 @@ int main()
     std::string appConfig = fmt::format("{}.ini", appName);
     std::string appLog = fmt::format("{}.log", appName);
 
-    GlfwBackend backend{ 1600, 900, appTitle };
+    std::optional<GlfwBackend> backend{ std::in_place, 1600, 900, appTitle };
     ImGui::GetIO().IniFilename = appConfig.data();
     ImGui::GetIO().LogFilename = appLog.data();
 
     Settings::Init();
     MainWindow mainWindow{ appName };
 
-    backend.run([&]
+    backend->run([&]
     {
         mainWindow.render();
     });
+
+    backend.reset();
+    Settings::Clear();
 }

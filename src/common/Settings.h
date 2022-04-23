@@ -9,6 +9,7 @@ struct ImGuiSettingsHandler;
 struct Settings
 {
     static void Init();
+    static void Clear();
 
     static dots::type::Struct& Register(const dots::type::StructDescriptor<>& descriptor);
 
