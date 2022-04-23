@@ -226,7 +226,7 @@ void HostPanel::update()
                 dots::GuestTransceiver& transceiver = dots::global_transceiver().emplace(
                     m_appName,
                     dots::io::global_io_context(),
-                    dots::type::Registry::StaticTypePolicy::All,
+                    dots::type::Registry::StaticTypePolicy::InternalOnly,
                     transition_handler_t{ &HostPanel::handleTransceiverTransition, this }
                 );
                 transceiver.open(dots::io::Endpoint{ m_selectedHost->endpoint->data() });
