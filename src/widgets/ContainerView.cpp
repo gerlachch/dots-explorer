@@ -180,9 +180,16 @@ void ContainerView::renderEnd()
     const dots::type::StructDescriptor<>& descriptor = m_container.get().descriptor();
     std::optional<dots::type::AnyStruct> editInstance;
 
-    if (ImGui::BeginTable(descriptor.name().data(), static_cast<int>(m_headers.size()), TableFlags))
+    if (ImGui::BeginTable(descriptor.name().data(), InstanceView::MetaData::MetaDataSize + static_cast<int>(m_headers.size()), TableFlags))
     {
-        // create headers
+        // create meta info headers
+        {
+            ImGui::TableSetupColumn("[META] Last Op.", ImGuiTableColumnFlags_DefaultHide);
+            ImGui::TableSetupColumn("[META] Last Published", ImGuiTableColumnFlags_DefaultHide);
+            ImGui::TableSetupColumn("[META] Last Published By", ImGuiTableColumnFlags_DefaultHide);
+        }
+
+        // create property headers
         for (const std::string& header : m_headers)
         {
             ImGui::TableSetupColumn(header.data());

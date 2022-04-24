@@ -14,6 +14,10 @@ struct Colors
     ImVec4 StringType;
     ImVec4 EnumType;
     ImVec4 IntegralType;
+
+    ImVec4 Create;
+    ImVec4 Update;
+    ImVec4 Remove;
 };
 
 inline constexpr Colors ColorThemeDark{
@@ -27,7 +31,11 @@ inline constexpr Colors ColorThemeDark{
     ImVec4{ 0.31f, 0.79f, 0.69f, 1.00f },
     ImVec4{ 0.91f, 0.79f, 0.73f, 1.00f },
     ImVec4{ 0.75f, 0.72f, 1.00f, 1.00f },
-    ImVec4{ 0.72f, 0.84f, 0.64f, 1.00f }
+    ImVec4{ 0.72f, 0.84f, 0.64f, 1.00f },
+
+    ImVec4{ 0.00f, 1.00f, 0.00f, 1.00f },
+    ImVec4{ 1.00f, 1.00f, 0.00f, 1.00f },
+    ImVec4{ 1.00f, 0.00f, 0.00f, 1.00f }
 };
 
 inline constexpr Colors ColorThemeActive = ColorThemeDark;

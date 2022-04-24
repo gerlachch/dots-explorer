@@ -6,6 +6,8 @@ struct ImGuiTableSortSpecs;
 
 struct InstanceView
 {
+    enum MetaData { LastOp, LastPublished, LastPublishedBy, MetaDataSize };
+
     InstanceView(const dots::type::Struct& instance);
     InstanceView(const InstanceView& other) = delete;
     InstanceView(InstanceView&& other) = default;
@@ -30,7 +32,10 @@ private:
 
     inline static uint64_t M_nextWidgetId = 0;
 
+    dots::timepoint_t m_lastPublished;
+    dots::uint32_t m_lastPublishedFrom;
     std::string m_widgetId;
+    std::vector<std::string> m_metaDataStrs;
     DotsMt m_lastOperation;
     struct_ref_t m_instance;
     std::vector<PropertyView> m_propertyViews;
