@@ -6,8 +6,7 @@
 
 InstanceEdit::InstanceEdit(dots::type::AnyStruct instance) :
     m_popupId{ fmt::format("InstanceEdit-{}_Popup", ++M_id) },
-    m_instance{ std::move(instance) },
-    m_structDescription{ m_instance->_descriptor() }
+    m_instance{ std::move(instance) }
 {
     for (const dots::type::PropertyPath& propertyPath : m_instance->_descriptor().propertyPaths())
     {
@@ -17,7 +16,7 @@ InstanceEdit::InstanceEdit(dots::type::AnyStruct instance) :
     ImGui::OpenPopup(m_popupId.data());
 }
 
-bool InstanceEdit::render()
+bool InstanceEdit::render(const StructDescription& structDescription, const std::vector<PropertyDescription>& propertyDescriptions)
 {
     ImGui::SetNextWindowPos(ImVec2{ ImGui::GetWindowWidth() / 2, ImGui::GetWindowHeight() / 2 }, 0, ImVec2{ 0.5f, 0.5f });
 
@@ -25,16 +24,18 @@ bool InstanceEdit::render()
     {
         // description
         {
-            m_structDescription.render();
+            structDescription.render();
             ImGui::Separator();
         }
 
         // properties
         if (ImGui::BeginTable("InstanceEditTable", 2))
         {
+            auto it = propertyDescriptions.begin();
+
             for (PropertyEdit& propertyEdit : m_propertyEdits)
             {
-                propertyEdit.render();
+                propertyEdit.render(*it++);
             }
             
             ImGui::EndTable();

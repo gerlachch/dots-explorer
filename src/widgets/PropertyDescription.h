@@ -6,7 +6,7 @@
 struct PropertyDescription
 {
     PropertyDescription(const dots::type::PropertyPath& propertyPath);
-    void render();
+    void render() const;
 
 private:
 

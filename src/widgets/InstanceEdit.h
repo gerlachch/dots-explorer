@@ -14,7 +14,7 @@ struct InstanceEdit
     InstanceEdit& operator = (const InstanceEdit& rhs) = delete;
     InstanceEdit& operator = (InstanceEdit&& rhs) = default;
     
-    bool render();
+    bool render(const StructDescription& structDescription, const std::vector<PropertyDescription>& propertyDescriptions);
 
 private:
 
@@ -22,6 +22,5 @@ private:
 
     std::string m_popupId;
     dots::type::AnyStruct m_instance;
-    StructDescription m_structDescription;
     std::vector<PropertyEdit> m_propertyEdits;
 };

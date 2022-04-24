@@ -44,6 +44,11 @@ ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
             m_headers.emplace_back(propertyDescriptor.isKey() ? fmt::format("{} [key]", name) : name);
         }
     }
+
+    for (const dots::type::PropertyPath& propertyPath : propertyPaths)
+    {
+        m_propertyDescriptions.emplace_back(propertyPath);
+    }
 }
 
 const dots::Container<>& ContainerView::container() const
@@ -148,7 +153,7 @@ bool ContainerView::renderBegin()
             m_instanceEdit.emplace(container().descriptor());
         }
 
-        if (m_instanceEdit != std::nullopt && !m_instanceEdit->render())
+        if (m_instanceEdit != std::nullopt && !m_instanceEdit->render(m_structDescription, m_propertyDescriptions))
         {
             m_instanceEdit = std::nullopt;
         }

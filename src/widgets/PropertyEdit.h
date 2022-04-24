@@ -19,7 +19,7 @@ struct PropertyEdit
     const dots::type::ProxyProperty<>& property() const;
     std::optional<bool> inputParseable() const;
 
-    void render();
+    void render(const PropertyDescription& propertyDescription);
 
 private:
 
@@ -28,7 +28,6 @@ private:
     std::optional<bool> m_inputParseable;
     std::optional<dots::type::TypeRandomizer<>> m_randomizer;
     dots::type::ProxyProperty<> m_property;
-    PropertyDescription m_propertyDescription;
     std::string m_inputLabel;
     std::string m_invalidateLabel;
     std::string m_randomizeLabel;

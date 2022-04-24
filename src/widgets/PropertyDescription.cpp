@@ -24,7 +24,7 @@ PropertyDescription::PropertyDescription(const dots::type::PropertyPath& path)
     m_parts.emplace_back(descriptor.name(), ImGui::GetStyle().Colors[ImGuiCol_Text]);
 }
 
-void PropertyDescription::render()
+void PropertyDescription::render() const
 {
     bool first = true;
 

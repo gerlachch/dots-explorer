@@ -47,7 +47,7 @@ StructDescription::StructDescription(const dots::type::StructDescriptor<>& descr
     }
 }
 
-void StructDescription::render()
+void StructDescription::render() const
 {
     bool first = true;
 

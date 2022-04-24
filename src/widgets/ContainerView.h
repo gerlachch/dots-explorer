@@ -37,4 +37,5 @@ private:
     bool m_containerChanged;
     container_ref_t m_container;
     StructDescription m_structDescription;
+    std::vector<PropertyDescription> m_propertyDescriptions;
 };

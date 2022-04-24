@@ -6,7 +6,7 @@
 struct StructDescription
 {
     StructDescription(const dots::type::StructDescriptor<>& descriptor);
-    void render();
+    void render() const;
 
 private:
 

@@ -6,7 +6,6 @@
 
 PropertyEdit::PropertyEdit(dots::type::Struct& instance, const dots::type::PropertyPath& propertyPath) :
     m_property{ instance, propertyPath },
-    m_propertyDescription{ propertyPath },
     m_inputLabel{ fmt::format("##PropertyEdit_{}_Input", m_property.descriptor().name()) },
     m_invalidateLabel{ fmt::format("X##PropertyEdit_{}_Invalidate", m_property.descriptor().name()) },
     m_randomizeLabel{ fmt::format("R##PropertyEdit_{}_Randomize", m_property.descriptor().name()) }
@@ -63,14 +62,14 @@ std::optional<bool> PropertyEdit::inputParseable() const
     return m_inputParseable;
 }
 
-void PropertyEdit::render()
+void PropertyEdit::render(const PropertyDescription& propertyDescription)
 {
     ImGui::TableNextRow();
 
     // render description
     {
         ImGui::TableNextColumn();
-        m_propertyDescription.render();
+        propertyDescription.render();
     }
 
     // render input
