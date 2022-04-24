@@ -1,17 +1,47 @@
 #include <widgets/ContainerView.h>
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <fmt/format.h>
+#include <common/Colors.h>
 #include <DotsClearCache.dots.h>
 
 ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
     m_containerChanged(false),
-    m_container{ dots::container(descriptor) },
-    m_subscription{ dots::subscribe(descriptor, { &ContainerView::update, this }) }
+    m_container{ dots::container(descriptor) }
 {
-    for (const dots::type::PropertyDescriptor& propertyDescriptor : descriptor.propertyDescriptors())
+    const auto& propertyPaths = descriptor.propertyPaths();
+
+    if (propertyPaths.size() <= IMGUI_TABLE_MAX_COLUMNS)
     {
-        const std::string& name = propertyDescriptor.name();
-        m_headers.emplace_back(propertyDescriptor.isKey() ? fmt::format("{} [key]", name) : name);
+        for (const dots::type::PropertyPath& propertyPath : propertyPaths)
+        {
+            const dots::type::PropertyDescriptor& propertyDescriptor = propertyPath.destination();
+
+            if (propertyDescriptor.valueDescriptor().type() == dots::type::Type::Struct)
+            {
+                continue;
+            }
+
+            std::string pathName;
+
+            for (const auto& element : propertyPath.elements())
+            {
+                pathName += element.get().name();
+                pathName += '.';
+            }
+
+            pathName.pop_back();
+
+            m_headers.emplace_back(propertyDescriptor.isKey() ? fmt::format("{} [key]", pathName) : pathName);
+        }
+    }
+    else
+    {
+        for (const dots::type::PropertyDescriptor& propertyDescriptor : descriptor.propertyDescriptors())
+        {
+            const std::string& name = propertyDescriptor.name();
+            m_headers.emplace_back(propertyDescriptor.isKey() ? fmt::format("{} [key]", name) : name);
+        }
     }
 }
 
@@ -62,22 +92,22 @@ void ContainerView::update(const dots::Event<>& event)
 
     if (event.isCreate())
     {
-        m_instanceViews.emplace_back(event.updated());
+        InstanceView& instanceView = m_instanceViewsStorage.try_emplace(&event.updated(), event.updated()).first->second;
+        m_instanceViews.emplace_back(instanceView);
     }
     else
     {
-        auto it = std::find_if(m_instanceViews.begin(), m_instanceViews.end(), [&event](const InstanceView& instanceView)
-        {
-            return instanceView.instance()._same(event.updated());
-        });
-
         if (event.isUpdate())
         {
-            it->update();
+            m_instanceViewsStorage.find(&event.updated())->second.update();
         }
         else/* if (event.isRemove())*/
         {
-            m_instanceViews.erase(it);
+            auto node = m_instanceViewsStorage.extract(&event.updated());
+            m_instanceViews.erase(std::find_if(m_instanceViews.begin(), m_instanceViews.end(), [&node](const InstanceView& instanceView)
+            {
+                return &instanceView == &node.mapped();
+            }));
         }
     }
 }
@@ -91,9 +121,9 @@ bool ContainerView::renderBegin()
     {
         if (ImGui::BeginPopupContextItem())
         {
-            ImGui::TextColored(ImVec4{ 0.34f, 0.61f, 0.84f, 1.0f }, "struct");
+            ImGui::TextColored(ColorThemeActive.Keyword, "struct");
             ImGui::SameLine();
-            ImGui::TextColored(ImVec4{ 0.31f, 0.79f, 0.69f, 1.0f }, "%s", container().descriptor().name().data());
+            ImGui::TextColored(ColorThemeActive.UserType, "%s", container().descriptor().name().data());
             ImGui::Separator();
 
             if (ImGui::MenuItem("Create/Update"))
@@ -161,7 +191,7 @@ void ContainerView::renderEnd()
     const dots::type::StructDescriptor<>& descriptor = m_container.get().descriptor();
     std::optional<dots::type::AnyStruct> editInstance;
 
-    if (ImGui::BeginTable(descriptor.name().data(), static_cast<int>(descriptor.propertyDescriptors().size()), TableFlags))
+    if (ImGui::BeginTable(descriptor.name().data(), static_cast<int>(m_headers.size()), TableFlags))
     {
         // create headers
         for (const std::string& header : m_headers)
@@ -184,56 +214,63 @@ void ContainerView::renderEnd()
         }
 
         // render instance views
-        for (InstanceView& instanceView : m_instanceViews)
+        ImGuiListClipper clipper;
+        clipper.Begin(static_cast<int>(m_instanceViews.size()));
+
+        while (clipper.Step())
         {
-            instanceView.render();
-
-            // context menu
+            for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
             {
-                if (ImGui::BeginPopupContextItem(instanceView.widgetId()))
+                InstanceView& instanceView = m_instanceViews[row];
+                instanceView.render();
+
+                // context menu
                 {
-                    ImGui::TextColored(ImVec4{ 0.34f, 0.61f, 0.84f, 1.0f }, "struct");
-                    ImGui::SameLine();
-                    ImGui::TextColored(ImVec4{ 0.31f, 0.79f, 0.69f, 1.0f }, "%s", instanceView.instance()._descriptor().name().data());
-
-                    ImGui::Separator();
-
-                    std::vector<std::reference_wrapper<const InstanceView>> selection;
-                    std::copy_if(m_instanceViews.begin(), m_instanceViews.end(), std::back_inserter(selection), [](const InstanceView& instanceView)
+                    if (ImGui::BeginPopupContextItem(instanceView.widgetId()))
                     {
-                        return instanceView.isSelected();
-                    });
+                        ImGui::TextColored(ColorThemeActive.Keyword, "struct");
+                        ImGui::SameLine();
+                        ImGui::TextColored(ColorThemeActive.UserType, "%s", instanceView.instance()._descriptor().name().data());
 
-                    if (selection.empty() && ImGui::MenuItem("View/Update"))
-                    {
-                        editInstance = instanceView.instance();
-                    }
+                        ImGui::Separator();
 
-                    if (selection.empty() && ImGui::MenuItem("Remove", nullptr, false, ImGui::GetIO().KeyCtrl))
-                    {
-                        dots::remove(instanceView.instance());
-                    }
-
-                    if (!selection.empty() && ImGui::MenuItem("Remove Selection", nullptr, false, ImGui::GetIO().KeyCtrl))
-                    {
-                        for (const InstanceView& selected : selection)
+                        std::vector<std::reference_wrapper<const InstanceView>> selection;
+                        std::copy_if(m_instanceViews.begin(), m_instanceViews.end(), std::back_inserter(selection), [](const InstanceView& instanceView)
                         {
-                            dots::remove(selected.instance());
+                            return instanceView.isSelected();
+                        });
+
+                        if (selection.empty() && ImGui::MenuItem("View/Update"))
+                        {
+                            editInstance = instanceView.instance();
                         }
-                    }
 
-                    ImGui::SameLine();
-                    ImGui::TextDisabled("(?)");
-                    if (ImGui::IsItemHovered())
-                    {
-                        ImGui::BeginTooltip();
-                        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                        ImGui::TextUnformatted("Hold CTRL key to enable.");
-                        ImGui::PopTextWrapPos();
-                        ImGui::EndTooltip();
-                    }
+                        if (selection.empty() && ImGui::MenuItem("Remove", nullptr, false, ImGui::GetIO().KeyCtrl))
+                        {
+                            dots::remove(instanceView.instance());
+                        }
 
-                    ImGui::EndPopup();
+                        if (!selection.empty() && ImGui::MenuItem("Remove Selection", nullptr, false, ImGui::GetIO().KeyCtrl))
+                        {
+                            for (const InstanceView& selected : selection)
+                            {
+                                dots::remove(selected.instance());
+                            }
+                        }
+
+                        ImGui::SameLine();
+                        ImGui::TextDisabled("(?)");
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::BeginTooltip();
+                            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+                            ImGui::TextUnformatted("Hold CTRL key to enable.");
+                            ImGui::PopTextWrapPos();
+                            ImGui::EndTooltip();
+                        }
+
+                        ImGui::EndPopup();
+                    }
                 }
             }
         }

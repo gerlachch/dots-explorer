@@ -85,6 +85,9 @@ endif()
 add_executable(${TARGET_NAME})
 
 # properties
+target_dots_model(${TARGET_NAME}
+    src/model.dots
+)
 target_sources(${TARGET_NAME}
     PRIVATE
         src/main.cpp
@@ -92,7 +95,9 @@ target_sources(${TARGET_NAME}
         $<$<BOOL:${OpenGL_FOUND}>:src/backends/GlfwOpenGl3Backend.cpp>
         src/components/HostPanel.cpp
         src/components/MainWindow.cpp
+        src/common/Settings.cpp
         src/widgets/ContainerView.cpp
+        src/widgets/HostSettingsEdit.cpp
         src/widgets/InstanceEdit.cpp
         src/widgets/InstanceView.cpp
         src/widgets/PoolView.cpp

@@ -24,5 +24,5 @@ private:
     bool m_poolChanged;
     bool m_showInternal;
     bool m_showEmpty;
-    dots::Subscription m_subscription;
+    std::vector<dots::Subscription> m_subscriptions;
 };

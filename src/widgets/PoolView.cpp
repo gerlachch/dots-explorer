@@ -3,23 +3,38 @@
 #include <regex>
 #include <imgui.h>
 #include <widgets/ContainerView.h>
+#include <StructDescriptorData.dots.h>
+#include <EnumDescriptorData.dots.h>
 
 PoolView::PoolView() :
     m_containerFilterBuffer(256, '\0'),
     m_poolChanged(false),
     m_showInternal(false),
-    m_showEmpty(true),
-    m_subscription{ dots::subscribe<dots::type::StructDescriptor<>>({ &PoolView::update, this }) }
+    m_showEmpty(false)
 {
-    /* do nothing */
+    m_subscriptions.emplace_back(dots::subscribe<StructDescriptorData>([](auto&){}));
+    m_subscriptions.emplace_back(dots::subscribe<EnumDescriptorData>([](auto&){}));
+    m_subscriptions.emplace_back(dots::subscribe<dots::type::StructDescriptor<>>({ &PoolView::update, this }));
 }
 
 void PoolView::update(const dots::type::StructDescriptor<>& descriptor)
 {
     if (descriptor.cached() && !descriptor.substructOnly())
     {
-        m_containerViews.emplace_back(std::make_shared<ContainerView>(descriptor));
+        ContainerView& containerView = *m_containerViews.emplace_back(std::make_shared<ContainerView>(descriptor));
         m_poolChanged = true;
+
+        m_subscriptions.emplace_back(dots::subscribe(descriptor, [this, &containerView](const dots::Event<>& event)
+        {
+            containerView.update(event);
+
+            if (!m_showEmpty &&
+                ((event.isCreate() && containerView.container().size() == 1) || 
+                (event.isRemove() && containerView.container().empty())))
+            {
+                m_poolChanged = true;
+            }
+        }));
     }
 }
 
@@ -31,15 +46,28 @@ void PoolView::render()
         ImGui::TextUnformatted("Filter");
 
         ImGui::SameLine();
-        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.2f);
+        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f);
         m_poolChanged |= ImGui::InputTextWithHint("##containerFilter", "<none>", m_containerFilterBuffer.data(), m_containerFilterBuffer.size());
         ImGui::PopItemWidth();
         
-        ImGui::SameLine();
-        if (ImGui::Button("Clear"))
         {
-            m_containerFilterBuffer.assign(m_containerFilterBuffer.size(), '\0');
-            m_poolChanged = true;
+            ImGui::SameLine();
+            constexpr char ClearLabel[] = "Clear";
+
+            if (m_containerFilterBuffer.front() == '\0')
+            {
+                ImGui::BeginDisabled();
+                ImGui::Button(ClearLabel);
+                ImGui::EndDisabled();
+            }
+            else
+            {
+                if (ImGui::Button(ClearLabel))
+                {
+                    m_containerFilterBuffer.assign(m_containerFilterBuffer.size(), '\0');
+                    m_poolChanged = true;
+                }
+            }
         }
 
         ImGui::SameLine();

@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <imgui.h>
 #include <fmt/format.h>
+#include <common/Colors.h>
 
 PropertyEdit::PropertyEdit(dots::type::Struct& instance, const dots::type::PropertyPath& propertyPath) :
     m_property{ instance, propertyPath },
@@ -20,13 +21,13 @@ PropertyEdit::PropertyEdit(dots::type::Struct& instance, const dots::type::Prope
     switch (m_property.descriptor().valueDescriptor().type())
     {
         case dots::type::Type::boolean:
-            m_inputColor = ImVec4{ 0.34f, 0.61f, 0.84f, 1.0f };
+            m_inputColor = ColorThemeActive.Keyword;
             break;
         case dots::type::Type::string:
-            m_inputColor = ImVec4{0.91f, 0.79f, 0.73f, 1.0f };
+            m_inputColor = ColorThemeActive.StringType;
             break;
         case dots::type::Type::Enum:
-            m_inputColor = ImVec4{ 0.75f, 0.72f, 1.00f, 1.0f };
+            m_inputColor = ColorThemeActive.EnumType;
             break;
         case dots::type::Type::int8:
         case dots::type::Type::uint8:
@@ -46,7 +47,7 @@ PropertyEdit::PropertyEdit(dots::type::Struct& instance, const dots::type::Prope
         case dots::type::Type::Vector:
         case dots::type::Type::Struct:
         default:
-            m_inputColor = ImVec4{ 0.72f, 0.84f, 0.64f, 1.0f };
+            m_inputColor = ColorThemeActive.IntegralType;
             break;
     }
 
@@ -56,21 +57,26 @@ PropertyEdit::PropertyEdit(dots::type::Struct& instance, const dots::type::Prope
 
         m_descriptionParts.emplace_back(
             fmt::format("{: >{}}{: >2}:", "", 2 * (propertyPath.elements().size() - 1), descriptor.tag()),
-            ImVec4{ 0.72f, 0.84f, 0.64f, 1.0f }
+            ColorThemeActive.IntegralType
         );
 
         if (descriptor.isKey())
         {
-            m_descriptionParts.emplace_back("[key]", ImVec4{ 0.34f, 0.61f, 0.84f, 1.0f });
+            m_descriptionParts.emplace_back("[key]", ColorThemeActive.Keyword);
         }
 
         m_descriptionParts.emplace_back(
             descriptor.valueDescriptor().name(),
-            descriptor.valueDescriptor().isFundamentalType() ? ImVec4{ 0.34f, 0.61f, 0.84f, 1.0f } : ImVec4{ 0.31f, 0.79f, 0.69f, 1.0f }
+            descriptor.valueDescriptor().isFundamentalType() ? ColorThemeActive.Keyword : ColorThemeActive.UserType
         );
 
         m_descriptionParts.emplace_back(descriptor.name(), ImGui::GetStyle().Colors[ImGuiCol_Text]);
     }
+}
+
+const dots::type::ProxyProperty<>& PropertyEdit::property() const
+{
+    return m_property;
 }
 
 std::optional<bool> PropertyEdit::inputParseable() const
@@ -114,7 +120,7 @@ void PropertyEdit::render()
         }
         else
         {
-            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+            ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.Disabled);
         }
         ImGui::PushItemWidth(ImGui::GetIO().DisplaySize.x * 0.25f);
 
@@ -215,11 +221,11 @@ void PropertyEdit::render()
         {
             if (*m_inputParseable)
             {
-                ImGui::TextColored(ImVec4{ 0.0f, 1.0f, 0.0f, 1.0f }, "Ok   ");
+                ImGui::TextColored(ColorThemeActive.Success, "Ok   ");
             }
             else
             {
-                ImGui::TextColored(ImVec4{ 1.0f, 0.0f, 0.0f, 1.0f }, "Error");
+                ImGui::TextColored(ColorThemeActive.Error, "Error");
             }
         }
         else

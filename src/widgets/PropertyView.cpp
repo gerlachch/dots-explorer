@@ -1,4 +1,5 @@
 #include <widgets/PropertyView.h>
+#include <common/Colors.h>
 
 PropertyView::PropertyView(const dots::type::ProxyProperty<>& property) :
     m_isSelected(false),
@@ -8,14 +9,14 @@ PropertyView::PropertyView(const dots::type::ProxyProperty<>& property) :
     switch (m_property.descriptor().valueDescriptor().type())
     {
         case dots::type::Type::boolean:
-            m_color = ImVec4{ 0.34f, 0.61f, 0.84f, 1.0f };
+            m_color = ColorThemeActive.Keyword;
             break;
         case dots::type::Type::string:
-            m_color = ImVec4{0.91f, 0.79f, 0.73f, 1.0f };
+            m_color = ColorThemeActive.StringType;
             m_valueQuoted = true;
             break;
         case dots::type::Type::Enum:
-            m_color = ImVec4{ 0.75f, 0.72f, 1.00f, 1.0f };
+            m_color = ColorThemeActive.EnumType;
             break;
         case dots::type::Type::int8:
         case dots::type::Type::uint8:
@@ -35,7 +36,7 @@ PropertyView::PropertyView(const dots::type::ProxyProperty<>& property) :
         case dots::type::Type::Vector:
         case dots::type::Type::Struct:
         default:
-            m_color = ImVec4{ 0.72f, 0.84f, 0.64f, 1.0f };
+            m_color = ColorThemeActive.IntegralType;
             break;
     }
 
@@ -92,7 +93,7 @@ void PropertyView::render()
     }
     else
     {
-        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+        ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.Disabled);
     }
 
     ImGui::Selectable(m_value.data(), &m_isSelected, ImGuiSelectableFlags_SpanAllColumns);

@@ -4,7 +4,7 @@
 
 struct MainWindow
 {
-    MainWindow(std::string appName, int argc, char** argv);
+    MainWindow(std::string appName);
     void render();
 
 private:
