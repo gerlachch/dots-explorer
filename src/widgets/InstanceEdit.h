@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <dots/dots.h>
+#include <widgets/StructDescription.h>
 #include <widgets/PropertyEdit.h>
 
 struct InstanceEdit
@@ -21,5 +22,6 @@ private:
 
     std::string m_popupId;
     dots::type::AnyStruct m_instance;
+    StructDescription m_structDescription;
     std::vector<PropertyEdit> m_propertyEdits;
 };

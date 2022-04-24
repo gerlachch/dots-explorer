@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <vector>
 #include <dots/dots.h>
+#include <widgets/StructDescription.h>
 #include <widgets/InstanceView.h>
 #include <widgets/InstanceEdit.h>
 
@@ -35,4 +36,5 @@ private:
     std::vector<std::string> m_headers;
     bool m_containerChanged;
     container_ref_t m_container;
+    StructDescription m_structDescription;
 };

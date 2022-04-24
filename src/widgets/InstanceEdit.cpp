@@ -6,7 +6,8 @@
 
 InstanceEdit::InstanceEdit(dots::type::AnyStruct instance) :
     m_popupId{ fmt::format("InstanceEdit-{}_Popup", ++M_id) },
-    m_instance{ std::move(instance) }
+    m_instance{ std::move(instance) },
+    m_structDescription{ m_instance->_descriptor() }
 {
     for (const dots::type::PropertyPath& propertyPath : m_instance->_descriptor().propertyPaths())
     {
@@ -22,11 +23,9 @@ bool InstanceEdit::render()
 
     if (ImGui::BeginPopup(m_popupId.data(), ImGuiWindowFlags_NoMove))
     {
-        // header
+        // description
         {
-            ImGui::TextColored(ColorThemeActive.Keyword, "struct");
-            ImGui::SameLine();
-            ImGui::TextColored(ColorThemeActive.UserType, "%s", m_instance->_descriptor().name().data());
+            m_structDescription.render();
             ImGui::Separator();
         }
 

@@ -6,6 +6,7 @@
 
 PropertyEdit::PropertyEdit(dots::type::Struct& instance, const dots::type::PropertyPath& propertyPath) :
     m_property{ instance, propertyPath },
+    m_propertyDescription{ propertyPath },
     m_inputLabel{ fmt::format("##PropertyEdit_{}_Input", m_property.descriptor().name()) },
     m_invalidateLabel{ fmt::format("X##PropertyEdit_{}_Invalidate", m_property.descriptor().name()) },
     m_randomizeLabel{ fmt::format("R##PropertyEdit_{}_Randomize", m_property.descriptor().name()) }
@@ -50,28 +51,6 @@ PropertyEdit::PropertyEdit(dots::type::Struct& instance, const dots::type::Prope
             m_inputColor = ColorThemeActive.IntegralType;
             break;
     }
-
-    // init description
-    {
-        const dots::type::PropertyDescriptor& descriptor = m_property.descriptor();
-
-        m_descriptionParts.emplace_back(
-            fmt::format("{: >{}}{: >2}:", "", 2 * (propertyPath.elements().size() - 1), descriptor.tag()),
-            ColorThemeActive.IntegralType
-        );
-
-        if (descriptor.isKey())
-        {
-            m_descriptionParts.emplace_back("[key]", ColorThemeActive.Keyword);
-        }
-
-        m_descriptionParts.emplace_back(
-            descriptor.valueDescriptor().name(),
-            descriptor.valueDescriptor().isFundamentalType() ? ColorThemeActive.Keyword : ColorThemeActive.UserType
-        );
-
-        m_descriptionParts.emplace_back(descriptor.name(), ImGui::GetStyle().Colors[ImGuiCol_Text]);
-    }
 }
 
 const dots::type::ProxyProperty<>& PropertyEdit::property() const
@@ -90,24 +69,8 @@ void PropertyEdit::render()
 
     // render description
     {
-        bool first = true;
-
-        for (const auto& [description, color] : m_descriptionParts)
-        {
-            if (first)
-            {
-                ImGui::TableNextColumn();
-                first = false;
-            }
-            else
-            {
-                ImGui::SameLine();
-            }
-
-            ImGui::PushStyleColor(ImGuiCol_Text, color);
-            ImGui::TextUnformatted(description.data());
-            ImGui::PopStyleColor();
-        }
+        ImGui::TableNextColumn();
+        m_propertyDescription.render();
     }
 
     // render input

@@ -7,7 +7,8 @@
 
 ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
     m_containerChanged(false),
-    m_container{ dots::container(descriptor) }
+    m_container{ dots::container(descriptor) },
+    m_structDescription{ descriptor }
 {
     const auto& propertyPaths = descriptor.propertyPaths();
 
@@ -110,9 +111,7 @@ bool ContainerView::renderBegin()
     {
         if (ImGui::BeginPopupContextItem())
         {
-            ImGui::TextColored(ColorThemeActive.Keyword, "struct");
-            ImGui::SameLine();
-            ImGui::TextColored(ColorThemeActive.UserType, "%s", container().descriptor().name().data());
+            m_structDescription.render();
             ImGui::Separator();
 
             if (ImGui::MenuItem("Create/Update"))
@@ -240,10 +239,7 @@ void ContainerView::renderEnd()
                 {
                     if (ImGui::BeginPopupContextItem(instanceView.widgetId()))
                     {
-                        ImGui::TextColored(ColorThemeActive.Keyword, "struct");
-                        ImGui::SameLine();
-                        ImGui::TextColored(ColorThemeActive.UserType, "%s", instanceView.instance()._descriptor().name().data());
-
+                        m_structDescription.render();
                         ImGui::Separator();
 
                         std::vector<std::reference_wrapper<const InstanceView>> selection;
