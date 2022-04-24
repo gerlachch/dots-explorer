@@ -130,6 +130,7 @@ target_compile_definitions(${TARGET_NAME}
         $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>
         $<$<BOOL:${Vulkan_FOUND}>:ImTextureID=ImU64>
         $<$<BOOL:${Vulkan_FOUND}>:VK_PROTOTYPES>
+        IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 )
 target_compile_features(${TARGET_NAME}
     PRIVATE
