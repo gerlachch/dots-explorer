@@ -4,6 +4,7 @@
 
 InstanceView::InstanceView(const dots::type::Struct& instance) :
     m_widgetId{ fmt::format("InstanceView-{}", M_nextWidgetId++) },
+    m_lastOperation(DotsMt::create),
     m_instance{ instance }
 {
     const auto& propertyPaths = m_instance.get()._descriptor().propertyPaths();
@@ -43,6 +44,11 @@ const char* InstanceView::widgetId() const
     return m_widgetId.data();
 }
 
+DotsMt InstanceView::lastOperation() const
+{
+    return m_lastOperation;
+}
+
 const dots::type::Struct& InstanceView::instance() const
 {
     return m_instance;
@@ -74,8 +80,10 @@ bool InstanceView::isSelected() const
     return std::any_of(m_propertyViews.begin(), m_propertyViews.end(), [](const PropertyView& propertyView){ return propertyView.isSelected(); });
 }
 
-void InstanceView::update()
+void InstanceView::update(const dots::Event<>& event)
 {
+    m_lastOperation = event.mt();
+
     for (PropertyView& propertyView : m_propertyViews)
     {
         propertyView.update();

@@ -15,12 +15,13 @@ struct InstanceView
     InstanceView& operator = (InstanceView&& rhs) = default;
 
     const char* widgetId() const;
+    DotsMt lastOperation() const;
     const dots::type::Struct& instance() const;
 
     bool less(const ImGuiTableSortSpecs& sortSpecs, const InstanceView& other) const;
     bool isSelected() const;
 
-    void update();
+    void update(const dots::Event<>& event);
     void render();
 
 private:
@@ -30,6 +31,7 @@ private:
     inline static uint64_t M_nextWidgetId = 0;
 
     std::string m_widgetId;
+    DotsMt m_lastOperation;
     struct_ref_t m_instance;
     std::vector<PropertyView> m_propertyViews;
 };

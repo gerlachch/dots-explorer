@@ -39,8 +39,6 @@ PropertyView::PropertyView(const dots::type::ProxyProperty<>& property) :
             m_color = ColorThemeActive.IntegralType;
             break;
     }
-
-    update();
 }
 
 const dots::type::ProxyProperty<>& PropertyView::property() const

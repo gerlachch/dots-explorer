@@ -1,7 +1,7 @@
 #pragma once
 #include <optional>
 #include <unordered_map>
-#include <deque>
+#include <vector>
 #include <dots/dots.h>
 #include <widgets/InstanceView.h>
 #include <widgets/InstanceEdit.h>
@@ -31,7 +31,7 @@ private:
 
     std::optional<InstanceEdit> m_instanceEdit;
     std::unordered_map<const dots::type::Struct*, InstanceView> m_instanceViewsStorage;
-    std::deque<std::reference_wrapper<InstanceView>> m_instanceViews;
+    std::vector<std::reference_wrapper<InstanceView>> m_instanceViews;
     std::vector<std::string> m_headers;
     bool m_containerChanged;
     container_ref_t m_container;

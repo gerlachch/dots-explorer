@@ -90,26 +90,15 @@ void ContainerView::update(const dots::Event<>& event)
 {
     m_containerChanged = true;
 
-    if (event.isCreate())
+    auto [it, emplaced] = m_instanceViewsStorage.try_emplace(&event.updated(), event.updated());
+    InstanceView& instanceView = it->second;
+
+    if (emplaced)
     {
-        InstanceView& instanceView = m_instanceViewsStorage.try_emplace(&event.updated(), event.updated()).first->second;
         m_instanceViews.emplace_back(instanceView);
     }
-    else
-    {
-        if (event.isUpdate())
-        {
-            m_instanceViewsStorage.find(&event.updated())->second.update();
-        }
-        else/* if (event.isRemove())*/
-        {
-            auto node = m_instanceViewsStorage.extract(&event.updated());
-            m_instanceViews.erase(std::find_if(m_instanceViews.begin(), m_instanceViews.end(), [&node](const InstanceView& instanceView)
-            {
-                return &instanceView == &node.mapped();
-            }));
-        }
-    }
+
+    instanceView.update(event);
 }
 
 bool ContainerView::renderBegin()
@@ -200,6 +189,22 @@ void ContainerView::renderEnd()
         }
 
         ImGui::TableHeadersRow();
+
+        // clean instance views
+        {
+            m_instanceViews.erase(std::remove_if(m_instanceViews.begin(), m_instanceViews.end(), [this](const InstanceView& instanceView)
+            {
+                if (instanceView.lastOperation() == DotsMt::remove)
+                {
+                    m_instanceViewsStorage.erase(&instanceView.instance());
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }), m_instanceViews.end());
+        }
 
         // sort instance views
         if (ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs(); m_containerChanged || sortSpecs->SpecsDirty)
