@@ -1,7 +1,7 @@
 #pragma once
-#include <optional>
 #include <dots/dots.h>
 #include <imgui.h>
+#include <widgets/PropertyDescription.h>
 
 struct ImGuiTableColumnSortSpecs;
 
@@ -20,13 +20,11 @@ struct PropertyView
     bool isSelected() const;
 
     void update();
-    void render();
+    void render(const PropertyDescription& propertyDescription);
 
 private:
 
     std::string m_value;
-    std::optional<ImVec4> m_color;
     bool m_isSelected;
-    bool m_valueQuoted;
     const dots::type::ProxyProperty<> m_property;
 };

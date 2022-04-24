@@ -238,7 +238,7 @@ void ContainerView::renderEnd()
             for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
             {
                 InstanceView& instanceView = m_instanceViews[row];
-                instanceView.render();
+                instanceView.render(m_structDescription, m_propertyDescriptions);
 
                 // context menu
                 {

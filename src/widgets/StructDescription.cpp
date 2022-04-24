@@ -1,7 +1,8 @@
 #include <widgets/StructDescription.h>
 #include <common/Colors.h>
 
-StructDescription::StructDescription(const dots::type::StructDescriptor<>& descriptor)
+StructDescription::StructDescription(const dots::type::StructDescriptor<>& descriptor) :
+    m_descriptor{ descriptor }
 {
     m_parts.emplace_back("struct", ColorThemeActive.Keyword);
     m_parts.emplace_back(descriptor.name(), ColorThemeActive.UserType);
@@ -45,6 +46,11 @@ StructDescription::StructDescription(const dots::type::StructDescriptor<>& descr
 
         m_parts.emplace_back(std::move(part), ColorThemeActive.Keyword);
     }
+}
+
+const dots::type::StructDescriptor<>& StructDescription::descriptor() const
+{
+    return m_descriptor;
 }
 
 void StructDescription::render() const

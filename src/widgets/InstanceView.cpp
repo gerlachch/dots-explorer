@@ -132,7 +132,7 @@ void InstanceView::update(const dots::Event<>& event)
     }
 }
 
-void InstanceView::render()
+void InstanceView::render(const StructDescription& structDescription, const std::vector<PropertyDescription>& propertyDescriptions)
 {
     if (ImGui::TableNextColumn())
     {
@@ -194,9 +194,27 @@ void InstanceView::render()
         ImGui::PopStyleColor();
     }
 
-    for (PropertyView& propertyView : m_propertyViews)
+    auto it = m_propertyViews.begin();
+
+    for (const PropertyDescription& propertyDescription : propertyDescriptions)
     {
-        ImGui::TableNextColumn();
-        propertyView.render();
+        if (m_instance.get()._descriptor().propertyPaths().size() <= IMGUI_TABLE_MAX_COLUMNS)
+        {
+            if (propertyDescription.propertyPath().destination().valueDescriptor().type() != dots::type::Type::Struct)
+            {
+                ImGui::TableNextColumn();
+                PropertyView& propertyView = *it++;
+                propertyView.render(propertyDescription);
+            }
+        }
+        else
+        {
+            if (propertyDescription.propertyPath().elements().size() == 1)
+            {
+                ImGui::TableNextColumn();
+                PropertyView& propertyView = *it++;
+                propertyView.render(propertyDescription);
+            }
+        }
     }
 }

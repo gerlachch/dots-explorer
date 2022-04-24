@@ -1,5 +1,6 @@
 #pragma once
 #include <dots/dots.h>
+#include <widgets/StructDescription.h>
 #include <widgets/PropertyView.h>
 
 struct ImGuiTableSortSpecs;
@@ -24,7 +25,7 @@ struct InstanceView
     bool isSelected() const;
 
     void update(const dots::Event<>& event);
-    void render();
+    void render(const StructDescription& structDescription, const std::vector<PropertyDescription>& propertyDescriptions);
 
 private:
 
