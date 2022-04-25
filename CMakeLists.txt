@@ -101,8 +101,10 @@ target_sources(${TARGET_NAME}
         src/widgets/InstanceEdit.cpp
         src/widgets/InstanceView.cpp
         src/widgets/PoolView.cpp
+        src/widgets/PropertyDescription.cpp
         src/widgets/PropertyEdit.cpp
         src/widgets/PropertyView.cpp
+        src/widgets/StructDescription.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
         $<$<BOOL:${Vulkan_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp>
         $<$<BOOL:${OpenGL_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp>
@@ -130,6 +132,7 @@ target_compile_definitions(${TARGET_NAME}
         $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>
         $<$<BOOL:${Vulkan_FOUND}>:ImTextureID=ImU64>
         $<$<BOOL:${Vulkan_FOUND}>:VK_PROTOTYPES>
+        IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 )
 target_compile_features(${TARGET_NAME}
     PRIVATE

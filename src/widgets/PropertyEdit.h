@@ -2,8 +2,8 @@
 #include <string>
 #include <optional>
 #include <dots/dots.h>
-#include <imgui.h>
 #include <tools/TypeRandomizer.h>
+#include <widgets/PropertyDescription.h>
 
 struct PropertyEdit
 {
@@ -18,16 +18,12 @@ struct PropertyEdit
     const dots::type::ProxyProperty<>& property() const;
     std::optional<bool> inputParseable() const;
 
-    void render();
+    void render(const PropertyDescription& propertyDescription);
 
 private:
 
-    using header_part_t = std::pair<std::string, ImVec4>;
-
     std::string m_inputBuffer;
-    std::optional<ImVec4> m_inputColor;
     std::optional<bool> m_inputParseable;
-    std::vector<header_part_t> m_descriptionParts;
     std::optional<dots::type::TypeRandomizer<>> m_randomizer;
     dots::type::ProxyProperty<> m_property;
     std::string m_inputLabel;

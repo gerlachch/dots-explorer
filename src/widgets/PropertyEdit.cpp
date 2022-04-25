@@ -16,62 +16,6 @@ PropertyEdit::PropertyEdit(dots::type::Struct& instance, const dots::type::Prope
         m_inputBuffer.assign(std::max(value.size(), size_t{ 256 }), '\0');
         std::copy(value.begin(), value.end(), m_inputBuffer.begin());
     }
-
-    // init input colors
-    switch (m_property.descriptor().valueDescriptor().type())
-    {
-        case dots::type::Type::boolean:
-            m_inputColor = ColorThemeActive.Keyword;
-            break;
-        case dots::type::Type::string:
-            m_inputColor = ColorThemeActive.StringType;
-            break;
-        case dots::type::Type::Enum:
-            m_inputColor = ColorThemeActive.EnumType;
-            break;
-        case dots::type::Type::int8:
-        case dots::type::Type::uint8:
-        case dots::type::Type::int16:
-        case dots::type::Type::uint16:
-        case dots::type::Type::int32:
-        case dots::type::Type::uint32:
-        case dots::type::Type::int64:
-        case dots::type::Type::uint64:
-        case dots::type::Type::float32:
-        case dots::type::Type::float64:
-        case dots::type::Type::property_set:
-        case dots::type::Type::timepoint:
-        case dots::type::Type::steady_timepoint:
-        case dots::type::Type::duration:
-        case dots::type::Type::uuid:
-        case dots::type::Type::Vector:
-        case dots::type::Type::Struct:
-        default:
-            m_inputColor = ColorThemeActive.IntegralType;
-            break;
-    }
-
-    // init description
-    {
-        const dots::type::PropertyDescriptor& descriptor = m_property.descriptor();
-
-        m_descriptionParts.emplace_back(
-            fmt::format("{: >{}}{: >2}:", "", 2 * (propertyPath.elements().size() - 1), descriptor.tag()),
-            ColorThemeActive.IntegralType
-        );
-
-        if (descriptor.isKey())
-        {
-            m_descriptionParts.emplace_back("[key]", ColorThemeActive.Keyword);
-        }
-
-        m_descriptionParts.emplace_back(
-            descriptor.valueDescriptor().name(),
-            descriptor.valueDescriptor().isFundamentalType() ? ColorThemeActive.Keyword : ColorThemeActive.UserType
-        );
-
-        m_descriptionParts.emplace_back(descriptor.name(), ImGui::GetStyle().Colors[ImGuiCol_Text]);
-    }
 }
 
 const dots::type::ProxyProperty<>& PropertyEdit::property() const
@@ -84,30 +28,14 @@ std::optional<bool> PropertyEdit::inputParseable() const
     return m_inputParseable;
 }
 
-void PropertyEdit::render()
+void PropertyEdit::render(const PropertyDescription& propertyDescription)
 {
     ImGui::TableNextRow();
 
     // render description
     {
-        bool first = true;
-
-        for (const auto& [description, color] : m_descriptionParts)
-        {
-            if (first)
-            {
-                ImGui::TableNextColumn();
-                first = false;
-            }
-            else
-            {
-                ImGui::SameLine();
-            }
-
-            ImGui::PushStyleColor(ImGuiCol_Text, color);
-            ImGui::TextUnformatted(description.data());
-            ImGui::PopStyleColor();
-        }
+        ImGui::TableNextColumn();
+        propertyDescription.render();
     }
 
     // render input
@@ -116,7 +44,7 @@ void PropertyEdit::render()
     {
         if (m_property.isValid())
         {
-            ImGui::PushStyleColor(ImGuiCol_Text, *m_inputColor);
+            ImGui::PushStyleColor(ImGuiCol_Text, propertyDescription.valueColor());
         }
         else
         {
@@ -132,7 +60,7 @@ void PropertyEdit::render()
 
             if (ImGui::BeginCombo(m_inputLabel.data(), Items[itemIndex]))
             {
-                ImGui::PushStyleColor(ImGuiCol_Text, *m_inputColor);
+                ImGui::PushStyleColor(ImGuiCol_Text, propertyDescription.valueColor());
                 if (ImGui::Selectable(Items[2], itemIndex == 2))
                 {
                     property.constructOrAssign(true);
@@ -155,7 +83,7 @@ void PropertyEdit::render()
 
             if (ImGui::BeginCombo(m_inputLabel.data(), previewValue))
             {
-                ImGui::PushStyleColor(ImGuiCol_Text, *m_inputColor);
+                ImGui::PushStyleColor(ImGuiCol_Text, propertyDescription.valueColor());
                 for (const dots::type::EnumeratorDescriptor<>& enumeratorDescriptor : enumDescriptor.enumeratorsTypeless())
                 {
                     const auto& value = enumeratorDescriptor.valueTypeless();

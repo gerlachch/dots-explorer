@@ -10,6 +10,7 @@ PoolView::PoolView() :
     m_containerFilterBuffer(256, '\0'),
     m_poolChanged(false),
     m_showInternal(false),
+    m_showUncached(false),
     m_showEmpty(false)
 {
     m_subscriptions.emplace_back(dots::subscribe<StructDescriptorData>([](auto&){}));
@@ -19,7 +20,7 @@ PoolView::PoolView() :
 
 void PoolView::update(const dots::type::StructDescriptor<>& descriptor)
 {
-    if (descriptor.cached() && !descriptor.substructOnly())
+    if (!descriptor.substructOnly())
     {
         ContainerView& containerView = *m_containerViews.emplace_back(std::make_shared<ContainerView>(descriptor));
         m_poolChanged = true;
@@ -88,6 +89,12 @@ void PoolView::render()
         }
 
         ImGui::SameLine();
+        if (ImGui::Checkbox("Uncached", &m_showUncached))
+        {
+            m_poolChanged = true;
+        }
+
+        ImGui::SameLine();
         if (ImGui::Checkbox("Empty", &m_showEmpty))
         {
             m_poolChanged = true;
@@ -102,7 +109,8 @@ void PoolView::render()
             std::copy_if(m_containerViews.begin(), m_containerViews.end(), std::back_inserter(m_containerViewsFiltered), [&](const auto& containerView)
             {
                 const dots::type::StructDescriptor<>& descriptor = containerView->container().descriptor();
-                return (!descriptor.internal() || m_showInternal) && 
+                return (!descriptor.internal() || m_showInternal) &&
+                       (descriptor.cached() || m_showUncached) && 
                        (containerView->container().size() > 0 || m_showEmpty) &&
                        (containerFilter.empty() || std::regex_search(descriptor.name(), regex))
                 ;
@@ -112,11 +120,11 @@ void PoolView::render()
         ImGui::SameLine();
         if (m_containerViewsFiltered.size() == 1)
         {
-            ImGui::TextDisabled("(1 type)");
+            ImGui::TextDisabled("(showing 1 type)");
         }
         else
         {
-            ImGui::TextDisabled("(%zu types)", m_containerViewsFiltered.size());
+            ImGui::TextDisabled("(showing %zu types)", m_containerViewsFiltered.size());
         }
     }
 

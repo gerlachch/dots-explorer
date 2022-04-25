@@ -7,7 +7,9 @@
 
 ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
     m_containerChanged(false),
-    m_container{ dots::container(descriptor) }
+    m_containerStorage{ descriptor.cached() ? std::optional<dots::Container<>>{ std::nullopt } : dots::Container<>{ descriptor } },
+    m_container{ descriptor.cached() ? dots::container(descriptor) : *m_containerStorage },
+    m_structDescription{ descriptor }
 {
     const auto& propertyPaths = descriptor.propertyPaths();
 
@@ -42,6 +44,11 @@ ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
             const std::string& name = propertyDescriptor.name();
             m_headers.emplace_back(propertyDescriptor.isKey() ? fmt::format("{} [key]", name) : name);
         }
+    }
+
+    for (const dots::type::PropertyPath& propertyPath : propertyPaths)
+    {
+        m_propertyDescriptions.emplace_back(propertyPath);
     }
 }
 
@@ -88,28 +95,22 @@ bool ContainerView::less(const ImGuiTableSortSpecs& sortSpecs, const ContainerVi
 
 void ContainerView::update(const dots::Event<>& event)
 {
+    if (!container().descriptor().cached())
+    {
+        return;
+    }
+
     m_containerChanged = true;
 
-    if (event.isCreate())
+    auto [it, emplaced] = m_instanceViewsStorage.try_emplace(&event.updated(), event.updated());
+    InstanceView& instanceView = it->second;
+
+    if (emplaced)
     {
-        InstanceView& instanceView = m_instanceViewsStorage.try_emplace(&event.updated(), event.updated()).first->second;
         m_instanceViews.emplace_back(instanceView);
     }
-    else
-    {
-        if (event.isUpdate())
-        {
-            m_instanceViewsStorage.find(&event.updated())->second.update();
-        }
-        else/* if (event.isRemove())*/
-        {
-            auto node = m_instanceViewsStorage.extract(&event.updated());
-            m_instanceViews.erase(std::find_if(m_instanceViews.begin(), m_instanceViews.end(), [&node](const InstanceView& instanceView)
-            {
-                return &instanceView == &node.mapped();
-            }));
-        }
-    }
+
+    instanceView.update(event);
 }
 
 bool ContainerView::renderBegin()
@@ -121,9 +122,7 @@ bool ContainerView::renderBegin()
     {
         if (ImGui::BeginPopupContextItem())
         {
-            ImGui::TextColored(ColorThemeActive.Keyword, "struct");
-            ImGui::SameLine();
-            ImGui::TextColored(ColorThemeActive.UserType, "%s", container().descriptor().name().data());
+            m_structDescription.render();
             ImGui::Separator();
 
             if (ImGui::MenuItem("Create/Update"))
@@ -160,7 +159,7 @@ bool ContainerView::renderBegin()
             m_instanceEdit.emplace(container().descriptor());
         }
 
-        if (m_instanceEdit != std::nullopt && !m_instanceEdit->render())
+        if (m_instanceEdit != std::nullopt && !m_instanceEdit->render(m_structDescription, m_propertyDescriptions))
         {
             m_instanceEdit = std::nullopt;
         }
@@ -191,15 +190,38 @@ void ContainerView::renderEnd()
     const dots::type::StructDescriptor<>& descriptor = m_container.get().descriptor();
     std::optional<dots::type::AnyStruct> editInstance;
 
-    if (ImGui::BeginTable(descriptor.name().data(), static_cast<int>(m_headers.size()), TableFlags))
+    if (ImGui::BeginTable(descriptor.name().data(), InstanceView::MetaData::MetaDataSize + static_cast<int>(m_headers.size()), TableFlags))
     {
-        // create headers
+        // create meta info headers
+        {
+            ImGui::TableSetupColumn("[META] Last Op.", ImGuiTableColumnFlags_DefaultHide);
+            ImGui::TableSetupColumn("[META] Last Published", ImGuiTableColumnFlags_DefaultHide);
+            ImGui::TableSetupColumn("[META] Last Published By", ImGuiTableColumnFlags_DefaultHide);
+        }
+
+        // create property headers
         for (const std::string& header : m_headers)
         {
             ImGui::TableSetupColumn(header.data());
         }
 
         ImGui::TableHeadersRow();
+
+        // clean instance views
+        {
+            m_instanceViews.erase(std::remove_if(m_instanceViews.begin(), m_instanceViews.end(), [this](const InstanceView& instanceView)
+            {
+                if (instanceView.lastOperation() == DotsMt::remove)
+                {
+                    m_instanceViewsStorage.erase(&instanceView.instance());
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }), m_instanceViews.end());
+        }
 
         // sort instance views
         if (ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs(); m_containerChanged || sortSpecs->SpecsDirty)
@@ -222,16 +244,13 @@ void ContainerView::renderEnd()
             for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
             {
                 InstanceView& instanceView = m_instanceViews[row];
-                instanceView.render();
+                instanceView.render(m_structDescription, m_propertyDescriptions);
 
                 // context menu
                 {
                     if (ImGui::BeginPopupContextItem(instanceView.widgetId()))
                     {
-                        ImGui::TextColored(ColorThemeActive.Keyword, "struct");
-                        ImGui::SameLine();
-                        ImGui::TextColored(ColorThemeActive.UserType, "%s", instanceView.instance()._descriptor().name().data());
-
+                        m_structDescription.render();
                         ImGui::Separator();
 
                         std::vector<std::reference_wrapper<const InstanceView>> selection;

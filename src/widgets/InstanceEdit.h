@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <dots/dots.h>
+#include <widgets/StructDescription.h>
 #include <widgets/PropertyEdit.h>
 
 struct InstanceEdit
@@ -13,7 +14,7 @@ struct InstanceEdit
     InstanceEdit& operator = (const InstanceEdit& rhs) = delete;
     InstanceEdit& operator = (InstanceEdit&& rhs) = default;
     
-    bool render();
+    bool render(const StructDescription& structDescription, const std::vector<PropertyDescription>& propertyDescriptions);
 
 private:
 

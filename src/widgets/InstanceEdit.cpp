@@ -16,26 +16,26 @@ InstanceEdit::InstanceEdit(dots::type::AnyStruct instance) :
     ImGui::OpenPopup(m_popupId.data());
 }
 
-bool InstanceEdit::render()
+bool InstanceEdit::render(const StructDescription& structDescription, const std::vector<PropertyDescription>& propertyDescriptions)
 {
     ImGui::SetNextWindowPos(ImVec2{ ImGui::GetWindowWidth() / 2, ImGui::GetWindowHeight() / 2 }, 0, ImVec2{ 0.5f, 0.5f });
 
     if (ImGui::BeginPopup(m_popupId.data(), ImGuiWindowFlags_NoMove))
     {
-        // header
+        // description
         {
-            ImGui::TextColored(ColorThemeActive.Keyword, "struct");
-            ImGui::SameLine();
-            ImGui::TextColored(ColorThemeActive.UserType, "%s", m_instance->_descriptor().name().data());
+            structDescription.render();
             ImGui::Separator();
         }
 
         // properties
         if (ImGui::BeginTable("InstanceEditTable", 2))
         {
+            auto it = propertyDescriptions.begin();
+
             for (PropertyEdit& propertyEdit : m_propertyEdits)
             {
-                propertyEdit.render();
+                propertyEdit.render(*it++);
             }
             
             ImGui::EndTable();
