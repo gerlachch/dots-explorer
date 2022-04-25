@@ -40,7 +40,7 @@ void PropertyView::update()
     m_value.clear();
 }
 
-void PropertyView::render(const PropertyDescription& propertyDescription)
+void PropertyView::render(const PropertyDescription& propertyDescription, bool selectable/* = true*/)
 {
     if (m_value.empty())
     {
@@ -65,6 +65,14 @@ void PropertyView::render(const PropertyDescription& propertyDescription)
         ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.Disabled);
     }
 
-    ImGui::Selectable(m_value.data(), &m_isSelected, ImGuiSelectableFlags_SpanAllColumns);
+    if (selectable)
+    {
+        ImGui::Selectable(m_value.data(), &m_isSelected, ImGuiSelectableFlags_SpanAllColumns);
+    }
+    else
+    {
+        ImGui::TextUnformatted(m_value.data());
+    }
+
     ImGui::PopStyleColor();
 }

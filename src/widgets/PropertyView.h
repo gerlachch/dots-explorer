@@ -20,7 +20,7 @@ struct PropertyView
     bool isSelected() const;
 
     void update();
-    void render(const PropertyDescription& propertyDescription);
+    void render(const PropertyDescription& propertyDescription, bool selectable = true);
 
 private:
 
