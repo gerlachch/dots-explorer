@@ -23,6 +23,7 @@ private:
     std::string m_containerFilterBuffer;
     bool m_poolChanged;
     bool m_showInternal;
+    bool m_showUncached;
     bool m_showEmpty;
     std::vector<dots::Subscription> m_subscriptions;
 };

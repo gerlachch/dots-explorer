@@ -35,6 +35,7 @@ private:
     std::vector<std::reference_wrapper<InstanceView>> m_instanceViews;
     std::vector<std::string> m_headers;
     bool m_containerChanged;
+    std::optional<dots::Container<>> m_containerStorage;
     container_ref_t m_container;
     StructDescription m_structDescription;
     std::vector<PropertyDescription> m_propertyDescriptions;

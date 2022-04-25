@@ -7,7 +7,8 @@
 
 ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
     m_containerChanged(false),
-    m_container{ dots::container(descriptor) },
+    m_containerStorage{ descriptor.cached() ? std::optional<dots::Container<>>{ std::nullopt } : dots::Container<>{ descriptor } },
+    m_container{ descriptor.cached() ? dots::container(descriptor) : *m_containerStorage },
     m_structDescription{ descriptor }
 {
     const auto& propertyPaths = descriptor.propertyPaths();
@@ -94,6 +95,11 @@ bool ContainerView::less(const ImGuiTableSortSpecs& sortSpecs, const ContainerVi
 
 void ContainerView::update(const dots::Event<>& event)
 {
+    if (!container().descriptor().cached())
+    {
+        return;
+    }
+
     m_containerChanged = true;
 
     auto [it, emplaced] = m_instanceViewsStorage.try_emplace(&event.updated(), event.updated());
