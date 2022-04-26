@@ -116,7 +116,7 @@ bool InstanceView::less(const ImGuiTableSortSpecs& sortSpecs, const InstanceView
         }
     }
 
-    return structModel().instance()._less(other.structModel().instance(), structModel().instance()._keyProperties());
+    return &structModel().instance() < &other.structModel().instance();
 }
 
 bool InstanceView::isSelected() const
