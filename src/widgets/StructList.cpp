@@ -155,27 +155,30 @@ bool StructList::renderBegin()
             ImGuiExt::TextColored(m_structDescriptorModel.declarationText());
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Create/Update"))
+            if (ImGui::MenuItem(m_structDescriptorModel.descriptor().cached() ? "Create/Update" : "Publish"))
             {
                 openStructEdit = true;
             }
 
-            if (ImGui::MenuItem("Remove All", nullptr, false, ImGui::GetIO().KeyCtrl))
+            if (m_structDescriptorModel.descriptor().cached())
             {
-                dots::publish(DotsClearCache{ 
-                    DotsClearCache::typeNames_i{ dots::vector_t<dots::string_t>{ container().descriptor().name() } }
-                });
-            }
+                if (ImGui::MenuItem("Remove All", nullptr, false, ImGui::GetIO().KeyCtrl))
+                {
+                    dots::publish(DotsClearCache{ 
+                        DotsClearCache::typeNames_i{ dots::vector_t<dots::string_t>{ container().descriptor().name() } }
+                    });
+                }
 
-            ImGui::SameLine();
-            ImGui::TextDisabled("(?)");
-            if (ImGui::IsItemHovered())
-            {
-                ImGui::BeginTooltip();
-                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                ImGui::TextUnformatted("Hold CTRL key to enable.");
-                ImGui::PopTextWrapPos();
-                ImGui::EndTooltip();
+                ImGui::SameLine();
+                ImGui::TextDisabled("(?)");
+                if (ImGui::IsItemHovered())
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+                    ImGui::TextUnformatted("Hold CTRL key to enable.");
+                    ImGui::PopTextWrapPos();
+                    ImGui::EndTooltip();
+                }
             }
 
             ImGui::EndPopup();
@@ -307,21 +310,24 @@ void StructList::renderEnd()
                             return row.isSelected();
                         });
 
-                        if (selection.empty() && ImGui::MenuItem("View/Update"))
+                        if (selection.empty() && ImGui::MenuItem(m_structDescriptorModel.descriptor().cached() ? "View/Update" : "View/Publish"))
                         {
                             editInstance = row.structModel().instance();
                         }
 
-                        if (selection.empty() && ImGui::MenuItem("Remove", nullptr, false, ImGui::GetIO().KeyCtrl))
+                        if (m_structDescriptorModel.descriptor().cached())
                         {
-                            dots::remove(row.structModel().instance());
-                        }
-
-                        if (!selection.empty() && ImGui::MenuItem("Remove Selection", nullptr, false, ImGui::GetIO().KeyCtrl))
-                        {
-                            for (const StructListRow& selected : selection)
+                            if (selection.empty() && ImGui::MenuItem("Remove", nullptr, false, ImGui::GetIO().KeyCtrl))
                             {
-                                dots::remove(selected.structModel().instance());
+                                dots::remove(row.structModel().instance());
+                            }
+
+                            if (!selection.empty() && ImGui::MenuItem("Remove Selection", nullptr, false, ImGui::GetIO().KeyCtrl))
+                            {
+                                for (const StructListRow& selected : selection)
+                                {
+                                    dots::remove(selected.structModel().instance());
+                                }
                             }
                         }
 
