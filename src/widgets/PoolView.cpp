@@ -3,15 +3,15 @@
 #include <regex>
 #include <imgui.h>
 #include <widgets/ContainerView.h>
+#include <common/Settings.h>
 #include <StructDescriptorData.dots.h>
 #include <EnumDescriptorData.dots.h>
 
 PoolView::PoolView() :
     m_containerFilterBuffer(256, '\0'),
     m_poolChanged(false),
-    m_showInternal(false),
-    m_showUncached(false),
-    m_showEmpty(false)
+    m_filterSettingsInitialized(false),
+    m_filterSettings{ Settings::Register<FilterSettings>() }
 {
     m_subscriptions.emplace_back(dots::subscribe<StructDescriptorData>([](auto&){}));
     m_subscriptions.emplace_back(dots::subscribe<EnumDescriptorData>([](auto&){}));
@@ -29,7 +29,7 @@ void PoolView::update(const dots::type::StructDescriptor<>& descriptor)
         {
             containerView.update(event);
 
-            if (!m_showEmpty &&
+            if (!m_filterSettings.showEmpty == true &&
                 ((event.isCreate() && containerView.container().size() == 1) || 
                 (event.isRemove() && containerView.container().empty())))
             {
@@ -41,6 +41,27 @@ void PoolView::update(const dots::type::StructDescriptor<>& descriptor)
 
 void PoolView::render()
 {
+    // init filter settings
+    if (!m_filterSettingsInitialized)
+    {
+        m_filterSettingsInitialized = true;
+
+        if (m_filterSettings.regexFilter.isValid())
+        {
+            const std::string& regexFilter = m_filterSettings.regexFilter;
+            m_containerFilterBuffer.assign(std::max(regexFilter.size(), m_containerFilterBuffer.size()), '\0');
+            std::copy(regexFilter.begin(), regexFilter.end(), m_containerFilterBuffer.begin());
+        }
+        else
+        {
+            m_filterSettings.regexFilter.construct();
+        }
+
+        m_filterSettings.showInternal.constructOrValue();
+        m_filterSettings.showUncached.constructOrValue();
+        m_filterSettings.showEmpty.constructOrValue();
+    }
+
     // control area
     {
         ImGui::AlignTextToFramePadding();
@@ -83,19 +104,19 @@ void PoolView::render()
         }
 
         ImGui::SameLine();
-        if (ImGui::Checkbox("Internal", &m_showInternal))
+        if (ImGui::Checkbox("Internal", &*m_filterSettings.showInternal))
         {
             m_poolChanged = true;
         }
 
         ImGui::SameLine();
-        if (ImGui::Checkbox("Uncached", &m_showUncached))
+        if (ImGui::Checkbox("Uncached", &*m_filterSettings.showUncached))
         {
             m_poolChanged = true;
         }
 
         ImGui::SameLine();
-        if (ImGui::Checkbox("Empty", &m_showEmpty))
+        if (ImGui::Checkbox("Empty", &*m_filterSettings.showEmpty))
         {
             m_poolChanged = true;
         }
@@ -104,21 +125,22 @@ void PoolView::render()
         {
             m_containerViewsFiltered.clear();
             std::string_view containerFilter = m_containerFilterBuffer.data();
+            m_filterSettings.regexFilter = containerFilter;
             std::regex regex{ containerFilter.data() };
 
             std::copy_if(m_containerViews.begin(), m_containerViews.end(), std::back_inserter(m_containerViewsFiltered), [&](const auto& containerView)
             {
                 const dots::type::StructDescriptor<>& descriptor = containerView->container().descriptor();
 
-                if (descriptor.internal() && !m_showInternal)
+                if (descriptor.internal() && !*m_filterSettings.showInternal)
                 {
                     return false;
                 }
-                else if (!descriptor.cached() && !m_showUncached)
+                else if (!descriptor.cached() && !*m_filterSettings.showUncached)
                 {
                     return false;
                 }
-                else if (descriptor.cached() && containerView->container().empty() && !m_showEmpty)
+                else if (descriptor.cached() && containerView->container().empty() && !*m_filterSettings.showEmpty)
                 {
                     return false;
                 }

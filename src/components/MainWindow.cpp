@@ -2,11 +2,16 @@
 #include <boost/asio.hpp>
 #include <imgui.h>
 #include <fmt/format.h>
+#include <common/Settings.h>
+#include <HostSettings.dots.h>
+#include <FilterSettings.dots.h>
 
 MainWindow::MainWindow(std::string appName) :
     m_hostPanel{ std::move(appName) }
 {
-    /* do nothing */
+    // register settings
+    Settings::Register<HostSettings>();
+    Settings::Register<FilterSettings>();
 }
 
 void MainWindow::render()
