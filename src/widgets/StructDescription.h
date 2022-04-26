@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include <imgui.h>
+#include <common/ImGuiExt.h>
 #include <dots/type/StructDescriptor.h>
 
 struct StructDescription
@@ -13,8 +13,7 @@ struct StructDescription
 private:
 
     using struct_descriptor_ref = std::reference_wrapper<const dots::type::StructDescriptor<>>;
-    using colored_text_t = std::pair<std::string, ImVec4>;
 
-    std::vector<colored_text_t> m_parts;
+    std::vector<ImGuiExt::ColoredText> m_parts;
     struct_descriptor_ref m_descriptor;
 };

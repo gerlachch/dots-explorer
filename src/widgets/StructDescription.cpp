@@ -55,21 +55,5 @@ const dots::type::StructDescriptor<>& StructDescription::descriptor() const
 
 void StructDescription::render() const
 {
-    bool first = true;
-
-    for (const auto& [part, color] : m_parts)
-    {
-        if (first)
-        {
-            first = false;
-        }
-        else
-        {
-            ImGui::SameLine();
-        }
-
-        ImGui::PushStyleColor(ImGuiCol_Text, color);
-        ImGui::TextUnformatted(part.data());
-        ImGui::PopStyleColor();
-    }
+    ImGuiExt::TextColored(m_parts);
 }

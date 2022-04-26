@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <functional>
-#include <imgui.h>
+#include <common/ImGuiExt.h>
 #include <dots/type/PropertyPath.h>
 
 struct PropertyDescription
@@ -19,8 +19,7 @@ private:
 
     using property_path_ref = std::reference_wrapper<const dots::type::PropertyPath>;
 
-    using colored_text_t = std::pair<std::string, ImVec4>;
-    std::vector<colored_text_t> m_parts;
+    std::vector<ImGuiExt::ColoredText> m_parts;
     ImVec4 m_valueColor;
     bool m_valueQuoted;
     property_path_ref m_propertyPath;
