@@ -3,6 +3,7 @@
 #include <fmt/format.h>
 #include <common/Colors.h>
 #include <common/ImGuiExt.h>
+#include <widgets/StructView.h>
 #include <DotsClient.dots.h>
 
 StructListRow::StructListRow(const StructDescriptorModel& structDescriptorModel, const dots::type::Struct& instance) :
@@ -155,72 +156,8 @@ void StructListRow::render()
     if (ImGui::IsItemHovered() && ImGui::GetIO().KeyAlt)
     {
         ImGui::BeginTooltip();
-
-        // render header
-        {
-            ImGuiExt::TextColored(m_structModel.descriptorModel().declarationText());
-        }
-
-        ImGui::Separator();
-
-        // render properties
-        if (ImGui::BeginTable("PropertyTable", 2))
-        {
-            for (const PropertyModel& propertyModel : m_structModel.propertyModels())
-            {
-                ImGui::TableNextRow();
-
-                if (m_structModel.propertyModels().size() <= IMGUI_TABLE_MAX_COLUMNS)
-                {
-                    ImGui::TableNextColumn();
-                    ImGuiExt::TextColored(propertyModel.descriptorModel().declarationText());
-
-                    ImGui::TableNextColumn();
-
-                    if (propertyModel.property().descriptor().valueDescriptor().type() != dots::type::Type::Struct)
-                    {
-                        ImGuiExt::TextColored(propertyModel.valueText());
-                    }
-                }
-                else
-                {
-                    ImGui::TableNextColumn();
-                    ImGuiExt::TextColored(propertyModel.descriptorModel().declarationText());
-
-                    ImGui::TableNextColumn();
-                    ImGuiExt::TextColored(propertyModel.valueText());
-                }
-            }
-
-            ImGui::EndTable();
-        }
-
-        ImGui::Separator();
-
-        // render meta data
-        if (ImGui::BeginTable("MetaDataTable", 2))
-        {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::TextUnformatted("Last Operation:");
-            ImGui::TableNextColumn();
-            ImGuiExt::TextColored(m_metadataModel.lastOperationText());
-
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::TextUnformatted("Last Published:");
-            ImGui::TableNextColumn();
-            ImGuiExt::TextColored(m_metadataModel.lastPublishedText());
-
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::TextUnformatted("Last Published By:");
-            ImGui::TableNextColumn();
-            ImGuiExt::TextColored(m_metadataModel.lastPublishedByText());
-
-            ImGui::EndTable();
-        }
-
+        StructView structView{ m_metadataModel, m_structModel };
+        structView.render();
         ImGui::EndTooltip();
     }
 }
