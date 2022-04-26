@@ -35,7 +35,7 @@ private:
 
     inline static uint64_t M_nextWidgetId = 0;
 
-    std::string m_widgetId;
+    mutable std::string m_widgetId;
     MetadataModel m_metadataModel;
     StructModel m_structModel;
     std::vector<PropertyView> m_propertyViews;

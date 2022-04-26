@@ -8,6 +8,8 @@ StructModel::StructModel(const StructDescriptorModel& descriptorModel, dots::typ
     m_descriptorModel{ descriptorModel },
     m_instance{ instance }
 {
+    m_propertyModels.reserve(descriptorModel.propertyDescriptorModels().size());
+
     for (const PropertyDescriptorModel& propertyDescriptorModel : descriptorModel.propertyDescriptorModels())
     {
         m_propertyModels.emplace_back(propertyDescriptorModel, instance);
@@ -19,6 +21,8 @@ StructModel::StructModel(const StructDescriptorModel& descriptorModel, const dot
     m_descriptorModel{ descriptorModel },
     m_instance{ const_cast<dots::type::Struct&>(instance)}
 {
+    m_propertyModels.reserve(descriptorModel.propertyDescriptorModels().size());
+
     for (const PropertyDescriptorModel& propertyDescriptorModel : descriptorModel.propertyDescriptorModels())
     {
         m_propertyModels.emplace_back(propertyDescriptorModel, instance);

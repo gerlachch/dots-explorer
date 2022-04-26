@@ -6,9 +6,10 @@
 #include <DotsClient.dots.h>
 
 InstanceView::InstanceView(const StructDescriptorModel& structDescriptorModel, const dots::type::Struct& instance) :
-    m_widgetId{ fmt::format("InstanceView-{}", M_nextWidgetId++) },
     m_structModel{ structDescriptorModel, instance }
 {
+    m_propertyViews.reserve(m_structModel.propertyModels().size());
+
     if (m_structModel.propertyModels().size() <= IMGUI_TABLE_MAX_COLUMNS)
     {
         for (PropertyModel& propertyModel : m_structModel.propertyModels())
@@ -37,6 +38,11 @@ InstanceView::InstanceView(const StructDescriptorModel& structDescriptorModel, c
 
 const char* InstanceView::widgetId() const
 {
+    if (m_widgetId.empty())
+    {
+        m_widgetId = fmt::format("InstanceView-{}", M_nextWidgetId++);
+    }
+
     return m_widgetId.data();
 }
 
