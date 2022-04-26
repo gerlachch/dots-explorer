@@ -3,7 +3,7 @@
 #include <future>
 #include <dots/dots.h>
 #include <widgets/HostSettingsEdit.h>
-#include <widgets/PoolView.h>
+#include <widgets/TypeList.h>
 #include <HostSettings.dots.h>
 
 struct HostPanel
@@ -34,7 +34,7 @@ private:
     void handleTransceiverTransition(const dots::Connection& connection, std::exception_ptr ePtr);
 
     std::optional<HostSettingsEdit> m_hostSettingsEdit;
-    std::optional<PoolView> m_poolView;
+    std::optional<TypeList> m_typeList;
     std::optional<std::future<void>> m_connectTask;
     std::exception_ptr m_connectionError;
     State m_state;

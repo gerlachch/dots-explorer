@@ -1,10 +1,10 @@
-#include <widgets/InstanceEdit.h>
+#include <widgets/StructEdit.h>
 #include <algorithm>
 #include <imgui.h>
 #include <fmt/format.h>
 
-InstanceEdit::InstanceEdit(const StructDescriptorModel& structDescriptorModel, dots::type::AnyStruct instance) :
-    m_popupId{ fmt::format("InstanceEdit-{}_Popup", ++M_id) },
+StructEdit::StructEdit(const StructDescriptorModel& structDescriptorModel, dots::type::AnyStruct instance) :
+    m_popupId{ fmt::format("StructEdit-{}_Popup", ++M_id) },
     m_instance{ std::move(instance) },
     m_structModel{ structDescriptorModel, m_instance }
 {
@@ -16,7 +16,7 @@ InstanceEdit::InstanceEdit(const StructDescriptorModel& structDescriptorModel, d
     ImGui::OpenPopup(m_popupId.data());
 }
 
-bool InstanceEdit::render()
+bool StructEdit::render()
 {
     ImGui::SetNextWindowPos(ImVec2{ ImGui::GetWindowWidth() / 2, ImGui::GetWindowHeight() / 2 }, 0, ImVec2{ 0.5f, 0.5f });
 
@@ -29,7 +29,7 @@ bool InstanceEdit::render()
         }
 
         // properties
-        if (ImGui::BeginTable("InstanceEditTable", 2))
+        if (ImGui::BeginTable("StructEditTable", 2))
         {
             for (PropertyEdit& propertyEdit : m_propertyEdits)
             {

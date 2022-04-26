@@ -1,29 +1,29 @@
-#include <widgets/PropertyView.h>
+#include <widgets/StructListColumn.h>
 #include <common/Colors.h>
 
-PropertyView::PropertyView(PropertyModel& model) :
+StructListColumn::StructListColumn(PropertyModel& model) :
     m_isSelected(false),
     m_model{ model }
 {
     /* do nothing */
 }
 
-const PropertyModel& PropertyView::model() const
+const PropertyModel& StructListColumn::model() const
 {
     return m_model;
 }
 
-PropertyModel& PropertyView::model()
+PropertyModel& StructListColumn::model()
 {
     return m_model;
 }
 
-bool PropertyView::isSelected() const
+bool StructListColumn::isSelected() const
 {
     return m_isSelected;
 }
 
-void PropertyView::render()
+void StructListColumn::render()
 {
     PropertyModel& model = m_model.get();
     ImGui::PushStyleColor(ImGuiCol_Text, model.valueText().second);

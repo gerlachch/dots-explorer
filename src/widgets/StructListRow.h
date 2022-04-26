@@ -2,21 +2,21 @@
 #include <dots/dots.h>
 #include <models/MetadataModel.h>
 #include <models/StructModel.h>
-#include <widgets/PropertyView.h>
+#include <widgets/StructListColumn.h>
 
 struct ImGuiTableSortSpecs;
 
-struct InstanceView
+struct StructListRow
 {
     enum MetaData { LastOp, LastPublished, LastPublishedBy, MetaDataSize };
 
-    InstanceView(const StructDescriptorModel& structDescriptorModel, const dots::type::Struct& instance);
-    InstanceView(const InstanceView& other) = delete;
-    InstanceView(InstanceView&& other) = default;
-    ~InstanceView() = default;
+    StructListRow(const StructDescriptorModel& structDescriptorModel, const dots::type::Struct& instance);
+    StructListRow(const StructListRow& other) = delete;
+    StructListRow(StructListRow&& other) = default;
+    ~StructListRow() = default;
 
-    InstanceView& operator = (const InstanceView& rhs) = delete;
-    InstanceView& operator = (InstanceView&& rhs) = default;
+    StructListRow& operator = (const StructListRow& rhs) = delete;
+    StructListRow& operator = (StructListRow&& rhs) = default;
 
     const char* widgetId() const;
 
@@ -26,7 +26,7 @@ struct InstanceView
     const StructModel& structModel() const ;
     StructModel& structModel();
 
-    bool less(const ImGuiTableSortSpecs& sortSpecs, const InstanceView& other) const;
+    bool less(const ImGuiTableSortSpecs& sortSpecs, const StructListRow& other) const;
 
     bool isSelected() const;
     void render();
@@ -38,5 +38,5 @@ private:
     mutable std::string m_widgetId;
     MetadataModel m_metadataModel;
     StructModel m_structModel;
-    std::vector<PropertyView> m_propertyViews;
+    std::vector<StructListColumn> m_columns;
 };
