@@ -109,11 +109,23 @@ void PoolView::render()
             std::copy_if(m_containerViews.begin(), m_containerViews.end(), std::back_inserter(m_containerViewsFiltered), [&](const auto& containerView)
             {
                 const dots::type::StructDescriptor<>& descriptor = containerView->container().descriptor();
-                return (!descriptor.internal() || m_showInternal) &&
-                       (descriptor.cached() || m_showUncached) && 
-                       (containerView->container().size() > 0 || m_showEmpty) &&
-                       (containerFilter.empty() || std::regex_search(descriptor.name(), regex))
-                ;
+
+                if (descriptor.internal() && !m_showInternal)
+                {
+                    return false;
+                }
+                else if (!descriptor.cached() && !m_showUncached)
+                {
+                    return false;
+                }
+                else if (containerView->container().empty() && !m_showEmpty)
+                {
+                    return false;
+                }
+                else
+                {
+                    return containerFilter.empty() || std::regex_search(descriptor.name(), regex);
+                }
             });
         }
 
