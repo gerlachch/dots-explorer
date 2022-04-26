@@ -118,7 +118,7 @@ void PoolView::render()
                 {
                     return false;
                 }
-                else if (containerView->container().empty() && !m_showEmpty)
+                else if (descriptor.cached() && containerView->container().empty() && !m_showEmpty)
                 {
                     return false;
                 }
