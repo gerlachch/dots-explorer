@@ -120,42 +120,21 @@ bool InstanceView::isSelected() const
 
 void InstanceView::render()
 {
-    auto render_last_operation = [this]
-    {
-        ImGui::PushStyleColor(ImGuiCol_Text, m_metadataModel.lastOperationText().second);
-        ImGui::TextUnformatted(m_metadataModel.lastOperationText().first.data());
-        ImGui::PopStyleColor();
-    };
-
-    auto render_last_published = [this]
-    {
-        ImGui::PushStyleColor(ImGuiCol_Text, m_metadataModel.lastPublishedText().second);
-        ImGui::TextUnformatted(m_metadataModel.lastPublishedText().first.data());
-        ImGui::PopStyleColor();
-    };
-
-    auto render_last_published_by = [this]
-    {
-        ImGui::PushStyleColor(ImGuiCol_Text, m_metadataModel.lastPublishedByText().second);
-        ImGui::TextUnformatted(m_metadataModel.lastPublishedByText().first.data());
-        ImGui::PopStyleColor();
-    };
-
     // render meta data columns
     {
         if (ImGui::TableNextColumn())
         {
-            render_last_operation();
+            ImGuiExt::TextColored(m_metadataModel.lastOperationText());
         }
 
         if (ImGui::TableNextColumn())
         {
-            render_last_published();
+            ImGuiExt::TextColored(m_metadataModel.lastPublishedText());
         }
 
         if (ImGui::TableNextColumn())
         {
-            render_last_published_by();
+            ImGuiExt::TextColored(m_metadataModel.lastPublishedByText());
         }
     }
 
@@ -219,19 +198,19 @@ void InstanceView::render()
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("Last Operation:");
             ImGui::TableNextColumn();
-            render_last_operation();
+            ImGuiExt::TextColored(m_metadataModel.lastOperationText());
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("Last Published:");
             ImGui::TableNextColumn();
-            render_last_published();
+            ImGuiExt::TextColored(m_metadataModel.lastPublishedText());
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("Last Published By:");
             ImGui::TableNextColumn();
-            render_last_published_by();
+            ImGuiExt::TextColored(m_metadataModel.lastPublishedByText());
 
             ImGui::EndTable();
         }
