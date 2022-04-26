@@ -7,7 +7,7 @@ StructDescriptorModel::StructDescriptorModel(const dots::type::StructDescriptor<
     m_declarationText.emplace_back("struct", ColorThemeActive.Keyword);
     m_declarationText.emplace_back(descriptor.name(), ColorThemeActive.UserType);
 
-    if (uint8_t flags = descriptor.flags(); flags > 1)
+    if (uint8_t flags = descriptor.flags(); flags != dots::type::StructDescriptor<>::Cached)
     {
         std::string part = "[";
 
