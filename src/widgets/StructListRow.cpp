@@ -3,7 +3,6 @@
 #include <fmt/format.h>
 #include <common/Colors.h>
 #include <common/ImGuiExt.h>
-#include <widgets/StructView.h>
 #include <DotsClient.dots.h>
 
 StructListRow::StructListRow(const StructDescriptorModel& structDescriptorModel, const dots::type::Struct& instance) :
@@ -150,14 +149,5 @@ void StructListRow::render()
     {
         ImGui::TableNextColumn();
         column.render();
-    }
-
-    // render quick info tooltip
-    if (ImGui::IsItemHovered() && ImGui::GetIO().KeyAlt)
-    {
-        ImGui::BeginTooltip();
-        StructView structView{ m_metadataModel, m_structModel };
-        structView.render();
-        ImGui::EndTooltip();
     }
 }

@@ -34,6 +34,8 @@ private:
     std::unordered_map<const dots::type::Struct*, StructListRow> m_rowsStorage;
     std::vector<std::reference_wrapper<StructListRow>> m_rows;
     std::vector<std::string> m_headers;
+    const StructListRow* m_lastPublishedRow;
+    dots::timepoint_t m_lastPublishedRowTime;
     bool m_containerChanged;
     std::optional<dots::Container<>> m_containerStorage;
     container_ref_t m_container;

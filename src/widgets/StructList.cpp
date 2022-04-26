@@ -2,11 +2,13 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <fmt/format.h>
-#include <common/Colors.h>
 #include <common/ImGuiExt.h>
+#include <widgets/StructView.h>
 #include <DotsClearCache.dots.h>
 
 StructList::StructList(const dots::type::StructDescriptor<>& descriptor) :
+    m_lastPublishedRow(nullptr),
+    m_lastPublishedRowTime{ dots::timepoint_t::min() },
     m_containerChanged(false),
     m_containerStorage{ descriptor.cached() ? std::optional<dots::Container<>>{ std::nullopt } : dots::Container<>{ descriptor } },
     m_container{ descriptor.cached() ? dots::container(descriptor) : *m_containerStorage },
@@ -108,12 +110,36 @@ void StructList::update(const dots::Event<>& event)
 
     row.metadataModel().fetch(event);
     row.structModel().fetch();
+
+    if (dots::timepoint_t lastPublished = row.metadataModel().lastPublished(); lastPublished > m_lastPublishedRowTime)
+    {
+        m_lastPublishedRow = &row;
+        m_lastPublishedRowTime = lastPublished;
+    }
 }
 
 bool StructList::renderBegin()
 {
     bool containerOpen = ImGui::TreeNodeEx(container().descriptor().name().data(), ImGuiTreeNodeFlags_SpanFullWidth);
     bool openStructEdit = false;
+
+    // render quick info tooltip for last published struct instance
+    if (ImGui::IsItemHovered() && ImGui::GetIO().KeyAlt && !m_rows.empty())
+    {
+        if (m_lastPublishedRow == nullptr)
+        {
+            m_lastPublishedRow = &std::max_element(m_rows.begin(), m_rows.end(), [this](const StructListRow& lhs, const StructListRow& rhs)
+            {
+                return lhs.metadataModel().lastPublished() < rhs.metadataModel().lastPublished();
+            })->get();
+            m_lastPublishedRowTime = m_lastPublishedRow->metadataModel().lastPublished();
+        }
+
+        ImGui::BeginTooltip();
+        StructView structView{ m_lastPublishedRow->metadataModel(), m_lastPublishedRow->structModel() };
+        structView.render();
+        ImGui::EndTooltip();
+    }
 
     // context menu
     {
@@ -210,6 +236,11 @@ void StructList::renderEnd()
             {
                 if (row.metadataModel().lastOperation() == DotsMt::remove)
                 {
+                    if (&row == m_lastPublishedRow)
+                    {
+                        m_lastPublishedRow = nullptr;
+                    }
+
                     m_rowsStorage.erase(&row.structModel().instance());
                     return true;
                 }
@@ -243,6 +274,15 @@ void StructList::renderEnd()
                 {
                     StructListRow& row = m_rows[rowIndex];
                     row.render();
+
+                    // render quick info tooltip
+                    if (ImGui::IsItemHovered() && ImGui::GetIO().KeyAlt)
+                    {
+                        ImGui::BeginTooltip();
+                        StructView structView{ row.metadataModel(), row.structModel() };
+                        structView.render();
+                        ImGui::EndTooltip();
+                    }
                 }
 
                 // context menu
