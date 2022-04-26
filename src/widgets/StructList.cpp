@@ -93,14 +93,21 @@ bool StructList::less(const ImGuiTableSortSpecs& sortSpecs, const StructList& ot
 
 void StructList::update(const dots::Event<>& event)
 {
-    if (!container().descriptor().cached())
+    const dots::type::Struct* instance;
+
+    if (container().descriptor().cached())
     {
-        return;
+        instance = &event.updated();
+    }
+    else
+    {
+        const auto& [updated, cloneInfo] = m_containerStorage->insert(event.header(), event.updated());
+        instance = &*updated;
     }
 
     m_containerChanged = true;
 
-    auto [it, emplaced] = m_rowsStorage.try_emplace(&event.updated(), StructListRow{ m_structDescriptorModel, event.updated() });
+    auto [it, emplaced] = m_rowsStorage.try_emplace(instance, StructListRow{ m_structDescriptorModel, *instance });
     StructListRow& row = it->second;
 
     if (emplaced)
