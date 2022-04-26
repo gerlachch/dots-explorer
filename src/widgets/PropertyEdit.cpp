@@ -4,23 +4,28 @@
 #include <fmt/format.h>
 #include <common/Colors.h>
 
-PropertyEdit::PropertyEdit(dots::type::Struct& instance, const dots::type::PropertyPath& propertyPath) :
-    m_property{ instance, propertyPath },
-    m_inputLabel{ fmt::format("##PropertyEdit_{}_Input", m_property.descriptor().name()) },
-    m_invalidateLabel{ fmt::format("X##PropertyEdit_{}_Invalidate", m_property.descriptor().name()) },
-    m_randomizeLabel{ fmt::format("R##PropertyEdit_{}_Randomize", m_property.descriptor().name()) }
+PropertyEdit::PropertyEdit(PropertyModel& model) :
+    m_model{ model },
+    m_inputLabel{ fmt::format("##PropertyEdit_{}_Input", model.property().descriptor().name()) },
+    m_invalidateLabel{ fmt::format("X##PropertyEdit_{}_Invalidate", model.property().descriptor().name()) },
+    m_randomizeLabel{ fmt::format("R##PropertyEdit_{}_Randomize", model.property().descriptor().name()) }
 {
     // init input buffer
     {
-        std::string value = dots::to_string(m_property);
+        const std::string& value = model.valueText().first;
         m_inputBuffer.assign(std::max(value.size(), size_t{ 256 }), '\0');
         std::copy(value.begin(), value.end(), m_inputBuffer.begin());
     }
 }
 
-const dots::type::ProxyProperty<>& PropertyEdit::property() const
+const PropertyModel& PropertyEdit::model() const
 {
-    return m_property;
+    return m_model;
+}
+
+PropertyModel& PropertyEdit::model()
+{
+    return m_model;
 }
 
 std::optional<bool> PropertyEdit::inputParseable() const
@@ -28,23 +33,26 @@ std::optional<bool> PropertyEdit::inputParseable() const
     return m_inputParseable;
 }
 
-void PropertyEdit::render(const PropertyDescription& propertyDescription)
+void PropertyEdit::render()
 {
     ImGui::TableNextRow();
 
     // render description
     {
         ImGui::TableNextColumn();
-        propertyDescription.render();
+        ImGuiExt::TextColored(model().descriptorModel().declarationText());
     }
 
     // render input
     ImGui::TableNextColumn();
-    if (dots::type::Type type = m_property.descriptor().valueDescriptor().type(); type != dots::type::Type::Struct)
+    PropertyModel& model = m_model.get();
+    dots::type::ProxyProperty<>& property = model.property();
+
+    if (dots::type::Type type = property.descriptor().valueDescriptor().type(); type != dots::type::Type::Struct)
     {
-        if (m_property.isValid())
+        if (property.isValid())
         {
-            ImGui::PushStyleColor(ImGuiCol_Text, propertyDescription.valueColor());
+            ImGui::PushStyleColor(ImGuiCol_Text, model.valueText().second);
         }
         else
         {
@@ -55,20 +63,22 @@ void PropertyEdit::render(const PropertyDescription& propertyDescription)
         if (type == dots::type::Type::boolean)
         {
             constexpr const char* Items[] = { "<invalid>", "false", "true" };
-            auto property = m_property.to<dots::bool_t>();
-            size_t itemIndex = property.isValid() + property.equal(true);
+            auto boolProperty = property.to<dots::bool_t>();
+            size_t itemIndex = boolProperty.isValid() + boolProperty.equal(true);
 
             if (ImGui::BeginCombo(m_inputLabel.data(), Items[itemIndex]))
             {
-                ImGui::PushStyleColor(ImGuiCol_Text, propertyDescription.valueColor());
+                ImGui::PushStyleColor(ImGuiCol_Text, model.valueText().second);
                 if (ImGui::Selectable(Items[2], itemIndex == 2))
                 {
-                    property.constructOrAssign(true);
+                    boolProperty.constructOrAssign(true);
+                    model.fetch();
                     m_inputParseable = true;
                 }
                 if (ImGui::Selectable(Items[1], itemIndex == 1))
                 {
-                    property.constructOrAssign(false);
+                    boolProperty.constructOrAssign(false);
+                    model.fetch();
                     m_inputParseable = true;
                 }
                 ImGui::PopStyleColor();
@@ -78,19 +88,20 @@ void PropertyEdit::render(const PropertyDescription& propertyDescription)
         }
         else if (type == dots::type::Type::Enum)
         {
-            const auto& enumDescriptor = m_property.descriptor().valueDescriptor().to<dots::type::EnumDescriptor<>>();
-            const char* previewValue = m_property.isValid() ? enumDescriptor.enumeratorFromValue(*m_property).name().data() : "<invalid>";
+            const auto& enumDescriptor = property.descriptor().valueDescriptor().to<dots::type::EnumDescriptor<>>();
+            const char* previewValue = property.isValid() ? enumDescriptor.enumeratorFromValue(*property).name().data() : "<invalid>";
 
             if (ImGui::BeginCombo(m_inputLabel.data(), previewValue))
             {
-                ImGui::PushStyleColor(ImGuiCol_Text, propertyDescription.valueColor());
+                ImGui::PushStyleColor(ImGuiCol_Text, model.valueText().second);
                 for (const dots::type::EnumeratorDescriptor<>& enumeratorDescriptor : enumDescriptor.enumeratorsTypeless())
                 {
                     const auto& value = enumeratorDescriptor.valueTypeless();
 
-                    if (ImGui::Selectable(enumeratorDescriptor.name().data(), m_property == value))
+                    if (ImGui::Selectable(enumeratorDescriptor.name().data(), property == value))
                     {
-                        m_property.constructOrAssign(value);
+                        property.constructOrAssign(value);
+                        model.fetch();
                         m_inputParseable = true;
                     }
                 }
@@ -106,7 +117,8 @@ void PropertyEdit::render(const PropertyDescription& propertyDescription)
                 try
                 {
                     std::string bufferNullTerminated = m_inputBuffer.data();
-                    dots::from_string(bufferNullTerminated, m_property);
+                    dots::from_string(bufferNullTerminated, property);
+                    model.fetch();
                     m_inputParseable = true;
                 }
                 catch (...)
@@ -125,7 +137,8 @@ void PropertyEdit::render(const PropertyDescription& propertyDescription)
             constexpr char Invalid[] = "<invalid>";
             std::copy(Invalid, Invalid + sizeof Invalid, m_inputBuffer.begin());
             m_inputParseable = true;
-            m_property.destroy();
+            property.destroy();
+            model.fetch();
         }
 
         ImGui::SameLine();
@@ -136,8 +149,9 @@ void PropertyEdit::render(const PropertyDescription& propertyDescription)
                 m_randomizer.emplace(std::random_device{}());
             }
 
-            m_randomizer->randomize(m_property);
-            std::string value = dots::to_string(m_property);
+            m_randomizer->randomize(property);
+            model.fetch();
+            const std::string& value = model.valueText().first;
             m_inputBuffer.assign(std::max(value.size(), m_inputBuffer.size()), '\0');
             std::copy(value.begin(), value.end(), m_inputBuffer.begin());
             

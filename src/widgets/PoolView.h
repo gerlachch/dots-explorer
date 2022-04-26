@@ -2,6 +2,7 @@
 #include <vector>
 #include <dots/dots.h>
 #include <widgets/ContainerView.h>
+#include <FilterSettings.dots.h>
 
 struct PoolView
 {
@@ -22,8 +23,7 @@ private:
     std::vector<std::shared_ptr<ContainerView>> m_containerViewsFiltered;
     std::string m_containerFilterBuffer;
     bool m_poolChanged;
-    bool m_showInternal;
-    bool m_showUncached;
-    bool m_showEmpty;
+    bool m_filterSettingsInitialized;
+    FilterSettings& m_filterSettings;
     std::vector<dots::Subscription> m_subscriptions;
 };

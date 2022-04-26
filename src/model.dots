@@ -9,3 +9,10 @@ struct HostSettings {
     2: uint32 selectedHost;
     3: bool autoConnect;
 }
+
+struct FilterSettings {
+    1: string regexFilter;
+    2: bool showInternal;
+    3: bool showUncached;
+    4: bool showEmpty;
+}

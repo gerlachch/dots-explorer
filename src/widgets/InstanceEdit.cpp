@@ -2,21 +2,21 @@
 #include <algorithm>
 #include <imgui.h>
 #include <fmt/format.h>
-#include <common/Colors.h>
 
-InstanceEdit::InstanceEdit(dots::type::AnyStruct instance) :
+InstanceEdit::InstanceEdit(const StructDescriptorModel& structDescriptorModel, dots::type::AnyStruct instance) :
     m_popupId{ fmt::format("InstanceEdit-{}_Popup", ++M_id) },
-    m_instance{ std::move(instance) }
+    m_instance{ std::move(instance) },
+    m_structModel{ structDescriptorModel, m_instance }
 {
-    for (const dots::type::PropertyPath& propertyPath : m_instance->_descriptor().propertyPaths())
+    for (PropertyModel& propertyModel : m_structModel.propertyModels())
     {
-        m_propertyEdits.emplace_back(m_instance, propertyPath);
+        m_propertyEdits.emplace_back(propertyModel);
     }
 
     ImGui::OpenPopup(m_popupId.data());
 }
 
-bool InstanceEdit::render(const StructDescription& structDescription, const std::vector<PropertyDescription>& propertyDescriptions)
+bool InstanceEdit::render()
 {
     ImGui::SetNextWindowPos(ImVec2{ ImGui::GetWindowWidth() / 2, ImGui::GetWindowHeight() / 2 }, 0, ImVec2{ 0.5f, 0.5f });
 
@@ -24,18 +24,16 @@ bool InstanceEdit::render(const StructDescription& structDescription, const std:
     {
         // description
         {
-            structDescription.render();
+            ImGuiExt::TextColored(m_structModel.descriptorModel().declarationText());
             ImGui::Separator();
         }
 
         // properties
         if (ImGui::BeginTable("InstanceEditTable", 2))
         {
-            auto it = propertyDescriptions.begin();
-
             for (PropertyEdit& propertyEdit : m_propertyEdits)
             {
-                propertyEdit.render(*it++);
+                propertyEdit.render();
             }
             
             ImGui::EndTable();
@@ -58,7 +56,7 @@ bool InstanceEdit::render(const StructDescription& structDescription, const std:
                     {
                         if (propertyEdit.inputParseable() == true)
                         {
-                            includedProperties += propertyEdit.property().descriptor().set();
+                            includedProperties += propertyEdit.model().property().descriptor().set();
                         }
                     }
 

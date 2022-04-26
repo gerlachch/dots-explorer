@@ -1,13 +1,10 @@
 #pragma once
 #include <dots/dots.h>
-#include <imgui.h>
-#include <widgets/PropertyDescription.h>
-
-struct ImGuiTableColumnSortSpecs;
+#include <models/PropertyModel.h>
 
 struct PropertyView
 {
-    PropertyView(const dots::type::ProxyProperty<>& property);
+    PropertyView(PropertyModel& model);
     PropertyView(const PropertyView& other) = delete;
     PropertyView(PropertyView&& other) = default;
     ~PropertyView() = default;
@@ -15,16 +12,16 @@ struct PropertyView
     PropertyView& operator = (const PropertyView& rhs) = delete;
     PropertyView& operator = (PropertyView&& rhs) = default;
 
-    const dots::type::ProxyProperty<>& property() const;
-    bool less(const ImGuiTableColumnSortSpecs& sortSpec, const PropertyView& other) const;
-    bool isSelected() const;
+    const PropertyModel& model() const;
+    PropertyModel& model();
 
-    void update();
-    void render(const PropertyDescription& propertyDescription, bool selectable = true);
+    bool isSelected() const;
+    void render();
 
 private:
 
-    std::string m_value;
+    using model_ref_t = std::reference_wrapper<PropertyModel>;
+
     bool m_isSelected;
-    const dots::type::ProxyProperty<> m_property;
+    model_ref_t m_model;
 };
