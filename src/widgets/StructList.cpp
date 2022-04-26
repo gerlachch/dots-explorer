@@ -1,4 +1,4 @@
-#include <widgets/ContainerView.h>
+#include <widgets/StructList.h>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <fmt/format.h>
@@ -6,7 +6,7 @@
 #include <common/ImGuiExt.h>
 #include <DotsClearCache.dots.h>
 
-ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
+StructList::StructList(const dots::type::StructDescriptor<>& descriptor) :
     m_containerChanged(false),
     m_containerStorage{ descriptor.cached() ? std::optional<dots::Container<>>{ std::nullopt } : dots::Container<>{ descriptor } },
     m_container{ descriptor.cached() ? dots::container(descriptor) : *m_containerStorage },
@@ -48,12 +48,12 @@ ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
     }
 }
 
-const dots::Container<>& ContainerView::container() const
+const dots::Container<>& StructList::container() const
 {
     return m_container;
 }
 
-bool ContainerView::less(const ImGuiTableSortSpecs& sortSpecs, const ContainerView& other) const
+bool StructList::less(const ImGuiTableSortSpecs& sortSpecs, const StructList& other) const
 {
     for (int i = 0; i < sortSpecs.SpecsCount; ++i)
     {
@@ -89,7 +89,7 @@ bool ContainerView::less(const ImGuiTableSortSpecs& sortSpecs, const ContainerVi
     return false;
 }
 
-void ContainerView::update(const dots::Event<>& event)
+void StructList::update(const dots::Event<>& event)
 {
     if (!container().descriptor().cached())
     {
@@ -98,22 +98,22 @@ void ContainerView::update(const dots::Event<>& event)
 
     m_containerChanged = true;
 
-    auto [it, emplaced] = m_instanceViewsStorage.try_emplace(&event.updated(), InstanceView{ m_structDescriptorModel, event.updated() });
-    InstanceView& instanceView = it->second;
+    auto [it, emplaced] = m_rowsStorage.try_emplace(&event.updated(), StructListRow{ m_structDescriptorModel, event.updated() });
+    StructListRow& row = it->second;
 
     if (emplaced)
     {
-        m_instanceViews.emplace_back(instanceView);
+        m_rows.emplace_back(row);
     }
 
-    instanceView.metadataModel().fetch(event);
-    instanceView.structModel().fetch();
+    row.metadataModel().fetch(event);
+    row.structModel().fetch();
 }
 
-bool ContainerView::renderBegin()
+bool StructList::renderBegin()
 {
     bool containerOpen = ImGui::TreeNodeEx(container().descriptor().name().data(), ImGuiTreeNodeFlags_SpanFullWidth);
-    bool openInstanceEdit = false;
+    bool openStructEdit = false;
 
     // context menu
     {
@@ -124,7 +124,7 @@ bool ContainerView::renderBegin()
 
             if (ImGui::MenuItem("Create/Update"))
             {
-                openInstanceEdit = true;
+                openStructEdit = true;
             }
 
             if (ImGui::MenuItem("Remove All", nullptr, false, ImGui::GetIO().KeyCtrl))
@@ -149,23 +149,23 @@ bool ContainerView::renderBegin()
         }
     }
 
-    // instance edit
+    // struct edit
     {
-        if (openInstanceEdit)
+        if (openStructEdit)
         {
-            m_instanceEdit.emplace(m_structDescriptorModel, container().descriptor());
+            m_structEdit.emplace(m_structDescriptorModel, container().descriptor());
         }
 
-        if (m_instanceEdit != std::nullopt && !m_instanceEdit->render())
+        if (m_structEdit != std::nullopt && !m_structEdit->render())
         {
-            m_instanceEdit = std::nullopt;
+            m_structEdit = std::nullopt;
         }
     }
 
     return containerOpen;
 }
 
-void ContainerView::renderEnd()
+void StructList::renderEnd()
 {
     constexpr ImGuiTableFlags TableFlags = 
         ImGuiTableFlags_Borders        |
@@ -187,7 +187,7 @@ void ContainerView::renderEnd()
     const dots::type::StructDescriptor<>& descriptor = m_container.get().descriptor();
     std::optional<dots::type::AnyStruct> editInstance;
 
-    if (ImGui::BeginTable(descriptor.name().data(), InstanceView::MetaData::MetaDataSize + static_cast<int>(m_headers.size()), TableFlags))
+    if (ImGui::BeginTable(descriptor.name().data(), StructListRow::MetaData::MetaDataSize + static_cast<int>(m_headers.size()), TableFlags))
     {
         // create meta info headers
         {
@@ -204,26 +204,26 @@ void ContainerView::renderEnd()
 
         ImGui::TableHeadersRow();
 
-        // clean instance views
+        // clean rows
         {
-            m_instanceViews.erase(std::remove_if(m_instanceViews.begin(), m_instanceViews.end(), [this](const InstanceView& instanceView)
+            m_rows.erase(std::remove_if(m_rows.begin(), m_rows.end(), [this](const StructListRow& row)
             {
-                if (instanceView.metadataModel().lastOperation() == DotsMt::remove)
+                if (row.metadataModel().lastOperation() == DotsMt::remove)
                 {
-                    m_instanceViewsStorage.erase(&instanceView.structModel().instance());
+                    m_rowsStorage.erase(&row.structModel().instance());
                     return true;
                 }
                 else
                 {
                     return false;
                 }
-            }), m_instanceViews.end());
+            }), m_rows.end());
         }
 
-        // sort instance views
+        // sort rows
         if (ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs(); m_containerChanged || sortSpecs->SpecsDirty)
         {
-            std::sort(m_instanceViews.begin(), m_instanceViews.end(), [sortSpecs](const InstanceView& lhs, const InstanceView& rhs)
+            std::sort(m_rows.begin(), m_rows.end(), [sortSpecs](const StructListRow& lhs, const StructListRow& rhs)
             {
                 return lhs.less(*sortSpecs, rhs);
             });
@@ -232,47 +232,47 @@ void ContainerView::renderEnd()
             sortSpecs->SpecsDirty = false;
         }
 
-        // render instance views
+        // render rows
         ImGuiListClipper clipper;
-        clipper.Begin(static_cast<int>(m_instanceViews.size()));
+        clipper.Begin(static_cast<int>(m_rows.size()));
 
         while (clipper.Step())
         {
-            for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
+            for (int rowIndex = clipper.DisplayStart; rowIndex < clipper.DisplayEnd; ++rowIndex)
             {
                 {
-                    InstanceView& instanceView = m_instanceViews[row];
-                    instanceView.render();
+                    StructListRow& row = m_rows[rowIndex];
+                    row.render();
                 }
 
                 // context menu
                 {
-                    const InstanceView& instanceView = m_instanceViews[row];
+                    const StructListRow& row = m_rows[rowIndex];
 
-                    if (ImGui::BeginPopupContextItem(instanceView.widgetId()))
+                    if (ImGui::BeginPopupContextItem(row.widgetId()))
                     {
                         ImGuiExt::TextColored(m_structDescriptorModel.declarationText());
                         ImGui::Separator();
 
-                        std::vector<std::reference_wrapper<const InstanceView>> selection;
-                        std::copy_if(m_instanceViews.begin(), m_instanceViews.end(), std::back_inserter(selection), [](const InstanceView& instanceView)
+                        std::vector<std::reference_wrapper<const StructListRow>> selection;
+                        std::copy_if(m_rows.begin(), m_rows.end(), std::back_inserter(selection), [](const StructListRow& row)
                         {
-                            return instanceView.isSelected();
+                            return row.isSelected();
                         });
 
                         if (selection.empty() && ImGui::MenuItem("View/Update"))
                         {
-                            editInstance = instanceView.structModel().instance();
+                            editInstance = row.structModel().instance();
                         }
 
                         if (selection.empty() && ImGui::MenuItem("Remove", nullptr, false, ImGui::GetIO().KeyCtrl))
                         {
-                            dots::remove(instanceView.structModel().instance());
+                            dots::remove(row.structModel().instance());
                         }
 
                         if (!selection.empty() && ImGui::MenuItem("Remove Selection", nullptr, false, ImGui::GetIO().KeyCtrl))
                         {
-                            for (const InstanceView& selected : selection)
+                            for (const StructListRow& selected : selection)
                             {
                                 dots::remove(selected.structModel().instance());
                             }
@@ -298,11 +298,11 @@ void ContainerView::renderEnd()
         ImGui::EndTable();
     }
 
-    // instance edit
+    // struct edit
     {
         if (editInstance != std::nullopt)
         {
-            m_instanceEdit.emplace(m_structDescriptorModel, std::move(*editInstance));
+            m_structEdit.emplace(m_structDescriptorModel, std::move(*editInstance));
         }
     }
 

@@ -1,14 +1,14 @@
-#include <widgets/InstanceView.h>
+#include <widgets/StructListRow.h>
 #include <imgui_internal.h>
 #include <fmt/format.h>
 #include <common/Colors.h>
 #include <common/ImGuiExt.h>
 #include <DotsClient.dots.h>
 
-InstanceView::InstanceView(const StructDescriptorModel& structDescriptorModel, const dots::type::Struct& instance) :
+StructListRow::StructListRow(const StructDescriptorModel& structDescriptorModel, const dots::type::Struct& instance) :
     m_structModel{ structDescriptorModel, instance }
 {
-    m_propertyViews.reserve(m_structModel.propertyModels().size());
+    m_columns.reserve(m_structModel.propertyModels().size());
 
     if (m_structModel.propertyModels().size() <= IMGUI_TABLE_MAX_COLUMNS)
     {
@@ -21,7 +21,7 @@ InstanceView::InstanceView(const StructDescriptorModel& structDescriptorModel, c
                 continue;
             }
 
-            m_propertyViews.emplace_back(propertyModel);
+            m_columns.emplace_back(propertyModel);
         }
     }
     else
@@ -30,43 +30,43 @@ InstanceView::InstanceView(const StructDescriptorModel& structDescriptorModel, c
         {
             if (propertyModel.descriptorModel().propertyPath().elements().size() == 1)
             {
-                m_propertyViews.emplace_back(propertyModel);
+                m_columns.emplace_back(propertyModel);
             }
         }
     }
 }
 
-const char* InstanceView::widgetId() const
+const char* StructListRow::widgetId() const
 {
     if (m_widgetId.empty())
     {
-        m_widgetId = fmt::format("InstanceView-{}", M_nextWidgetId++);
+        m_widgetId = fmt::format("StructListRow-{}", M_nextWidgetId++);
     }
 
     return m_widgetId.data();
 }
 
-const MetadataModel& InstanceView::metadataModel() const
+const MetadataModel& StructListRow::metadataModel() const
 {
     return m_metadataModel;
 }
 
-MetadataModel& InstanceView::metadataModel()
+MetadataModel& StructListRow::metadataModel()
 {
     return m_metadataModel;
 }
 
-const StructModel& InstanceView::structModel() const
+const StructModel& StructListRow::structModel() const
 {
     return m_structModel;
 }
 
-StructModel& InstanceView::structModel()
+StructModel& StructListRow::structModel()
 {
     return m_structModel;
 }
 
-bool InstanceView::less(const ImGuiTableSortSpecs& sortSpecs, const InstanceView& other) const
+bool StructListRow::less(const ImGuiTableSortSpecs& sortSpecs, const StructListRow& other) const
 {
     for (int i = 0; i < sortSpecs.SpecsCount; ++i)
     {
@@ -76,14 +76,14 @@ bool InstanceView::less(const ImGuiTableSortSpecs& sortSpecs, const InstanceView
         if (columnIndex >= MetaDataSize)
         {
             columnIndex -= MetaDataSize;
-            const PropertyView& propertyViewThis = m_propertyViews[columnIndex];
-            const PropertyView& propertyViewOther = other.m_propertyViews[columnIndex];
+            const StructListColumn& columnThis = m_columns[columnIndex];
+            const StructListColumn& columnOther = other.m_columns[columnIndex];
 
-            if (propertyViewThis.model().less(sortSpec, propertyViewOther.model()))
+            if (columnThis.model().less(sortSpec, columnOther.model()))
             {
                 return true;
             }
-            else if (propertyViewOther.model().less(sortSpec, propertyViewThis.model()))
+            else if (columnOther.model().less(sortSpec, columnThis.model()))
             {
                 return false;
             }
@@ -119,12 +119,12 @@ bool InstanceView::less(const ImGuiTableSortSpecs& sortSpecs, const InstanceView
     return &structModel().instance() < &other.structModel().instance();
 }
 
-bool InstanceView::isSelected() const
+bool StructListRow::isSelected() const
 {
-    return std::any_of(m_propertyViews.begin(), m_propertyViews.end(), [](const PropertyView& propertyView){ return propertyView.isSelected(); });
+    return std::any_of(m_columns.begin(), m_columns.end(), [](const StructListColumn& column){ return column.isSelected(); });
 }
 
-void InstanceView::render()
+void StructListRow::render()
 {
     // render meta data columns
     {
@@ -145,10 +145,10 @@ void InstanceView::render()
     }
 
     // render property columns
-    for (PropertyView& propertyView : m_propertyViews)
+    for (StructListColumn& column : m_columns)
     {
         ImGui::TableNextColumn();
-        propertyView.render();
+        column.render();
     }
 
     // render quick info tooltip

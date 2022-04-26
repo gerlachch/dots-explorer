@@ -172,10 +172,10 @@ void HostPanel::render()
 
         ImGui::Separator();
 
-        // render pool view
+        // render type list
         if (m_state == State::Connected)
         {
-            m_poolView->render();
+            m_typeList->render();
         }
     }
 
@@ -256,7 +256,7 @@ void HostPanel::update()
                 if (auto status = m_connectTask->wait_for(std::chrono::milliseconds{ 5 }); status == std::future_status::ready)
                 {
                     m_connectTask->get();
-                    m_poolView.emplace();
+                    m_typeList.emplace();
                     dots::publish(DotsDescriptorRequest{});
                     m_state = State::Connected;
                 }

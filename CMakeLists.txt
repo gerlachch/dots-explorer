@@ -102,13 +102,13 @@ target_sources(${TARGET_NAME}
         src/models/MetadataModel.cpp
         src/models/StructModel.cpp
         src/models/StructDescriptorModel.cpp
-        src/widgets/ContainerView.cpp
+        src/widgets/StructList.cpp
         src/widgets/HostSettingsEdit.cpp
-        src/widgets/InstanceEdit.cpp
-        src/widgets/InstanceView.cpp
-        src/widgets/PoolView.cpp
+        src/widgets/StructEdit.cpp
+        src/widgets/StructListRow.cpp
+        src/widgets/TypeList.cpp
         src/widgets/PropertyEdit.cpp
-        src/widgets/PropertyView.cpp
+        src/widgets/StructListColumn.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
         $<$<BOOL:${Vulkan_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp>
         $<$<BOOL:${OpenGL_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp>

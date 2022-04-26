@@ -1,45 +1,45 @@
-#include <widgets/PoolView.h>
+#include <widgets/TypeList.h>
 #include <string_view>
 #include <regex>
 #include <imgui.h>
-#include <widgets/ContainerView.h>
+#include <widgets/StructList.h>
 #include <common/Settings.h>
 #include <StructDescriptorData.dots.h>
 #include <EnumDescriptorData.dots.h>
 
-PoolView::PoolView() :
+TypeList::TypeList() :
     m_containerFilterBuffer(256, '\0'),
-    m_poolChanged(false),
+    m_typesChanged(false),
     m_filterSettingsInitialized(false),
     m_filterSettings{ Settings::Register<FilterSettings>() }
 {
     m_subscriptions.emplace_back(dots::subscribe<StructDescriptorData>([](auto&){}));
     m_subscriptions.emplace_back(dots::subscribe<EnumDescriptorData>([](auto&){}));
-    m_subscriptions.emplace_back(dots::subscribe<dots::type::StructDescriptor<>>({ &PoolView::update, this }));
+    m_subscriptions.emplace_back(dots::subscribe<dots::type::StructDescriptor<>>({ &TypeList::update, this }));
 }
 
-void PoolView::update(const dots::type::StructDescriptor<>& descriptor)
+void TypeList::update(const dots::type::StructDescriptor<>& descriptor)
 {
     if (!descriptor.substructOnly())
     {
-        ContainerView& containerView = *m_containerViews.emplace_back(std::make_shared<ContainerView>(descriptor));
-        m_poolChanged = true;
+        StructList& structList = *m_structLists.emplace_back(std::make_shared<StructList>(descriptor));
+        m_typesChanged = true;
 
-        m_subscriptions.emplace_back(dots::subscribe(descriptor, [this, &containerView](const dots::Event<>& event)
+        m_subscriptions.emplace_back(dots::subscribe(descriptor, [this, &structList](const dots::Event<>& event)
         {
-            containerView.update(event);
+            structList.update(event);
 
             if (!m_filterSettings.showEmpty == true &&
-                ((event.isCreate() && containerView.container().size() == 1) || 
-                (event.isRemove() && containerView.container().empty())))
+                ((event.isCreate() && structList.container().size() == 1) || 
+                (event.isRemove() && structList.container().empty())))
             {
-                m_poolChanged = true;
+                m_typesChanged = true;
             }
         }));
     }
 }
 
-void PoolView::render()
+void TypeList::render()
 {
     // init filter settings
     if (!m_filterSettingsInitialized)
@@ -69,7 +69,7 @@ void PoolView::render()
 
         ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f);
-        m_poolChanged |= ImGui::InputTextWithHint("##containerFilter", "<none>", m_containerFilterBuffer.data(), m_containerFilterBuffer.size());
+        m_typesChanged |= ImGui::InputTextWithHint("##containerFilter", "<none>", m_containerFilterBuffer.data(), m_containerFilterBuffer.size());
         ImGui::PopItemWidth();
         
         {
@@ -87,7 +87,7 @@ void PoolView::render()
                 if (ImGui::Button(ClearLabel))
                 {
                     m_containerFilterBuffer.assign(m_containerFilterBuffer.size(), '\0');
-                    m_poolChanged = true;
+                    m_typesChanged = true;
                 }
             }
         }
@@ -106,31 +106,31 @@ void PoolView::render()
         ImGui::SameLine();
         if (ImGui::Checkbox("Internal", &*m_filterSettings.showInternal))
         {
-            m_poolChanged = true;
+            m_typesChanged = true;
         }
 
         ImGui::SameLine();
         if (ImGui::Checkbox("Uncached", &*m_filterSettings.showUncached))
         {
-            m_poolChanged = true;
+            m_typesChanged = true;
         }
 
         ImGui::SameLine();
         if (ImGui::Checkbox("Empty", &*m_filterSettings.showEmpty))
         {
-            m_poolChanged = true;
+            m_typesChanged = true;
         }
 
-        if (m_poolChanged)
+        if (m_typesChanged)
         {
-            m_containerViewsFiltered.clear();
+            m_structListsFiltered.clear();
             std::string_view containerFilter = m_containerFilterBuffer.data();
             m_filterSettings.regexFilter = containerFilter;
             std::regex regex{ containerFilter.data() };
 
-            std::copy_if(m_containerViews.begin(), m_containerViews.end(), std::back_inserter(m_containerViewsFiltered), [&](const auto& containerView)
+            std::copy_if(m_structLists.begin(), m_structLists.end(), std::back_inserter(m_structListsFiltered), [&](const auto& structList)
             {
-                const dots::type::StructDescriptor<>& descriptor = containerView->container().descriptor();
+                const dots::type::StructDescriptor<>& descriptor = structList->container().descriptor();
 
                 if (descriptor.internal() && !*m_filterSettings.showInternal)
                 {
@@ -140,7 +140,7 @@ void PoolView::render()
                 {
                     return false;
                 }
-                else if (descriptor.cached() && containerView->container().empty() && !*m_filterSettings.showEmpty)
+                else if (descriptor.cached() && structList->container().empty() && !*m_filterSettings.showEmpty)
                 {
                     return false;
                 }
@@ -152,17 +152,17 @@ void PoolView::render()
         }
 
         ImGui::SameLine();
-        if (m_containerViewsFiltered.size() == 1)
+        if (m_structListsFiltered.size() == 1)
         {
             ImGui::TextDisabled("(showing 1 type)");
         }
         else
         {
-            ImGui::TextDisabled("(showing %zu types)", m_containerViewsFiltered.size());
+            ImGui::TextDisabled("(showing %zu types)", m_structListsFiltered.size());
         }
     }
 
-    // container views
+    // struct lists
     constexpr ImGuiTableFlags TableFlags = 
         ImGuiTableFlags_Borders       |
         ImGuiTableFlags_BordersH      |
@@ -185,33 +185,33 @@ void PoolView::render()
         ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableHeadersRow();
 
-        // sort container views
-        if (ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs(); m_poolChanged || sortSpecs->SpecsDirty)
+        // sort struct lists
+        if (ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs(); m_typesChanged || sortSpecs->SpecsDirty)
         {
-            std::sort(m_containerViewsFiltered.begin(), m_containerViewsFiltered.end(), [sortSpecs](const auto& lhs, const auto& rhs)
+            std::sort(m_structListsFiltered.begin(), m_structListsFiltered.end(), [sortSpecs](const auto& lhs, const auto& rhs)
             {
                 return lhs->less(*sortSpecs, *rhs);
             });
 
-            m_poolChanged = false;
+            m_typesChanged = false;
             sortSpecs->SpecsDirty = false;
         }
 
-        // render container views
-        for (auto& containerView : m_containerViewsFiltered) 
+        // render struct lists
+        for (auto& structList : m_structListsFiltered) 
         {
             ImGui::TableNextRow();
 
             ImGui::TableNextColumn();
-            bool containerOpen = containerView->renderBegin();
+            bool containerOpen = structList->renderBegin();
 
             ImGui::TableNextColumn();
-            ImGui::Text("%zu", containerView->container().size());
+            ImGui::Text("%zu", structList->container().size());
 
             if (containerOpen)
             {
                 ImGui::TableNextColumn();
-                containerView->renderEnd();
+                structList->renderEnd();
             }
         }
 
