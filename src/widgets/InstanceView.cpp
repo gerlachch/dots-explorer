@@ -2,42 +2,35 @@
 #include <imgui_internal.h>
 #include <fmt/format.h>
 #include <common/Colors.h>
+#include <common/ImGuiExt.h>
 #include <DotsClient.dots.h>
 
-InstanceView::InstanceView(const dots::type::Struct& instance) :
+InstanceView::InstanceView(const StructDescriptorModel& structDescriptorModel, const dots::type::Struct& instance) :
     m_widgetId{ fmt::format("InstanceView-{}", M_nextWidgetId++) },
-    m_metaDataStrs(MetaDataSize, ""),
-    m_lastOperation(DotsMt::create),
-    m_instance{ instance }
+    m_structModel{ structDescriptorModel, instance }
 {
-    const auto& propertyPaths = m_instance.get()._descriptor().propertyPaths();
-
-    if (propertyPaths.size() <= IMGUI_TABLE_MAX_COLUMNS)
+    if (m_structModel.propertyModels().size() <= IMGUI_TABLE_MAX_COLUMNS)
     {
-        for (const dots::type::PropertyPath& propertyPath : propertyPaths)
+        for (PropertyModel& propertyModel : m_structModel.propertyModels())
         {
-            const dots::type::PropertyDescriptor& propertyDescriptor = propertyPath.destination();
+            const dots::type::PropertyPath& propertyPath = propertyModel.descriptorModel().propertyPath();
 
-            if (propertyDescriptor.valueDescriptor().type() == dots::type::Type::Struct)
+            if (propertyPath.destination().valueDescriptor().type() == dots::type::Type::Struct)
             {
                 continue;
             }
 
-            if (propertyPath.elements().size() == 1)
-            {
-                m_propertyViews.emplace_back(dots::type::ProxyProperty<>{ const_cast<dots::type::Struct&>(m_instance.get()), propertyDescriptor });
-            }
-            else
-            {
-                m_propertyViews.emplace_back(dots::type::ProxyProperty<>{ const_cast<dots::type::Struct&>(m_instance.get()), propertyPath });
-            }
+            m_propertyViews.emplace_back(propertyModel);
         }
     }
     else
     {
-        for (auto property : m_instance.get())
+        for (PropertyModel& propertyModel : m_structModel.propertyModels())
         {
-            m_propertyViews.emplace_back(property);
+            if (propertyModel.descriptorModel().propertyPath().elements().size() == 1)
+            {
+                m_propertyViews.emplace_back(propertyModel);
+            }
         }
     }
 }
@@ -47,14 +40,24 @@ const char* InstanceView::widgetId() const
     return m_widgetId.data();
 }
 
-DotsMt InstanceView::lastOperation() const
+const MetadataModel& InstanceView::metadataModel() const
 {
-    return m_lastOperation;
+    return m_metadataModel;
 }
 
-const dots::type::Struct& InstanceView::instance() const
+MetadataModel& InstanceView::metadataModel()
 {
-    return m_instance;
+    return m_metadataModel;
+}
+
+const StructModel& InstanceView::structModel() const
+{
+    return m_structModel;
+}
+
+StructModel& InstanceView::structModel()
+{
+    return m_structModel;
 }
 
 bool InstanceView::less(const ImGuiTableSortSpecs& sortSpecs, const InstanceView& other) const
@@ -70,11 +73,11 @@ bool InstanceView::less(const ImGuiTableSortSpecs& sortSpecs, const InstanceView
             const PropertyView& propertyViewThis = m_propertyViews[columnIndex];
             const PropertyView& propertyViewOther = other.m_propertyViews[columnIndex];
 
-            if (propertyViewThis.less(sortSpec, propertyViewOther))
+            if (propertyViewThis.model().less(sortSpec, propertyViewOther.model()))
             {
                 return true;
             }
-            else if (propertyViewOther.less(sortSpec, propertyViewThis))
+            else if (propertyViewOther.model().less(sortSpec, propertyViewThis.model()))
             {
                 return false;
             }
@@ -93,8 +96,8 @@ bool InstanceView::less(const ImGuiTableSortSpecs& sortSpecs, const InstanceView
                 }
             };
 
-            const std::string& metaDataStrThis = m_metaDataStrs[columnIndex];
-            const std::string& metaDataStrOther = other.m_metaDataStrs[columnIndex];
+            const std::string& metaDataStrThis = m_metadataModel.metadataText()[columnIndex].first;
+            const std::string& metaDataStrOther = other.m_metadataModel.metadataText()[columnIndex].first;
 
             if (compare(metaDataStrThis, metaDataStrOther))
             {
@@ -107,7 +110,7 @@ bool InstanceView::less(const ImGuiTableSortSpecs& sortSpecs, const InstanceView
         }
     }
 
-    return instance()._less(other.instance(), instance()._keyProperties());
+    return structModel().instance()._less(other.structModel().instance(), structModel().instance()._keyProperties());
 }
 
 bool InstanceView::isSelected() const
@@ -115,82 +118,26 @@ bool InstanceView::isSelected() const
     return std::any_of(m_propertyViews.begin(), m_propertyViews.end(), [](const PropertyView& propertyView){ return propertyView.isSelected(); });
 }
 
-void InstanceView::update(const dots::Event<>& event)
-{
-    m_lastOperation = event.mt();
-    m_lastPublished = event.cloneInfo().modified.valueOrDefault(event.cloneInfo().created);
-    m_lastPublishedFrom = *event.cloneInfo().lastUpdateFrom;
-
-    for (std::string& metaDataStr : m_metaDataStrs)
-    {
-        metaDataStr.clear();
-    }
-
-    for (PropertyView& propertyView : m_propertyViews)
-    {
-        propertyView.update();
-    }
-}
-
-void InstanceView::render(const StructDescription& structDescription, const std::vector<PropertyDescription>& propertyDescriptions)
+void InstanceView::render()
 {
     auto render_last_operation = [this]
     {
-        std::string& lastOpStr = m_metaDataStrs[LastOp];
-
-        if (lastOpStr.empty())
-        {
-            switch (m_lastOperation)
-            {
-                case DotsMt::create: lastOpStr = "CREATE"; break;
-                case DotsMt::update: lastOpStr = "UPDATE"; break;
-                case DotsMt::remove: lastOpStr = "REMOVE"; break;
-            }
-        }
-
-        switch (m_lastOperation)
-        {
-            case DotsMt::create: ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.Create); break;
-            case DotsMt::update: ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.Update); break;
-            case DotsMt::remove: ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.Remove); break;
-        }
-
-        ImGui::TextUnformatted(lastOpStr.data());
+        ImGui::PushStyleColor(ImGuiCol_Text, m_metadataModel.lastOperationText().second);
+        ImGui::TextUnformatted(m_metadataModel.lastOperationText().first.data());
         ImGui::PopStyleColor();
     };
 
     auto render_last_published = [this]
     {
-        std::string& lastPublishedStr = m_metaDataStrs[LastPublished];
-
-        if (lastPublishedStr.empty())
-        {
-            lastPublishedStr = m_lastPublished.toString("%F %T");
-        }
-
-        ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.IntegralType);
-        ImGui::TextUnformatted(lastPublishedStr.data());
+        ImGui::PushStyleColor(ImGuiCol_Text, m_metadataModel.lastPublishedText().second);
+        ImGui::TextUnformatted(m_metadataModel.lastPublishedText().first.data());
         ImGui::PopStyleColor();
     };
 
     auto render_last_published_by = [this]
     {
-        std::string& lastPublishedByStr = m_metaDataStrs[LastPublishedBy];
-
-        if (lastPublishedByStr.empty())
-        {
-            if (const auto* client = dots::container<DotsClient>().find(DotsClient::id_i{ m_lastPublishedFrom }); client == nullptr || !client->name.isValid())
-            {
-                lastPublishedByStr = fmt::format("\"<unknown> [{}]\"", m_lastPublishedFrom);
-            }
-            else
-            {
-                lastPublishedByStr = fmt::format("\"{}\"", *client->name);
-            }
-        }
-
-        ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.StringType);
-        ImGui::TextUnformatted(lastPublishedByStr.data());
+        ImGui::PushStyleColor(ImGuiCol_Text, m_metadataModel.lastPublishedByText().second);
+        ImGui::TextUnformatted(m_metadataModel.lastPublishedByText().first.data());
         ImGui::PopStyleColor();
     };
 
@@ -213,28 +160,10 @@ void InstanceView::render(const StructDescription& structDescription, const std:
     }
 
     // render property columns
-    auto it = m_propertyViews.begin();
-
-    for (const PropertyDescription& propertyDescription : propertyDescriptions)
+    for (PropertyView& propertyView : m_propertyViews)
     {
-        if (m_instance.get()._descriptor().propertyPaths().size() <= IMGUI_TABLE_MAX_COLUMNS)
-        {
-            if (propertyDescription.propertyPath().destination().valueDescriptor().type() != dots::type::Type::Struct)
-            {
-                ImGui::TableNextColumn();
-                PropertyView& propertyView = *it++;
-                propertyView.render(propertyDescription);
-            }
-        }
-        else
-        {
-            if (propertyDescription.propertyPath().elements().size() == 1)
-            {
-                ImGui::TableNextColumn();
-                PropertyView& propertyView = *it++;
-                propertyView.render(propertyDescription);
-            }
-        }
+        ImGui::TableNextColumn();
+        propertyView.render();
     }
 
     // render quick info tooltip
@@ -244,7 +173,7 @@ void InstanceView::render(const StructDescription& structDescription, const std:
 
         // render header
         {
-            structDescription.render();
+            ImGuiExt::TextColored(m_structModel.descriptorModel().declarationText());
         }
 
         ImGui::Separator();
@@ -252,36 +181,29 @@ void InstanceView::render(const StructDescription& structDescription, const std:
         // render properties
         if (ImGui::BeginTable("PropertyTable", 2))
         {
-            auto it = m_propertyViews.begin();
-
-            for (const PropertyDescription& propertyDescription : propertyDescriptions)
+            for (const PropertyModel& propertyModel : m_structModel.propertyModels())
             {
                 ImGui::TableNextRow();
 
-                if (m_instance.get()._descriptor().propertyPaths().size() <= IMGUI_TABLE_MAX_COLUMNS)
+                if (m_structModel.propertyModels().size() <= IMGUI_TABLE_MAX_COLUMNS)
                 {
                     ImGui::TableNextColumn();
-                    propertyDescription.render();
+                    ImGuiExt::TextColored(propertyModel.descriptorModel().declarationText());
 
                     ImGui::TableNextColumn();
 
-                    if (propertyDescription.propertyPath().destination().valueDescriptor().type() != dots::type::Type::Struct)
+                    if (propertyModel.property().descriptor().valueDescriptor().type() != dots::type::Type::Struct)
                     {
-                        PropertyView& propertyView = *it++;
-                        propertyView.render(propertyDescription, false);
+                        ImGuiExt::TextColored(propertyModel.valueText());
                     }
                 }
                 else
                 {
-                    if (propertyDescription.propertyPath().elements().size() == 1)
-                    {
-                        ImGui::TableNextColumn();
-                        propertyDescription.render();
+                    ImGui::TableNextColumn();
+                    ImGuiExt::TextColored(propertyModel.descriptorModel().declarationText());
 
-                        ImGui::TableNextColumn();
-                        PropertyView& propertyView = *it++;
-                        propertyView.render(propertyDescription, false);
-                    }
+                    ImGui::TableNextColumn();
+                    ImGuiExt::TextColored(propertyModel.valueText());
                 }
             }
 

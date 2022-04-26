@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <vector>
 #include <dots/dots.h>
-#include <widgets/StructDescription.h>
+#include <models/StructDescriptorModel.h>
 #include <widgets/InstanceView.h>
 #include <widgets/InstanceEdit.h>
 
@@ -37,6 +37,5 @@ private:
     bool m_containerChanged;
     std::optional<dots::Container<>> m_containerStorage;
     container_ref_t m_container;
-    StructDescription m_structDescription;
-    std::vector<PropertyDescription> m_propertyDescriptions;
+    StructDescriptorModel m_structDescriptorModel;
 };

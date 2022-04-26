@@ -3,13 +3,14 @@
 #include <imgui_internal.h>
 #include <fmt/format.h>
 #include <common/Colors.h>
+#include <common/ImGuiExt.h>
 #include <DotsClearCache.dots.h>
 
 ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
     m_containerChanged(false),
     m_containerStorage{ descriptor.cached() ? std::optional<dots::Container<>>{ std::nullopt } : dots::Container<>{ descriptor } },
     m_container{ descriptor.cached() ? dots::container(descriptor) : *m_containerStorage },
-    m_structDescription{ descriptor }
+    m_structDescriptorModel{ descriptor }
 {
     const auto& propertyPaths = descriptor.propertyPaths();
 
@@ -44,11 +45,6 @@ ContainerView::ContainerView(const dots::type::StructDescriptor<>& descriptor) :
             const std::string& name = propertyDescriptor.name();
             m_headers.emplace_back(propertyDescriptor.isKey() ? fmt::format("{} [key]", name) : name);
         }
-    }
-
-    for (const dots::type::PropertyPath& propertyPath : propertyPaths)
-    {
-        m_propertyDescriptions.emplace_back(propertyPath);
     }
 }
 
@@ -102,7 +98,7 @@ void ContainerView::update(const dots::Event<>& event)
 
     m_containerChanged = true;
 
-    auto [it, emplaced] = m_instanceViewsStorage.try_emplace(&event.updated(), event.updated());
+    auto [it, emplaced] = m_instanceViewsStorage.try_emplace(&event.updated(), InstanceView{ m_structDescriptorModel, event.updated() });
     InstanceView& instanceView = it->second;
 
     if (emplaced)
@@ -110,7 +106,8 @@ void ContainerView::update(const dots::Event<>& event)
         m_instanceViews.emplace_back(instanceView);
     }
 
-    instanceView.update(event);
+    instanceView.metadataModel().fetch(event);
+    instanceView.structModel().fetch();
 }
 
 bool ContainerView::renderBegin()
@@ -122,7 +119,7 @@ bool ContainerView::renderBegin()
     {
         if (ImGui::BeginPopupContextItem())
         {
-            m_structDescription.render();
+            ImGuiExt::TextColored(m_structDescriptorModel.declarationText());
             ImGui::Separator();
 
             if (ImGui::MenuItem("Create/Update"))
@@ -156,10 +153,10 @@ bool ContainerView::renderBegin()
     {
         if (openInstanceEdit)
         {
-            m_instanceEdit.emplace(container().descriptor());
+            m_instanceEdit.emplace(m_structDescriptorModel, container().descriptor());
         }
 
-        if (m_instanceEdit != std::nullopt && !m_instanceEdit->render(m_structDescription, m_propertyDescriptions))
+        if (m_instanceEdit != std::nullopt && !m_instanceEdit->render())
         {
             m_instanceEdit = std::nullopt;
         }
@@ -211,9 +208,9 @@ void ContainerView::renderEnd()
         {
             m_instanceViews.erase(std::remove_if(m_instanceViews.begin(), m_instanceViews.end(), [this](const InstanceView& instanceView)
             {
-                if (instanceView.lastOperation() == DotsMt::remove)
+                if (instanceView.metadataModel().lastOperation() == DotsMt::remove)
                 {
-                    m_instanceViewsStorage.erase(&instanceView.instance());
+                    m_instanceViewsStorage.erase(&instanceView.structModel().instance());
                     return true;
                 }
                 else
@@ -243,14 +240,18 @@ void ContainerView::renderEnd()
         {
             for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
             {
-                InstanceView& instanceView = m_instanceViews[row];
-                instanceView.render(m_structDescription, m_propertyDescriptions);
+                {
+                    InstanceView& instanceView = m_instanceViews[row];
+                    instanceView.render();
+                }
 
                 // context menu
                 {
+                    const InstanceView& instanceView = m_instanceViews[row];
+
                     if (ImGui::BeginPopupContextItem(instanceView.widgetId()))
                     {
-                        m_structDescription.render();
+                        ImGuiExt::TextColored(m_structDescriptorModel.declarationText());
                         ImGui::Separator();
 
                         std::vector<std::reference_wrapper<const InstanceView>> selection;
@@ -261,19 +262,19 @@ void ContainerView::renderEnd()
 
                         if (selection.empty() && ImGui::MenuItem("View/Update"))
                         {
-                            editInstance = instanceView.instance();
+                            editInstance = instanceView.structModel().instance();
                         }
 
                         if (selection.empty() && ImGui::MenuItem("Remove", nullptr, false, ImGui::GetIO().KeyCtrl))
                         {
-                            dots::remove(instanceView.instance());
+                            dots::remove(instanceView.structModel().instance());
                         }
 
                         if (!selection.empty() && ImGui::MenuItem("Remove Selection", nullptr, false, ImGui::GetIO().KeyCtrl))
                         {
                             for (const InstanceView& selected : selection)
                             {
-                                dots::remove(selected.instance());
+                                dots::remove(selected.structModel().instance());
                             }
                         }
 
@@ -301,7 +302,7 @@ void ContainerView::renderEnd()
     {
         if (editInstance != std::nullopt)
         {
-            m_instanceEdit.emplace(std::move(*editInstance));
+            m_instanceEdit.emplace(m_structDescriptorModel, std::move(*editInstance));
         }
     }
 

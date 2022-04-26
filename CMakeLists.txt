@@ -97,15 +97,18 @@ target_sources(${TARGET_NAME}
         src/components/MainWindow.cpp
         src/common/ImGuiExt.cpp
         src/common/Settings.cpp
+        src/models/PropertyModel.cpp
+        src/models/PropertyDescriptorModel.cpp
+        src/models/MetadataModel.cpp
+        src/models/StructModel.cpp
+        src/models/StructDescriptorModel.cpp
         src/widgets/ContainerView.cpp
         src/widgets/HostSettingsEdit.cpp
         src/widgets/InstanceEdit.cpp
         src/widgets/InstanceView.cpp
         src/widgets/PoolView.cpp
-        src/widgets/PropertyDescription.cpp
         src/widgets/PropertyEdit.cpp
         src/widgets/PropertyView.cpp
-        src/widgets/StructDescription.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
         $<$<BOOL:${Vulkan_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp>
         $<$<BOOL:${OpenGL_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp>

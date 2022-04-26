@@ -1,33 +1,21 @@
 #include <widgets/PropertyView.h>
 #include <common/Colors.h>
 
-PropertyView::PropertyView(const dots::type::ProxyProperty<>& property) :
+PropertyView::PropertyView(PropertyModel& model) :
     m_isSelected(false),
-    m_property{ property }
+    m_model{ model }
 {
     /* do nothing */
 }
 
-const dots::type::ProxyProperty<>& PropertyView::property() const
+const PropertyModel& PropertyView::model() const
 {
-    return m_property;
+    return m_model;
 }
 
-bool PropertyView::less(const ImGuiTableColumnSortSpecs& sortSpec, const PropertyView& other) const
+PropertyModel& PropertyView::model()
 {
-    auto compare = [&sortSpec](const auto& lhs, const auto& rhs)
-    {
-        if (sortSpec.SortDirection == ImGuiSortDirection_Ascending)
-        {
-            return std::less{}(lhs, rhs);
-        }
-        else
-        {
-            return std::greater{}(lhs, rhs);
-        }
-    };
-
-    return compare(m_property, other.m_property);
+    return m_model;
 }
 
 bool PropertyView::isSelected() const
@@ -35,44 +23,10 @@ bool PropertyView::isSelected() const
     return m_isSelected;
 }
 
-void PropertyView::update()
+void PropertyView::render()
 {
-    m_value.clear();
-}
-
-void PropertyView::render(const PropertyDescription& propertyDescription, bool selectable/* = true*/)
-{
-    if (m_value.empty())
-    {
-        if (propertyDescription.valueQuoted())
-        {
-            m_value += '"';
-            m_value += dots::to_string(m_property);
-            m_value += '"';
-        }
-        else
-        {
-            m_value = dots::to_string(m_property);
-        }
-    }
-
-    if (m_property.isValid())
-    {
-        ImGui::PushStyleColor(ImGuiCol_Text, propertyDescription.valueColor());
-    }
-    else
-    {
-        ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.Disabled);
-    }
-
-    if (selectable)
-    {
-        ImGui::Selectable(m_value.data(), &m_isSelected, ImGuiSelectableFlags_SpanAllColumns);
-    }
-    else
-    {
-        ImGui::TextUnformatted(m_value.data());
-    }
-
+    PropertyModel& model = m_model.get();
+    ImGui::PushStyleColor(ImGuiCol_Text, model.valueText().second);
+    ImGui::Selectable(model.valueText().first.data(), &m_isSelected, ImGuiSelectableFlags_SpanAllColumns);
     ImGui::PopStyleColor();
 }
