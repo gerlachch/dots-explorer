@@ -69,6 +69,11 @@ void TypeList::render()
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted("Filter");
 
+        if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_F, false))
+        {
+            ImGui::SetKeyboardFocusHere();
+        }
+
         ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f);
         m_typesChanged |= ImGui::InputTextWithHint("##containerFilter", "<none>", m_containerFilterBuffer.data(), m_containerFilterBuffer.size());
