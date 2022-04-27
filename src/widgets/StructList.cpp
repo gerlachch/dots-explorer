@@ -162,22 +162,11 @@ bool StructList::renderBegin()
 
             if (m_structDescriptorModel.descriptor().cached())
             {
-                if (ImGui::MenuItem("Remove All", nullptr, false, ImGui::GetIO().KeyCtrl))
+                if (ImGui::MenuItem("Remove All [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
                 {
                     dots::publish(DotsClearCache{ 
                         DotsClearCache::typeNames_i{ dots::vector_t<dots::string_t>{ container().descriptor().name() } }
                     });
-                }
-
-                ImGui::SameLine();
-                ImGui::TextDisabled("(?)");
-                if (ImGui::IsItemHovered())
-                {
-                    ImGui::BeginTooltip();
-                    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                    ImGui::TextUnformatted("Hold CTRL key to enable.");
-                    ImGui::PopTextWrapPos();
-                    ImGui::EndTooltip();
                 }
             }
 
@@ -317,29 +306,18 @@ void StructList::renderEnd()
 
                         if (m_structDescriptorModel.descriptor().cached())
                         {
-                            if (selection.empty() && ImGui::MenuItem("Remove", nullptr, false, ImGui::GetIO().KeyCtrl))
+                            if (selection.empty() && ImGui::MenuItem("Remove [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
                             {
                                 dots::remove(row.structModel().instance());
                             }
 
-                            if (!selection.empty() && ImGui::MenuItem("Remove Selection", nullptr, false, ImGui::GetIO().KeyCtrl))
+                            if (!selection.empty() && ImGui::MenuItem("Remove Selection [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
                             {
                                 for (const StructListRow& selected : selection)
                                 {
                                     dots::remove(selected.structModel().instance());
                                 }
                             }
-                        }
-
-                        ImGui::SameLine();
-                        ImGui::TextDisabled("(?)");
-                        if (ImGui::IsItemHovered())
-                        {
-                            ImGui::BeginTooltip();
-                            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                            ImGui::TextUnformatted("Hold CTRL key to enable.");
-                            ImGui::PopTextWrapPos();
-                            ImGui::EndTooltip();
                         }
 
                         ImGui::EndPopup();
