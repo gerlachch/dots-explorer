@@ -129,6 +129,7 @@ bool StructList::renderBegin()
 {
     bool containerOpen = ImGui::TreeNodeEx(container().descriptor().name().data(), ImGuiTreeNodeFlags_SpanFullWidth);
     bool openStructEdit = false;
+    std::optional<dots::type::AnyStruct> editInstance;
 
     // render quick info tooltip for last published struct instance
     if (ImGui::IsItemHovered() && ImGui::GetIO().KeyAlt && !m_rows.empty())
@@ -146,6 +147,13 @@ bool StructList::renderBegin()
         StructView structView{ m_lastPublishedRow->metadataModel(), m_lastPublishedRow->structModel() };
         structView.render();
         ImGui::EndTooltip();
+
+        // open last published instance in struct edit when clicked
+        if (ImGui::GetIO().MouseClicked[ImGuiMouseButton_Left])
+        {
+            openStructEdit = true;
+            editInstance = m_lastPublishedRow->structModel().instance();
+        }
     }
 
     // context menu
@@ -178,7 +186,14 @@ bool StructList::renderBegin()
     {
         if (openStructEdit)
         {
-            m_structEdit.emplace(m_structDescriptorModel, container().descriptor());
+            if (editInstance == std::nullopt)
+            {
+                m_structEdit.emplace(m_structDescriptorModel, container().descriptor());
+            }
+            else
+            {
+                m_structEdit.emplace(m_structDescriptorModel, std::move(*editInstance));
+            }
         }
 
         if (m_structEdit != std::nullopt && !m_structEdit->render())
@@ -270,18 +285,25 @@ void StructList::renderEnd()
         {
             for (int rowIndex = clipper.DisplayStart; rowIndex < clipper.DisplayEnd; ++rowIndex)
             {
+                // render row
                 {
                     StructListRow& row = m_rows[rowIndex];
                     bool hoverCondition = ImGui::GetIO().KeyAlt;
                     row.render(hoverCondition);
+                }
 
-                    // render quick info tooltip
-                    if (row.isHovered())
+                // render quick info tooltip
+                if (const StructListRow& row = m_rows[rowIndex]; row.isHovered())
+                {
+                    ImGui::BeginTooltip();
+                    StructView structView{ row.metadataModel(), row.structModel() };
+                    structView.render();
+                    ImGui::EndTooltip();
+
+                    // open instance in struct edit when clicked
+                    if (ImGui::GetIO().MouseClicked[ImGuiMouseButton_Left])
                     {
-                        ImGui::BeginTooltip();
-                        StructView structView{ row.metadataModel(), row.structModel() };
-                        structView.render();
-                        ImGui::EndTooltip();
+                        editInstance = row.structModel().instance();
                     }
                 }
 
