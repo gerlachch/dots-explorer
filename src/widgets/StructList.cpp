@@ -272,10 +272,11 @@ void StructList::renderEnd()
             {
                 {
                     StructListRow& row = m_rows[rowIndex];
-                    row.render();
+                    bool hoverCondition = ImGui::GetIO().KeyAlt;
+                    row.render(hoverCondition);
 
                     // render quick info tooltip
-                    if (ImGui::IsItemHovered() && ImGui::GetIO().KeyAlt)
+                    if (row.isHovered())
                     {
                         ImGui::BeginTooltip();
                         StructView structView{ row.metadataModel(), row.structModel() };
