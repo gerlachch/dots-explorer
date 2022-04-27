@@ -6,9 +6,10 @@
 #include <DotsClient.dots.h>
 
 StructListRow::StructListRow(const StructDescriptorModel& structDescriptorModel, const dots::type::Struct& instance) :
+    m_isSelected(false),
     m_structModel{ structDescriptorModel, instance }
 {
-    m_columns.reserve(m_structModel.propertyModels().size());
+    m_propertyModels.reserve(m_structModel.propertyModels().size());
 
     if (m_structModel.propertyModels().size() <= IMGUI_TABLE_MAX_COLUMNS)
     {
@@ -21,7 +22,7 @@ StructListRow::StructListRow(const StructDescriptorModel& structDescriptorModel,
                 continue;
             }
 
-            m_columns.emplace_back(propertyModel);
+            m_propertyModels.emplace_back(propertyModel);
         }
     }
     else
@@ -30,7 +31,7 @@ StructListRow::StructListRow(const StructDescriptorModel& structDescriptorModel,
         {
             if (propertyModel.descriptorModel().propertyPath().elements().size() == 1)
             {
-                m_columns.emplace_back(propertyModel);
+                m_propertyModels.emplace_back(propertyModel);
             }
         }
     }
@@ -76,14 +77,14 @@ bool StructListRow::less(const ImGuiTableSortSpecs& sortSpecs, const StructListR
         if (columnIndex >= MetaDataSize)
         {
             columnIndex -= MetaDataSize;
-            const StructListColumn& columnThis = m_columns[columnIndex];
-            const StructListColumn& columnOther = other.m_columns[columnIndex];
+            const PropertyModel& propertyModelThis = m_propertyModels[columnIndex];
+            const PropertyModel& propertyModelOther = other.m_propertyModels[columnIndex];
 
-            if (columnThis.model().less(sortSpec, columnOther.model()))
+            if (propertyModelThis.less(sortSpec, propertyModelOther))
             {
                 return true;
             }
-            else if (columnOther.model().less(sortSpec, columnThis.model()))
+            else if (propertyModelOther.less(sortSpec, propertyModelThis))
             {
                 return false;
             }
@@ -121,7 +122,7 @@ bool StructListRow::less(const ImGuiTableSortSpecs& sortSpecs, const StructListR
 
 bool StructListRow::isSelected() const
 {
-    return std::any_of(m_columns.begin(), m_columns.end(), [](const StructListColumn& column){ return column.isSelected(); });
+    return m_isSelected;
 }
 
 void StructListRow::render()
@@ -145,9 +146,11 @@ void StructListRow::render()
     }
 
     // render property columns
-    for (StructListColumn& column : m_columns)
+    for (const PropertyModel& propertyModel : m_propertyModels)
     {
         ImGui::TableNextColumn();
-        column.render();
+        ImGui::PushStyleColor(ImGuiCol_Text, propertyModel.valueText().second);
+        ImGui::Selectable(propertyModel.valueText().first.data(), &m_isSelected, ImGuiSelectableFlags_SpanAllColumns);
+        ImGui::PopStyleColor();
     }
 }
