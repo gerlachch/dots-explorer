@@ -60,6 +60,8 @@ void TypeList::render()
         m_filterSettings.showInternal.constructOrValue();
         m_filterSettings.showUncached.constructOrValue();
         m_filterSettings.showEmpty.constructOrValue();
+
+        ImGui::SetKeyboardFocusHere();
     }
 
     // control area
