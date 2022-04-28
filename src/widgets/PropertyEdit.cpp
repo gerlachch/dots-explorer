@@ -115,17 +115,7 @@ void PropertyEdit::render()
         {
             if (ImGui::InputText(m_inputLabel.data(), m_inputBuffer.data(), m_inputBuffer.size(), ImGuiInputTextFlags_AutoSelectAll))
             {
-                try
-                {
-                    std::string bufferNullTerminated = m_inputBuffer.data();
-                    dots::from_string(bufferNullTerminated, property);
-                    model.fetch();
-                    m_inputParseable = true;
-                }
-                catch (...)
-                {
-                    m_inputParseable = false;
-                }
+                m_inputParseable = model.fromString(m_inputBuffer.data());
             }
         }
 
@@ -138,21 +128,14 @@ void PropertyEdit::render()
             constexpr char Invalid[] = "<invalid>";
             std::copy(Invalid, Invalid + sizeof Invalid, m_inputBuffer.begin());
             m_inputParseable = true;
-            property.destroy();
-            model.fetch();
+            model.invalidate();
         }
         ImGuiExt::TooltipLastHoveredItem("Invalidate property");
 
         ImGui::SameLine();
         if (ImGui::Button(m_randomizeLabel.data()))
         {
-            if (m_randomizer == std::nullopt)
-            {
-                m_randomizer.emplace(std::random_device{}());
-            }
-
-            m_randomizer->randomize(property);
-            model.fetch();
+            model.randomize();
             const std::string& value = model.valueText().first;
             m_inputBuffer.assign(std::max(value.size(), m_inputBuffer.size()), '\0');
             std::copy(value.begin(), value.end(), m_inputBuffer.begin());

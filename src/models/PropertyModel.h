@@ -1,6 +1,7 @@
 #pragma once
 #include <dots/dots.h>
 #include <common/ImGuiExt.h>
+#include <tools/TypeRandomizer.h>
 #include <models/PropertyDescriptorModel.h>
 
 struct ImGuiTableColumnSortSpecs;
@@ -15,6 +16,12 @@ struct PropertyModel
     const dots::type::ProxyProperty<>& property() const;
     dots::type::ProxyProperty<>& property();
 
+    const std::string& toString() const;
+    bool fromString(const std::string& value);
+
+    void invalidate();
+    void randomize();
+
     const ImGuiExt::ColoredText& valueText() const;
 
     bool less(const ImGuiTableColumnSortSpecs& sortSpec, const PropertyModel& other) const;
@@ -24,6 +31,8 @@ struct PropertyModel
 private:
 
     using descriptor_model_ref_t = std::reference_wrapper<const PropertyDescriptorModel>;
+
+    inline static dots::type::TypeRandomizer<> M_randomizer{ std::random_device{}() };
 
     mutable ImGuiExt::ColoredText m_valueText;
     bool m_mutable;

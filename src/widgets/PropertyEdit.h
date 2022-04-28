@@ -2,7 +2,6 @@
 #include <string>
 #include <optional>
 #include <dots/dots.h>
-#include <tools/TypeRandomizer.h>
 #include <models/PropertyModel.h>
 
 struct PropertyEdit
@@ -28,7 +27,6 @@ private:
 
     std::string m_inputBuffer;
     std::optional<bool> m_inputParseable;
-    std::optional<dots::type::TypeRandomizer<>> m_randomizer;
     model_ref_t m_model;
     std::string m_inputLabel;
     std::string m_invalidateLabel;
