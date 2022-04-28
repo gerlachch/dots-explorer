@@ -113,7 +113,7 @@ void PropertyEdit::render()
         }
         else
         {
-            if (ImGui::InputText(m_inputLabel.data(), m_inputBuffer.data(), m_inputBuffer.size()))
+            if (ImGui::InputText(m_inputLabel.data(), m_inputBuffer.data(), m_inputBuffer.size(), ImGuiInputTextFlags_AutoSelectAll))
             {
                 try
                 {
