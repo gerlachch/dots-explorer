@@ -8,7 +8,8 @@ PropertyEdit::PropertyEdit(PropertyModel& model) :
     m_model{ model },
     m_inputLabel{ fmt::format("##PropertyEdit_{}_Input", model.property().descriptor().name()) },
     m_invalidateLabel{ fmt::format("X##PropertyEdit_{}_Invalidate", model.property().descriptor().name()) },
-    m_randomizeLabel{ fmt::format("R##PropertyEdit_{}_Randomize", model.property().descriptor().name()) }
+    m_randomizeLabel{ fmt::format("R##PropertyEdit_{}_Randomize", model.property().descriptor().name()) },
+    m_timepointNowLabel{ fmt::format("N##PropertyEdit_{}_TimePointNow", model.property().descriptor().name()) }
 {
     // init input buffer
     {
@@ -159,6 +160,39 @@ void PropertyEdit::render()
             m_inputParseable = true;
         }
         ImGuiExt::TooltipLastHoveredItem("Randomize property");
+
+        ImVec2 randomizeButtonSize = ImGui::GetItemRectSize();
+
+        if (type == dots::type::Type::timepoint || type == dots::type::Type::steady_timepoint)
+        {
+            ImGui::SameLine();
+            if (ImGui::Button(m_timepointNowLabel.data()))
+            {
+                if (type == dots::type::Type::timepoint)
+                {
+                    auto timepointProperty = property.to<dots::timepoint_t>();
+                    timepointProperty.constructOrAssign(dots::timepoint_t::Now());
+                }
+                else/* if (type == dots::type::Type::steady_timepoint)*/
+                {
+                    auto steadyTimepointProperty = property.to<dots::steady_timepoint_t>();
+                    steadyTimepointProperty.constructOrAssign(dots::steady_timepoint_t::Now());
+                }
+
+                model.fetch();
+                const std::string& value = model.valueText().first;
+                m_inputBuffer.assign(std::max(value.size(), m_inputBuffer.size()), '\0');
+                std::copy(value.begin(), value.end(), m_inputBuffer.begin());
+
+                m_inputParseable = true;
+            }
+            ImGuiExt::TooltipLastHoveredItem("Set to 'now' (i.e. the current time)");
+        }
+        else
+        {
+            ImGui::SameLine();
+            ImGui::Dummy(randomizeButtonSize);
+        }
 
         ImGui::SameLine();
         if (m_inputParseable != std::nullopt)

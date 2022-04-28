@@ -33,4 +33,5 @@ private:
     std::string m_inputLabel;
     std::string m_invalidateLabel;
     std::string m_randomizeLabel;
+    std::string m_timepointNowLabel;
 };
