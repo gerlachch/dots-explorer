@@ -25,6 +25,8 @@ struct StructList
     void update(const dots::Event<>& event);
     bool renderBegin();
     void renderEnd();
+    void renderActivity();
+    void renderActivityDot();
 
 private:
 
@@ -36,6 +38,7 @@ private:
     std::vector<std::string> m_headers;
     const StructListRow* m_lastPublishedRow;
     dots::timepoint_t m_lastPublishedRowTime;
+    float m_lastUpdateDelta;
     bool m_containerChanged;
     std::optional<dots::Container<>> m_containerStorage;
     container_ref_t m_container;

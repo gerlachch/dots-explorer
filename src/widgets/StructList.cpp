@@ -9,6 +9,7 @@
 StructList::StructList(const dots::type::StructDescriptor<>& descriptor) :
     m_lastPublishedRow(nullptr),
     m_lastPublishedRowTime{ dots::timepoint_t::min() },
+    m_lastUpdateDelta(0.0f),
     m_containerChanged(false),
     m_containerStorage{ descriptor.cached() ? std::optional<dots::Container<>>{ std::nullopt } : dots::Container<>{ descriptor } },
     m_container{ descriptor.cached() ? dots::container(descriptor) : *m_containerStorage },
@@ -78,7 +79,9 @@ bool StructList::less(const ImGuiTableSortSpecs& sortSpecs, const StructList& ot
         switch (sortSpec.ColumnIndex)
         {
             case 0:  less = compare(container().descriptor().name(), other.container().descriptor().name()); break;
-            case 1:  less = compare(container().size(), other.container().size()); break;
+            case 1:  less = compare(m_lastUpdateDelta, other.m_lastUpdateDelta); break;
+            case 2:  less = compare(m_lastUpdateDelta, other.m_lastUpdateDelta); break;
+            case 3:  less = compare(container().size(), other.container().size()); break;
             default: IM_ASSERT(0); break;
         }
 
@@ -123,10 +126,14 @@ void StructList::update(const dots::Event<>& event)
         m_lastPublishedRow = &row;
         m_lastPublishedRowTime = lastPublished;
     }
+
+    m_lastUpdateDelta = 0.0f;
 }
 
 bool StructList::renderBegin()
 {
+    m_lastUpdateDelta += ImGui::GetIO().DeltaTime;
+
     bool containerOpen = ImGui::TreeNodeEx(container().descriptor().name().data(), ImGuiTreeNodeFlags_SpanFullWidth);
     bool openStructEdit = false;
     std::optional<dots::type::AnyStruct> editInstance;
@@ -361,4 +368,38 @@ void StructList::renderEnd()
     }
 
     ImGui::TreePop();
+}
+
+void StructList::renderActivity()
+{
+    if (m_lastPublishedRow == nullptr)
+    {
+        ImGui::TextUnformatted("      ");
+    }
+    else
+    {
+        ImGuiExt::ColoredText text = m_lastPublishedRow->metadataModel().lastOperationText();
+        constexpr float AnimationDuration = 1.0f;
+        text.second.w = AnimationDuration - std::min(m_lastUpdateDelta, AnimationDuration) / AnimationDuration;
+        ImGuiExt::TextColored(text);
+    }
+}
+
+void StructList::renderActivityDot()
+{
+    if (m_lastPublishedRow == nullptr)
+    {
+        ImGui::TextUnformatted("   ");
+    }
+    else
+    {
+        ImVec4 color = m_lastPublishedRow->metadataModel().lastOperationText().second;
+        constexpr float AnimationDuration = 1.0f;
+        color.w = AnimationDuration - std::min(m_lastUpdateDelta, AnimationDuration) / AnimationDuration;
+
+        ImGui::PushStyleColor(ImGuiCol_Text, color);
+        ImGui::Bullet();
+        ImGui::PopStyleColor();
+        ImGui::TextUnformatted("");
+    }
 }
