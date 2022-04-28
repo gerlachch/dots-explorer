@@ -80,7 +80,7 @@ const ImGuiExt::ColoredText& PropertyModel::valueText() const
             color = ColorThemeActive.Disabled;
         }
 
-        if (type == dots::type::Type::string)
+        if (m_property.isValid() && type == dots::type::Type::string)
         {
             text += '"';
             text += dots::to_string(m_property);

@@ -10,4 +10,6 @@ namespace ImGuiExt
 
     void TextColored(const ColoredText& text);
     void TextColored(const std::vector<ColoredText>& text);
+
+    void TooltipLastHoveredItem(std::string_view text);
 }

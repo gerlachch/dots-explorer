@@ -200,6 +200,7 @@ void HostPanel::disconnect()
     try
     {
         ioContext.stop();
+        m_typeList.reset();
         dots::global_transceiver().reset();
         ioContext.restart();
         ioContext.poll();

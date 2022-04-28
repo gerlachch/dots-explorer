@@ -2,11 +2,14 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <fmt/format.h>
-#include <common/Colors.h>
 #include <common/ImGuiExt.h>
+#include <widgets/StructView.h>
 #include <DotsClearCache.dots.h>
 
 StructList::StructList(const dots::type::StructDescriptor<>& descriptor) :
+    m_lastPublishedRow(nullptr),
+    m_lastPublishedRowTime{ dots::timepoint_t::min() },
+    m_lastUpdateDelta(0.0f),
     m_containerChanged(false),
     m_containerStorage{ descriptor.cached() ? std::optional<dots::Container<>>{ std::nullopt } : dots::Container<>{ descriptor } },
     m_container{ descriptor.cached() ? dots::container(descriptor) : *m_containerStorage },
@@ -76,7 +79,9 @@ bool StructList::less(const ImGuiTableSortSpecs& sortSpecs, const StructList& ot
         switch (sortSpec.ColumnIndex)
         {
             case 0:  less = compare(container().descriptor().name(), other.container().descriptor().name()); break;
-            case 1:  less = compare(container().size(), other.container().size()); break;
+            case 1:  less = compare(m_lastUpdateDelta, other.m_lastUpdateDelta); break;
+            case 2:  less = compare(m_lastUpdateDelta, other.m_lastUpdateDelta); break;
+            case 3:  less = compare(container().size(), other.container().size()); break;
             default: IM_ASSERT(0); break;
         }
 
@@ -91,14 +96,21 @@ bool StructList::less(const ImGuiTableSortSpecs& sortSpecs, const StructList& ot
 
 void StructList::update(const dots::Event<>& event)
 {
-    if (!container().descriptor().cached())
+    const dots::type::Struct* instance;
+
+    if (container().descriptor().cached())
     {
-        return;
+        instance = &event.updated();
+    }
+    else
+    {
+        const auto& [updated, cloneInfo] = m_containerStorage->insert(event.header(), event.updated());
+        instance = &*updated;
     }
 
     m_containerChanged = true;
 
-    auto [it, emplaced] = m_rowsStorage.try_emplace(&event.updated(), StructListRow{ m_structDescriptorModel, event.updated() });
+    auto [it, emplaced] = m_rowsStorage.try_emplace(instance, StructListRow{ m_structDescriptorModel, *instance });
     StructListRow& row = it->second;
 
     if (emplaced)
@@ -108,12 +120,48 @@ void StructList::update(const dots::Event<>& event)
 
     row.metadataModel().fetch(event);
     row.structModel().fetch();
+
+    if (dots::timepoint_t lastPublished = row.metadataModel().lastPublished(); lastPublished > m_lastPublishedRowTime)
+    {
+        m_lastPublishedRow = &row;
+        m_lastPublishedRowTime = lastPublished;
+    }
+
+    m_lastUpdateDelta = 0.0f;
 }
 
 bool StructList::renderBegin()
 {
+    m_lastUpdateDelta += ImGui::GetIO().DeltaTime;
+
     bool containerOpen = ImGui::TreeNodeEx(container().descriptor().name().data(), ImGuiTreeNodeFlags_SpanFullWidth);
     bool openStructEdit = false;
+    std::optional<dots::type::AnyStruct> editInstance;
+
+    // render quick info tooltip for last published struct instance
+    if (ImGui::IsItemHovered() && ImGui::GetIO().KeyAlt && !m_rows.empty())
+    {
+        if (m_lastPublishedRow == nullptr)
+        {
+            m_lastPublishedRow = &std::max_element(m_rows.begin(), m_rows.end(), [this](const StructListRow& lhs, const StructListRow& rhs)
+            {
+                return lhs.metadataModel().lastPublished() < rhs.metadataModel().lastPublished();
+            })->get();
+            m_lastPublishedRowTime = m_lastPublishedRow->metadataModel().lastPublished();
+        }
+
+        ImGui::BeginTooltip();
+        StructView structView{ m_lastPublishedRow->metadataModel(), m_lastPublishedRow->structModel() };
+        structView.render();
+        ImGui::EndTooltip();
+
+        // open last published instance in struct edit when clicked
+        if (ImGui::GetIO().MouseClicked[ImGuiMouseButton_Left])
+        {
+            openStructEdit = true;
+            editInstance = m_lastPublishedRow->structModel().instance();
+        }
+    }
 
     // context menu
     {
@@ -122,27 +170,19 @@ bool StructList::renderBegin()
             ImGuiExt::TextColored(m_structDescriptorModel.declarationText());
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Create/Update"))
+            if (ImGui::MenuItem(m_structDescriptorModel.descriptor().cached() ? "Create/Update" : "Publish"))
             {
                 openStructEdit = true;
             }
 
-            if (ImGui::MenuItem("Remove All", nullptr, false, ImGui::GetIO().KeyCtrl))
+            if (m_structDescriptorModel.descriptor().cached())
             {
-                dots::publish(DotsClearCache{ 
-                    DotsClearCache::typeNames_i{ dots::vector_t<dots::string_t>{ container().descriptor().name() } }
-                });
-            }
-
-            ImGui::SameLine();
-            ImGui::TextDisabled("(?)");
-            if (ImGui::IsItemHovered())
-            {
-                ImGui::BeginTooltip();
-                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                ImGui::TextUnformatted("Hold CTRL key to enable.");
-                ImGui::PopTextWrapPos();
-                ImGui::EndTooltip();
+                if (ImGui::MenuItem("Remove All [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
+                {
+                    dots::publish(DotsClearCache{ 
+                        DotsClearCache::typeNames_i{ dots::vector_t<dots::string_t>{ container().descriptor().name() } }
+                    });
+                }
             }
 
             ImGui::EndPopup();
@@ -153,7 +193,14 @@ bool StructList::renderBegin()
     {
         if (openStructEdit)
         {
-            m_structEdit.emplace(m_structDescriptorModel, container().descriptor());
+            if (editInstance == std::nullopt)
+            {
+                m_structEdit.emplace(m_structDescriptorModel, container().descriptor());
+            }
+            else
+            {
+                m_structEdit.emplace(m_structDescriptorModel, std::move(*editInstance));
+            }
         }
 
         if (m_structEdit != std::nullopt && !m_structEdit->render())
@@ -210,6 +257,11 @@ void StructList::renderEnd()
             {
                 if (row.metadataModel().lastOperation() == DotsMt::remove)
                 {
+                    if (&row == m_lastPublishedRow)
+                    {
+                        m_lastPublishedRow = nullptr;
+                    }
+
                     m_rowsStorage.erase(&row.structModel().instance());
                     return true;
                 }
@@ -240,9 +292,26 @@ void StructList::renderEnd()
         {
             for (int rowIndex = clipper.DisplayStart; rowIndex < clipper.DisplayEnd; ++rowIndex)
             {
+                // render row
                 {
                     StructListRow& row = m_rows[rowIndex];
-                    row.render();
+                    bool hoverCondition = ImGui::GetIO().KeyAlt;
+                    row.render(hoverCondition);
+                }
+
+                // render quick info tooltip
+                if (const StructListRow& row = m_rows[rowIndex]; row.isHovered())
+                {
+                    ImGui::BeginTooltip();
+                    StructView structView{ row.metadataModel(), row.structModel() };
+                    structView.render();
+                    ImGui::EndTooltip();
+
+                    // open instance in struct edit when clicked
+                    if (ImGui::GetIO().MouseClicked[ImGuiMouseButton_Left])
+                    {
+                        editInstance = row.structModel().instance();
+                    }
                 }
 
                 // context menu
@@ -260,33 +329,25 @@ void StructList::renderEnd()
                             return row.isSelected();
                         });
 
-                        if (selection.empty() && ImGui::MenuItem("View/Update"))
+                        if (selection.empty() && ImGui::MenuItem(m_structDescriptorModel.descriptor().cached() ? "View/Update" : "View/Publish"))
                         {
                             editInstance = row.structModel().instance();
                         }
 
-                        if (selection.empty() && ImGui::MenuItem("Remove", nullptr, false, ImGui::GetIO().KeyCtrl))
+                        if (m_structDescriptorModel.descriptor().cached())
                         {
-                            dots::remove(row.structModel().instance());
-                        }
-
-                        if (!selection.empty() && ImGui::MenuItem("Remove Selection", nullptr, false, ImGui::GetIO().KeyCtrl))
-                        {
-                            for (const StructListRow& selected : selection)
+                            if (selection.empty() && ImGui::MenuItem("Remove [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
                             {
-                                dots::remove(selected.structModel().instance());
+                                dots::remove(row.structModel().instance());
                             }
-                        }
 
-                        ImGui::SameLine();
-                        ImGui::TextDisabled("(?)");
-                        if (ImGui::IsItemHovered())
-                        {
-                            ImGui::BeginTooltip();
-                            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                            ImGui::TextUnformatted("Hold CTRL key to enable.");
-                            ImGui::PopTextWrapPos();
-                            ImGui::EndTooltip();
+                            if (!selection.empty() && ImGui::MenuItem("Remove Selection [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
+                            {
+                                for (const StructListRow& selected : selection)
+                                {
+                                    dots::remove(selected.structModel().instance());
+                                }
+                            }
                         }
 
                         ImGui::EndPopup();
@@ -307,4 +368,38 @@ void StructList::renderEnd()
     }
 
     ImGui::TreePop();
+}
+
+void StructList::renderActivity()
+{
+    if (m_lastPublishedRow == nullptr)
+    {
+        ImGui::TextUnformatted("      ");
+    }
+    else
+    {
+        ImGuiExt::ColoredText text = m_lastPublishedRow->metadataModel().lastOperationText();
+        constexpr float AnimationDuration = 1.0f;
+        text.second.w = AnimationDuration - std::min(m_lastUpdateDelta, AnimationDuration) / AnimationDuration;
+        ImGuiExt::TextColored(text);
+    }
+}
+
+void StructList::renderActivityDot()
+{
+    if (m_lastPublishedRow == nullptr)
+    {
+        ImGui::TextUnformatted("   ");
+    }
+    else
+    {
+        ImVec4 color = m_lastPublishedRow->metadataModel().lastOperationText().second;
+        constexpr float AnimationDuration = 1.0f;
+        color.w = AnimationDuration - std::min(m_lastUpdateDelta, AnimationDuration) / AnimationDuration;
+
+        ImGui::PushStyleColor(ImGuiCol_Text, color);
+        ImGui::Bullet();
+        ImGui::PopStyleColor();
+        ImGui::TextUnformatted("");
+    }
 }

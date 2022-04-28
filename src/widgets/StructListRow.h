@@ -2,7 +2,6 @@
 #include <dots/dots.h>
 #include <models/MetadataModel.h>
 #include <models/StructModel.h>
-#include <widgets/StructListColumn.h>
 
 struct ImGuiTableSortSpecs;
 
@@ -29,14 +28,20 @@ struct StructListRow
     bool less(const ImGuiTableSortSpecs& sortSpecs, const StructListRow& other) const;
 
     bool isSelected() const;
-    void render();
+    bool isHovered() const;
+
+    void render(bool hoverCondition);
 
 private:
+
+    using property_model_ref_t = std::reference_wrapper<PropertyModel>;
 
     inline static uint64_t M_nextWidgetId = 0;
 
     mutable std::string m_widgetId;
+    bool m_isSelected;
+    bool m_isHovered;
     MetadataModel m_metadataModel;
     StructModel m_structModel;
-    std::vector<StructListColumn> m_columns;
+    std::vector<property_model_ref_t> m_propertyModels;
 };

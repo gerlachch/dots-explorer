@@ -99,7 +99,7 @@ void MetadataModel::fetch(const dots::Event<>& event)
 {
     m_lastOperation = event.mt();
     m_lastPublished = event.cloneInfo().modified.valueOrDefault(event.cloneInfo().created);
-    m_lastPublishedBy = *event.cloneInfo().lastUpdateFrom;
+    m_lastPublishedBy = event.cloneInfo().lastUpdateFrom.valueOrDefault(event.cloneInfo().createdFrom);
 
     for (auto& [text, color] : m_metadataText)
     {

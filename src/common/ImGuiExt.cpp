@@ -28,4 +28,16 @@ namespace ImGuiExt
             TextColored(textPart);
         }
     }
+
+    void TooltipLastHoveredItem(std::string_view text)
+    {
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+            ImGui::TextUnformatted(text.data(), text.data() + text.size());
+            ImGui::PopTextWrapPos();
+            ImGui::EndTooltip();
+        }
+    }
 }

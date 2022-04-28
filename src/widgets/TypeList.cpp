@@ -60,12 +60,19 @@ void TypeList::render()
         m_filterSettings.showInternal.constructOrValue();
         m_filterSettings.showUncached.constructOrValue();
         m_filterSettings.showEmpty.constructOrValue();
+
+        ImGui::SetKeyboardFocusHere();
     }
 
     // control area
     {
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted("Filter");
+
+        if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_F, false))
+        {
+            ImGui::SetKeyboardFocusHere();
+        }
 
         ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f);
@@ -174,14 +181,17 @@ void TypeList::render()
         ImGuiTableFlags_BordersOuter  |
         ImGuiTableFlags_BordersInner  |
         ImGuiTableFlags_ScrollY       |
-        ImGuiTableFlags_Sortable
+        ImGuiTableFlags_Sortable      |
+        ImGuiTableFlags_Hideable
     ;
     
-    if (ImGui::BeginTable("Cached Types", 2, TableFlags, ImGui::GetContentRegionAvail()))
+    if (ImGui::BeginTable("Cached Types", 4, TableFlags, ImGui::GetContentRegionAvail()))
     {
         // create headers
         ImGui::TableSetupScrollFreeze(0, 1);
-        ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoHide);
+        ImGui::TableSetupColumn("Activity", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide);
+        ImGui::TableSetupColumn("Activity [dot]", ImGuiTableColumnFlags_NoHeaderLabel | ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide);
         ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableHeadersRow();
 
@@ -205,8 +215,20 @@ void TypeList::render()
             ImGui::TableNextColumn();
             bool containerOpen = structList->renderBegin();
 
-            ImGui::TableNextColumn();
-            ImGui::Text("%zu", structList->container().size());
+            if (ImGui::TableNextColumn())
+            {
+                structList->renderActivity();
+            }
+
+            if (ImGui::TableNextColumn())
+            {
+                structList->renderActivityDot();
+            }
+
+            if (ImGui::TableNextColumn())
+            {
+                ImGui::Text("%zu", structList->container().size());
+            }
 
             if (containerOpen)
             {

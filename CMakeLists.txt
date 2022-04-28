@@ -106,9 +106,9 @@ target_sources(${TARGET_NAME}
         src/widgets/HostSettingsEdit.cpp
         src/widgets/StructEdit.cpp
         src/widgets/StructListRow.cpp
+        src/widgets/StructView.cpp
         src/widgets/TypeList.cpp
         src/widgets/PropertyEdit.cpp
-        src/widgets/StructListColumn.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
         $<$<BOOL:${Vulkan_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp>
         $<$<BOOL:${OpenGL_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp>

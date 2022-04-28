@@ -6,9 +6,11 @@
 #include <DotsClient.dots.h>
 
 StructListRow::StructListRow(const StructDescriptorModel& structDescriptorModel, const dots::type::Struct& instance) :
+    m_isSelected(false),
+    m_isHovered(false),
     m_structModel{ structDescriptorModel, instance }
 {
-    m_columns.reserve(m_structModel.propertyModels().size());
+    m_propertyModels.reserve(m_structModel.propertyModels().size());
 
     if (m_structModel.propertyModels().size() <= IMGUI_TABLE_MAX_COLUMNS)
     {
@@ -21,7 +23,7 @@ StructListRow::StructListRow(const StructDescriptorModel& structDescriptorModel,
                 continue;
             }
 
-            m_columns.emplace_back(propertyModel);
+            m_propertyModels.emplace_back(propertyModel);
         }
     }
     else
@@ -30,7 +32,7 @@ StructListRow::StructListRow(const StructDescriptorModel& structDescriptorModel,
         {
             if (propertyModel.descriptorModel().propertyPath().elements().size() == 1)
             {
-                m_columns.emplace_back(propertyModel);
+                m_propertyModels.emplace_back(propertyModel);
             }
         }
     }
@@ -76,14 +78,14 @@ bool StructListRow::less(const ImGuiTableSortSpecs& sortSpecs, const StructListR
         if (columnIndex >= MetaDataSize)
         {
             columnIndex -= MetaDataSize;
-            const StructListColumn& columnThis = m_columns[columnIndex];
-            const StructListColumn& columnOther = other.m_columns[columnIndex];
+            const PropertyModel& propertyModelThis = m_propertyModels[columnIndex];
+            const PropertyModel& propertyModelOther = other.m_propertyModels[columnIndex];
 
-            if (columnThis.model().less(sortSpec, columnOther.model()))
+            if (propertyModelThis.less(sortSpec, propertyModelOther))
             {
                 return true;
             }
-            else if (columnOther.model().less(sortSpec, columnThis.model()))
+            else if (propertyModelOther.less(sortSpec, propertyModelThis))
             {
                 return false;
             }
@@ -121,106 +123,46 @@ bool StructListRow::less(const ImGuiTableSortSpecs& sortSpecs, const StructListR
 
 bool StructListRow::isSelected() const
 {
-    return std::any_of(m_columns.begin(), m_columns.end(), [](const StructListColumn& column){ return column.isSelected(); });
+    return m_isSelected;
 }
 
-void StructListRow::render()
+bool StructListRow::isHovered() const
 {
+    return m_isHovered;
+}
+
+void StructListRow::render(bool hoverCondition)
+{
+    m_isHovered = false;
+
     // render meta data columns
     {
         if (ImGui::TableNextColumn())
         {
             ImGuiExt::TextColored(m_metadataModel.lastOperationText());
+            m_isHovered |= hoverCondition && ImGui::IsItemHovered();
         }
 
         if (ImGui::TableNextColumn())
         {
             ImGuiExt::TextColored(m_metadataModel.lastPublishedText());
+            m_isHovered |= hoverCondition && ImGui::IsItemHovered();
         }
 
         if (ImGui::TableNextColumn())
         {
             ImGuiExt::TextColored(m_metadataModel.lastPublishedByText());
+            m_isHovered |= hoverCondition && ImGui::IsItemHovered();
         }
     }
 
     // render property columns
-    for (StructListColumn& column : m_columns)
+    for (const PropertyModel& propertyModel : m_propertyModels)
     {
         ImGui::TableNextColumn();
-        column.render();
-    }
-
-    // render quick info tooltip
-    if (ImGui::IsItemHovered() && ImGui::GetIO().KeyAlt)
-    {
-        ImGui::BeginTooltip();
-
-        // render header
-        {
-            ImGuiExt::TextColored(m_structModel.descriptorModel().declarationText());
-        }
-
-        ImGui::Separator();
-
-        // render properties
-        if (ImGui::BeginTable("PropertyTable", 2))
-        {
-            for (const PropertyModel& propertyModel : m_structModel.propertyModels())
-            {
-                ImGui::TableNextRow();
-
-                if (m_structModel.propertyModels().size() <= IMGUI_TABLE_MAX_COLUMNS)
-                {
-                    ImGui::TableNextColumn();
-                    ImGuiExt::TextColored(propertyModel.descriptorModel().declarationText());
-
-                    ImGui::TableNextColumn();
-
-                    if (propertyModel.property().descriptor().valueDescriptor().type() != dots::type::Type::Struct)
-                    {
-                        ImGuiExt::TextColored(propertyModel.valueText());
-                    }
-                }
-                else
-                {
-                    ImGui::TableNextColumn();
-                    ImGuiExt::TextColored(propertyModel.descriptorModel().declarationText());
-
-                    ImGui::TableNextColumn();
-                    ImGuiExt::TextColored(propertyModel.valueText());
-                }
-            }
-
-            ImGui::EndTable();
-        }
-
-        ImGui::Separator();
-
-        // render meta data
-        if (ImGui::BeginTable("MetaDataTable", 2))
-        {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::TextUnformatted("Last Operation:");
-            ImGui::TableNextColumn();
-            ImGuiExt::TextColored(m_metadataModel.lastOperationText());
-
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::TextUnformatted("Last Published:");
-            ImGui::TableNextColumn();
-            ImGuiExt::TextColored(m_metadataModel.lastPublishedText());
-
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::TextUnformatted("Last Published By:");
-            ImGui::TableNextColumn();
-            ImGuiExt::TextColored(m_metadataModel.lastPublishedByText());
-
-            ImGui::EndTable();
-        }
-
-        ImGui::EndTooltip();
+        ImGui::PushStyleColor(ImGuiCol_Text, propertyModel.valueText().second);
+        ImGui::Selectable(propertyModel.valueText().first.data(), &m_isSelected, ImGuiSelectableFlags_SpanAllColumns);
+        ImGui::PopStyleColor();
+        m_isHovered |= hoverCondition && ImGui::IsItemHovered();
     }
 }
