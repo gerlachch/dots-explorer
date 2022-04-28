@@ -1,11 +1,11 @@
-#include <widgets/StructListRow.h>
+#include <widgets/StructItem.h>
 #include <imgui_internal.h>
 #include <fmt/format.h>
 #include <common/Colors.h>
 #include <common/ImGuiExt.h>
 #include <DotsClient.dots.h>
 
-StructListRow::StructListRow(const StructDescriptorModel& structDescriptorModel, const dots::type::Struct& instance) :
+StructItem::StructItem(const StructDescriptorModel& structDescriptorModel, const dots::type::Struct& instance) :
     m_isSelected(false),
     m_isHovered(false),
     m_structModel{ structDescriptorModel, instance }
@@ -38,37 +38,37 @@ StructListRow::StructListRow(const StructDescriptorModel& structDescriptorModel,
     }
 }
 
-const char* StructListRow::widgetId() const
+const char* StructItem::widgetId() const
 {
     if (m_widgetId.empty())
     {
-        m_widgetId = fmt::format("StructListRow-{}", M_nextWidgetId++);
+        m_widgetId = fmt::format("StructItem-{}", M_nextWidgetId++);
     }
 
     return m_widgetId.data();
 }
 
-const MetadataModel& StructListRow::metadataModel() const
+const MetadataModel& StructItem::metadataModel() const
 {
     return m_metadataModel;
 }
 
-MetadataModel& StructListRow::metadataModel()
+MetadataModel& StructItem::metadataModel()
 {
     return m_metadataModel;
 }
 
-const StructModel& StructListRow::structModel() const
+const StructModel& StructItem::structModel() const
 {
     return m_structModel;
 }
 
-StructModel& StructListRow::structModel()
+StructModel& StructItem::structModel()
 {
     return m_structModel;
 }
 
-bool StructListRow::less(const ImGuiTableSortSpecs& sortSpecs, const StructListRow& other) const
+bool StructItem::less(const ImGuiTableSortSpecs& sortSpecs, const StructItem& other) const
 {
     for (int i = 0; i < sortSpecs.SpecsCount; ++i)
     {
@@ -121,17 +121,17 @@ bool StructListRow::less(const ImGuiTableSortSpecs& sortSpecs, const StructListR
     return &structModel().instance() < &other.structModel().instance();
 }
 
-bool StructListRow::isSelected() const
+bool StructItem::isSelected() const
 {
     return m_isSelected;
 }
 
-bool StructListRow::isHovered() const
+bool StructItem::isHovered() const
 {
     return m_isHovered;
 }
 
-void StructListRow::render(bool hoverCondition)
+void StructItem::render(bool hoverCondition)
 {
     m_isHovered = false;
 

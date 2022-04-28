@@ -7,8 +7,8 @@
 #include <DotsClearCache.dots.h>
 
 StructList::StructList(const dots::type::StructDescriptor<>& descriptor) :
-    m_lastPublishedRow(nullptr),
-    m_lastPublishedRowTime{ dots::timepoint_t::min() },
+    m_lastPublishedItem(nullptr),
+    m_lastPublishedItemTime{ dots::timepoint_t::min() },
     m_lastUpdateDelta(0.0f),
     m_containerChanged(false),
     m_containerStorage{ descriptor.cached() ? std::optional<dots::Container<>>{ std::nullopt } : dots::Container<>{ descriptor } },
@@ -110,21 +110,21 @@ void StructList::update(const dots::Event<>& event)
 
     m_containerChanged = true;
 
-    auto [it, emplaced] = m_rowsStorage.try_emplace(instance, StructListRow{ m_structDescriptorModel, *instance });
-    StructListRow& row = it->second;
+    auto [it, emplaced] = m_itemsStorage.try_emplace(instance, StructItem{ m_structDescriptorModel, *instance });
+    StructItem& item = it->second;
 
     if (emplaced)
     {
-        m_rows.emplace_back(row);
+        m_items.emplace_back(item);
     }
 
-    row.metadataModel().fetch(event);
-    row.structModel().fetch();
+    item.metadataModel().fetch(event);
+    item.structModel().fetch();
 
-    if (dots::timepoint_t lastPublished = row.metadataModel().lastPublished(); lastPublished > m_lastPublishedRowTime)
+    if (dots::timepoint_t lastPublished = item.metadataModel().lastPublished(); lastPublished > m_lastPublishedItemTime)
     {
-        m_lastPublishedRow = &row;
-        m_lastPublishedRowTime = lastPublished;
+        m_lastPublishedItem = &item;
+        m_lastPublishedItemTime = lastPublished;
     }
 
     m_lastUpdateDelta = 0.0f;
@@ -139,19 +139,19 @@ bool StructList::renderBegin()
     std::optional<dots::type::AnyStruct> editInstance;
 
     // render quick info tooltip for last published struct instance
-    if (ImGui::IsItemHovered() && ImGui::GetIO().KeyAlt && !m_rows.empty())
+    if (ImGui::IsItemHovered() && ImGui::GetIO().KeyAlt && !m_items.empty())
     {
-        if (m_lastPublishedRow == nullptr)
+        if (m_lastPublishedItem == nullptr)
         {
-            m_lastPublishedRow = &std::max_element(m_rows.begin(), m_rows.end(), [this](const StructListRow& lhs, const StructListRow& rhs)
+            m_lastPublishedItem = &std::max_element(m_items.begin(), m_items.end(), [this](const StructItem& lhs, const StructItem& rhs)
             {
                 return lhs.metadataModel().lastPublished() < rhs.metadataModel().lastPublished();
             })->get();
-            m_lastPublishedRowTime = m_lastPublishedRow->metadataModel().lastPublished();
+            m_lastPublishedItemTime = m_lastPublishedItem->metadataModel().lastPublished();
         }
 
         ImGui::BeginTooltip();
-        StructView structView{ m_lastPublishedRow->metadataModel(), m_lastPublishedRow->structModel() };
+        StructView structView{ m_lastPublishedItem->metadataModel(), m_lastPublishedItem->structModel() };
         structView.render();
         ImGui::EndTooltip();
 
@@ -159,7 +159,7 @@ bool StructList::renderBegin()
         if (ImGui::GetIO().MouseClicked[ImGuiMouseButton_Left])
         {
             openStructEdit = true;
-            editInstance = m_lastPublishedRow->structModel().instance();
+            editInstance = m_lastPublishedItem->structModel().instance();
         }
     }
 
@@ -234,7 +234,7 @@ void StructList::renderEnd()
     const dots::type::StructDescriptor<>& descriptor = m_container.get().descriptor();
     std::optional<dots::type::AnyStruct> editInstance;
 
-    if (ImGui::BeginTable(descriptor.name().data(), StructListRow::MetaData::MetaDataSize + static_cast<int>(m_headers.size()), TableFlags))
+    if (ImGui::BeginTable(descriptor.name().data(), StructItem::MetaData::MetaDataSize + static_cast<int>(m_headers.size()), TableFlags))
     {
         // create meta info headers
         {
@@ -251,31 +251,31 @@ void StructList::renderEnd()
 
         ImGui::TableHeadersRow();
 
-        // clean rows
+        // clean items
         {
-            m_rows.erase(std::remove_if(m_rows.begin(), m_rows.end(), [this](const StructListRow& row)
+            m_items.erase(std::remove_if(m_items.begin(), m_items.end(), [this](const StructItem& item)
             {
-                if (row.metadataModel().lastOperation() == DotsMt::remove)
+                if (item.metadataModel().lastOperation() == DotsMt::remove)
                 {
-                    if (&row == m_lastPublishedRow)
+                    if (&item == m_lastPublishedItem)
                     {
-                        m_lastPublishedRow = nullptr;
+                        m_lastPublishedItem = nullptr;
                     }
 
-                    m_rowsStorage.erase(&row.structModel().instance());
+                    m_itemsStorage.erase(&item.structModel().instance());
                     return true;
                 }
                 else
                 {
                     return false;
                 }
-            }), m_rows.end());
+            }), m_items.end());
         }
 
-        // sort rows
+        // sort items
         if (ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs(); m_containerChanged || sortSpecs->SpecsDirty)
         {
-            std::sort(m_rows.begin(), m_rows.end(), [sortSpecs](const StructListRow& lhs, const StructListRow& rhs)
+            std::sort(m_items.begin(), m_items.end(), [sortSpecs](const StructItem& lhs, const StructItem& rhs)
             {
                 return lhs.less(*sortSpecs, rhs);
             });
@@ -284,66 +284,66 @@ void StructList::renderEnd()
             sortSpecs->SpecsDirty = false;
         }
 
-        // render rows
+        // render items
         ImGuiListClipper clipper;
-        clipper.Begin(static_cast<int>(m_rows.size()));
+        clipper.Begin(static_cast<int>(m_items.size()));
 
         while (clipper.Step())
         {
-            for (int rowIndex = clipper.DisplayStart; rowIndex < clipper.DisplayEnd; ++rowIndex)
+            for (int itemIndex = clipper.DisplayStart; itemIndex < clipper.DisplayEnd; ++itemIndex)
             {
-                // render row
+                // render items
                 {
-                    StructListRow& row = m_rows[rowIndex];
+                    StructItem& item = m_items[itemIndex];
                     bool hoverCondition = ImGui::GetIO().KeyAlt;
-                    row.render(hoverCondition);
+                    item.render(hoverCondition);
                 }
 
                 // render quick info tooltip
-                if (const StructListRow& row = m_rows[rowIndex]; row.isHovered())
+                if (const StructItem& item = m_items[itemIndex]; item.isHovered())
                 {
                     ImGui::BeginTooltip();
-                    StructView structView{ row.metadataModel(), row.structModel() };
+                    StructView structView{ item.metadataModel(), item.structModel() };
                     structView.render();
                     ImGui::EndTooltip();
 
                     // open instance in struct edit when clicked
                     if (ImGui::GetIO().MouseClicked[ImGuiMouseButton_Left])
                     {
-                        editInstance = row.structModel().instance();
+                        editInstance = item.structModel().instance();
                     }
                 }
 
                 // context menu
                 {
-                    const StructListRow& row = m_rows[rowIndex];
+                    const StructItem& item = m_items[itemIndex];
 
-                    if (ImGui::BeginPopupContextItem(row.widgetId()))
+                    if (ImGui::BeginPopupContextItem(item.widgetId()))
                     {
                         ImGuiExt::TextColored(m_structDescriptorModel.declarationText());
                         ImGui::Separator();
 
-                        std::vector<std::reference_wrapper<const StructListRow>> selection;
-                        std::copy_if(m_rows.begin(), m_rows.end(), std::back_inserter(selection), [](const StructListRow& row)
+                        std::vector<std::reference_wrapper<const StructItem>> selection;
+                        std::copy_if(m_items.begin(), m_items.end(), std::back_inserter(selection), [](const StructItem& item)
                         {
-                            return row.isSelected();
+                            return item.isSelected();
                         });
 
                         if (selection.empty() && ImGui::MenuItem(m_structDescriptorModel.descriptor().cached() ? "View/Update" : "View/Publish"))
                         {
-                            editInstance = row.structModel().instance();
+                            editInstance = item.structModel().instance();
                         }
 
                         if (m_structDescriptorModel.descriptor().cached())
                         {
                             if (selection.empty() && ImGui::MenuItem("Remove [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
                             {
-                                dots::remove(row.structModel().instance());
+                                dots::remove(item.structModel().instance());
                             }
 
                             if (!selection.empty() && ImGui::MenuItem("Remove Selection [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
                             {
-                                for (const StructListRow& selected : selection)
+                                for (const StructItem& selected : selection)
                                 {
                                     dots::remove(selected.structModel().instance());
                                 }
@@ -372,13 +372,13 @@ void StructList::renderEnd()
 
 void StructList::renderActivity()
 {
-    if (m_lastPublishedRow == nullptr)
+    if (m_lastPublishedItem == nullptr)
     {
         ImGui::TextUnformatted("      ");
     }
     else
     {
-        ImGuiExt::ColoredText text = m_lastPublishedRow->metadataModel().lastOperationText();
+        ImGuiExt::ColoredText text = m_lastPublishedItem->metadataModel().lastOperationText();
         constexpr float AnimationDuration = 1.0f;
         text.second.w = AnimationDuration - std::min(m_lastUpdateDelta, AnimationDuration) / AnimationDuration;
         ImGuiExt::TextColored(text);
@@ -387,13 +387,13 @@ void StructList::renderActivity()
 
 void StructList::renderActivityDot()
 {
-    if (m_lastPublishedRow == nullptr)
+    if (m_lastPublishedItem == nullptr)
     {
         ImGui::TextUnformatted("   ");
     }
     else
     {
-        ImVec4 color = m_lastPublishedRow->metadataModel().lastOperationText().second;
+        ImVec4 color = m_lastPublishedItem->metadataModel().lastOperationText().second;
         constexpr float AnimationDuration = 1.0f;
         color.w = AnimationDuration - std::min(m_lastUpdateDelta, AnimationDuration) / AnimationDuration;
 

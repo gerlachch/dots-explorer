@@ -105,7 +105,7 @@ target_sources(${TARGET_NAME}
         src/widgets/StructList.cpp
         src/widgets/HostSettingsEdit.cpp
         src/widgets/StructEdit.cpp
-        src/widgets/StructListRow.cpp
+        src/widgets/StructItem.cpp
         src/widgets/StructView.cpp
         src/widgets/TypeList.cpp
         src/widgets/PropertyEdit.cpp
