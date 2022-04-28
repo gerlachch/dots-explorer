@@ -6,10 +6,10 @@
 
 PropertyEdit::PropertyEdit(PropertyModel& model) :
     m_model{ model },
-    m_inputLabel{ fmt::format("##PropertyEdit_{}_Input", model.property().descriptor().name()) },
-    m_invalidateLabel{ fmt::format("X##PropertyEdit_{}_Invalidate", model.property().descriptor().name()) },
-    m_randomizeLabel{ fmt::format("R##PropertyEdit_{}_Randomize", model.property().descriptor().name()) },
-    m_timepointNowLabel{ fmt::format("N##PropertyEdit_{}_TimePointNow", model.property().descriptor().name()) }
+    m_inputLabel{ fmt::format("##PropertyEdit_{}_Input", static_cast<void*>(this)) },
+    m_invalidateLabel{ fmt::format("X##PropertyEdit_{}_Invalidate", static_cast<void*>(this)) },
+    m_randomizeLabel{ fmt::format("R##PropertyEdit_{}_Randomize", static_cast<void*>(this)) },
+    m_timepointNowLabel{ fmt::format("N##PropertyEdit_{}_TimePointNow", static_cast<void*>(this)) }
 {
     // init input buffer
     {
