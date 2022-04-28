@@ -140,6 +140,7 @@ void PropertyEdit::render()
             property.destroy();
             model.fetch();
         }
+        ImGuiExt::TooltipLastHoveredItem("Invalidate property");
 
         ImGui::SameLine();
         if (ImGui::Button(m_randomizeLabel.data()))
@@ -157,6 +158,7 @@ void PropertyEdit::render()
             
             m_inputParseable = true;
         }
+        ImGuiExt::TooltipLastHoveredItem("Randomize property");
 
         ImGui::SameLine();
         if (m_inputParseable != std::nullopt)
