@@ -62,7 +62,7 @@ void PropertyEdit::render()
 
                 if (ImGui::BeginCombo(m_inputLabel.data(), Items[itemIndex]))
                 {
-                    ImGui::PushStyleColor(ImGuiCol_Text, color);
+                    ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.Keyword);
                     if (ImGui::Selectable(Items[2], itemIndex == 2))
                     {
                         boolProperty.constructOrAssign(true);
@@ -87,7 +87,7 @@ void PropertyEdit::render()
 
                 if (ImGui::BeginCombo(m_inputLabel.data(), previewValue))
                 {
-                    ImGui::PushStyleColor(ImGuiCol_Text, color);
+                    ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.EnumType);
                     for (const dots::type::EnumeratorDescriptor<>& enumeratorDescriptor : enumDescriptor.enumeratorsTypeless())
                     {
                         const auto& enumerator = enumeratorDescriptor.valueTypeless();
