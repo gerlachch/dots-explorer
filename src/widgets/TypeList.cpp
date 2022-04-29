@@ -60,6 +60,7 @@ void TypeList::render()
         m_filterSettings.showInternal.constructOrValue();
         m_filterSettings.showUncached.constructOrValue();
         m_filterSettings.showEmpty.constructOrValue();
+        m_filterSettings.matchCase.constructOrValue();
 
         ImGui::SetKeyboardFocusHere();
     }
@@ -80,6 +81,23 @@ void TypeList::render()
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f);
             m_typesChanged |= ImGui::InputTextWithHint("##typeFilter", "<none>", m_typeFilterBuffer.data(), m_typeFilterBuffer.size());
             ImGui::PopItemWidth();
+        }
+
+        // render 'Match case' button
+        {
+            ImGui::SameLine();
+
+            ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[*m_filterSettings.matchCase ? ImGuiCol_ButtonActive : ImGuiCol_Button]);
+
+            if (ImGui::Button("Aa"))
+            {
+                m_filterSettings.matchCase = !*m_filterSettings.matchCase;
+                m_typesChanged = true;
+            }
+
+            ImGui::PopStyleColor();
+
+            ImGuiExt::TooltipLastHoveredItem("Match case");
         }
 
         // render 'Clear' button
@@ -154,7 +172,15 @@ void TypeList::render()
             m_typeListFiltered.clear();
             std::string_view typeFilter = m_typeFilterBuffer.data();
             m_filterSettings.regexFilter = typeFilter;
-            std::regex regex{ typeFilter.data() };
+
+            std::regex_constants::syntax_option_type regexFlags = std::regex_constants::ECMAScript;
+
+            if (!m_filterSettings.matchCase)
+            {
+                regexFlags |= std::regex_constants::icase;
+            }
+
+            std::regex regex{ typeFilter.data(), regexFlags };
 
             std::copy_if(m_typeList.begin(), m_typeList.end(), std::back_inserter(m_typeListFiltered), [&](const auto& structList)
             {

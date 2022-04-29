@@ -15,4 +15,5 @@ struct FilterSettings {
     2: bool showInternal;
     3: bool showUncached;
     4: bool showEmpty;
+    5: bool matchCase;
 }
