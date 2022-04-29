@@ -4,7 +4,7 @@
 #include <vector>
 #include <dots/dots.h>
 #include <models/StructDescriptorModel.h>
-#include <widgets/StructListRow.h>
+#include <widgets/StructItem.h>
 #include <widgets/StructEdit.h>
 
 struct ImGuiTableSortSpecs;
@@ -33,11 +33,11 @@ private:
     using container_ref_t = std::reference_wrapper<const dots::Container<>>;
 
     std::optional<StructEdit> m_structEdit;
-    std::unordered_map<const dots::type::Struct*, StructListRow> m_rowsStorage;
-    std::vector<std::reference_wrapper<StructListRow>> m_rows;
+    std::unordered_map<const dots::type::Struct*, StructItem> m_itemsStorage;
+    std::vector<std::reference_wrapper<StructItem>> m_items;
     std::vector<std::string> m_headers;
-    const StructListRow* m_lastPublishedRow;
-    dots::timepoint_t m_lastPublishedRowTime;
+    const StructItem* m_lastPublishedItem;
+    dots::timepoint_t m_lastPublishedItemTime;
     float m_lastUpdateDelta;
     bool m_containerChanged;
     std::optional<dots::Container<>> m_containerStorage;

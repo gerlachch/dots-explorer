@@ -6,17 +6,12 @@
 
 PropertyEdit::PropertyEdit(PropertyModel& model) :
     m_model{ model },
-    m_inputLabel{ fmt::format("##PropertyEdit_{}_Input", model.property().descriptor().name()) },
-    m_invalidateLabel{ fmt::format("X##PropertyEdit_{}_Invalidate", model.property().descriptor().name()) },
-    m_randomizeLabel{ fmt::format("R##PropertyEdit_{}_Randomize", model.property().descriptor().name()) },
-    m_timepointNowLabel{ fmt::format("N##PropertyEdit_{}_TimePointNow", model.property().descriptor().name()) }
+    m_inputLabel{ fmt::format("##PropertyEdit_{}_Input", static_cast<void*>(this)) },
+    m_invalidateLabel{ fmt::format("X##PropertyEdit_{}_Invalidate", static_cast<void*>(this)) },
+    m_randomizeLabel{ fmt::format("R##PropertyEdit_{}_Randomize", static_cast<void*>(this)) },
+    m_timepointNowLabel{ fmt::format("N##PropertyEdit_{}_TimePointNow", static_cast<void*>(this)) }
 {
-    // init input buffer
-    {
-        const std::string& value = model.valueText().first;
-        m_inputBuffer.assign(std::max(value.size(), size_t{ 256 }), '\0');
-        std::copy(value.begin(), value.end(), m_inputBuffer.begin());
-    }
+    /* do nothing */
 }
 
 const PropertyModel& PropertyEdit::model() const
@@ -44,171 +39,166 @@ void PropertyEdit::render()
         ImGuiExt::TextColored(model().descriptorModel().declarationText());
     }
 
-    // render input
-    ImGui::TableNextColumn();
-    PropertyModel& model = m_model.get();
-    dots::type::ProxyProperty<>& property = model.property();
-
-    if (dots::type::Type type = property.descriptor().valueDescriptor().type(); type != dots::type::Type::Struct)
+    // render edit area
+    if (dots::type::Type type = model().property().descriptor().valueDescriptor().type(); type != dots::type::Type::Struct)
     {
-        if (property.isValid())
-        {
-            ImGui::PushStyleColor(ImGuiCol_Text, model.valueText().second);
-        }
-        else
-        {
-            ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.Disabled);
-        }
-        ImGui::PushItemWidth(ImGui::GetIO().DisplaySize.x * 0.25f);
+        ImGui::TableNextColumn();
 
-        if (type == dots::type::Type::boolean)
-        {
-            constexpr const char* Items[] = { "<invalid>", "false", "true" };
-            auto boolProperty = property.to<dots::bool_t>();
-            size_t itemIndex = boolProperty.isValid() + boolProperty.equal(true);
+        PropertyModel& model = m_model.get();
+        dots::type::ProxyProperty<>& property = model.property();
 
-            if (ImGui::BeginCombo(m_inputLabel.data(), Items[itemIndex]))
+        // render input field
+        {
+            bool valueChanged = model.valueChanged();
+            const auto& [value, color] = model.valueText();
+
+            ImGui::PushStyleColor(ImGuiCol_Text, color);
+            ImGui::PushItemWidth(ImGui::GetIO().DisplaySize.x * 0.25f);
+
+            if (type == dots::type::Type::boolean)
             {
-                ImGui::PushStyleColor(ImGuiCol_Text, model.valueText().second);
-                if (ImGui::Selectable(Items[2], itemIndex == 2))
-                {
-                    boolProperty.constructOrAssign(true);
-                    model.fetch();
-                    m_inputParseable = true;
-                }
-                if (ImGui::Selectable(Items[1], itemIndex == 1))
-                {
-                    boolProperty.constructOrAssign(false);
-                    model.fetch();
-                    m_inputParseable = true;
-                }
-                ImGui::PopStyleColor();
+                constexpr const char* Items[] = { "<invalid>", "false", "true" };
+                auto boolProperty = property.to<dots::bool_t>();
+                size_t itemIndex = boolProperty.isValid() + boolProperty.equal(true);
 
-                ImGui::EndCombo();
-            }
-        }
-        else if (type == dots::type::Type::Enum)
-        {
-            const auto& enumDescriptor = property.descriptor().valueDescriptor().to<dots::type::EnumDescriptor<>>();
-            const char* previewValue = property.isValid() ? enumDescriptor.enumeratorFromValue(*property).name().data() : "<invalid>";
-
-            if (ImGui::BeginCombo(m_inputLabel.data(), previewValue))
-            {
-                ImGui::PushStyleColor(ImGuiCol_Text, model.valueText().second);
-                for (const dots::type::EnumeratorDescriptor<>& enumeratorDescriptor : enumDescriptor.enumeratorsTypeless())
+                if (ImGui::BeginCombo(m_inputLabel.data(), Items[itemIndex]))
                 {
-                    const auto& value = enumeratorDescriptor.valueTypeless();
-
-                    if (ImGui::Selectable(enumeratorDescriptor.name().data(), property == value))
+                    ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.Keyword);
+                    if (ImGui::Selectable(Items[2], itemIndex == 2))
                     {
-                        property.constructOrAssign(value);
+                        boolProperty.constructOrAssign(true);
                         model.fetch();
                         m_inputParseable = true;
                     }
-                }
-                ImGui::PopStyleColor();
+                    if (ImGui::Selectable(Items[1], itemIndex == 1))
+                    {
+                        boolProperty.constructOrAssign(false);
+                        model.fetch();
+                        m_inputParseable = true;
+                    }
+                    ImGui::PopStyleColor();
 
-                ImGui::EndCombo();
-            }
-        }
-        else
-        {
-            if (ImGui::InputText(m_inputLabel.data(), m_inputBuffer.data(), m_inputBuffer.size(), ImGuiInputTextFlags_AutoSelectAll))
-            {
-                try
-                {
-                    std::string bufferNullTerminated = m_inputBuffer.data();
-                    dots::from_string(bufferNullTerminated, property);
-                    model.fetch();
-                    m_inputParseable = true;
-                }
-                catch (...)
-                {
-                    m_inputParseable = false;
+                    ImGui::EndCombo();
                 }
             }
-        }
-
-        ImGui::PopItemWidth();
-        ImGui::PopStyleColor();
-
-        ImGui::SameLine();
-        if (ImGui::Button(m_invalidateLabel.data()))
-        {
-            constexpr char Invalid[] = "<invalid>";
-            std::copy(Invalid, Invalid + sizeof Invalid, m_inputBuffer.begin());
-            m_inputParseable = true;
-            property.destroy();
-            model.fetch();
-        }
-        ImGuiExt::TooltipLastHoveredItem("Invalidate property");
-
-        ImGui::SameLine();
-        if (ImGui::Button(m_randomizeLabel.data()))
-        {
-            if (m_randomizer == std::nullopt)
+            else if (type == dots::type::Type::Enum)
             {
-                m_randomizer.emplace(std::random_device{}());
-            }
+                const auto& enumDescriptor = property.descriptor().valueDescriptor().to<dots::type::EnumDescriptor<>>();
+                const char* previewValue = property.isValid() ? enumDescriptor.enumeratorFromValue(*property).name().data() : "<invalid>";
 
-            m_randomizer->randomize(property);
-            model.fetch();
-            const std::string& value = model.valueText().first;
-            m_inputBuffer.assign(std::max(value.size(), m_inputBuffer.size()), '\0');
-            std::copy(value.begin(), value.end(), m_inputBuffer.begin());
-            
-            m_inputParseable = true;
-        }
-        ImGuiExt::TooltipLastHoveredItem("Randomize property");
-
-        ImVec2 randomizeButtonSize = ImGui::GetItemRectSize();
-
-        if (type == dots::type::Type::timepoint || type == dots::type::Type::steady_timepoint)
-        {
-            ImGui::SameLine();
-            if (ImGui::Button(m_timepointNowLabel.data()))
-            {
-                if (type == dots::type::Type::timepoint)
+                if (ImGui::BeginCombo(m_inputLabel.data(), previewValue))
                 {
-                    auto timepointProperty = property.to<dots::timepoint_t>();
-                    timepointProperty.constructOrAssign(dots::timepoint_t::Now());
+                    ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.EnumType);
+                    for (const dots::type::EnumeratorDescriptor<>& enumeratorDescriptor : enumDescriptor.enumeratorsTypeless())
+                    {
+                        const auto& enumerator = enumeratorDescriptor.valueTypeless();
+
+                        if (ImGui::Selectable(enumeratorDescriptor.name().data(), property == enumerator))
+                        {
+                            property.constructOrAssign(enumerator);
+                            model.fetch();
+                            m_inputParseable = true;
+                        }
+                    }
+                    ImGui::PopStyleColor();
+
+                    ImGui::EndCombo();
                 }
-                else/* if (type == dots::type::Type::steady_timepoint)*/
-                {
-                    auto steadyTimepointProperty = property.to<dots::steady_timepoint_t>();
-                    steadyTimepointProperty.constructOrAssign(dots::steady_timepoint_t::Now());
-                }
-
-                model.fetch();
-                const std::string& value = model.valueText().first;
-                m_inputBuffer.assign(std::max(value.size(), m_inputBuffer.size()), '\0');
-                std::copy(value.begin(), value.end(), m_inputBuffer.begin());
-
-                m_inputParseable = true;
-            }
-            ImGuiExt::TooltipLastHoveredItem("Set to 'now' (i.e. the current time)");
-        }
-        else
-        {
-            ImGui::SameLine();
-            ImGui::Dummy(randomizeButtonSize);
-        }
-
-        ImGui::SameLine();
-        if (m_inputParseable != std::nullopt)
-        {
-            if (*m_inputParseable)
-            {
-                ImGui::TextColored(ColorThemeActive.Success, "Ok   ");
             }
             else
             {
-                ImGui::TextColored(ColorThemeActive.Error, "Error");
+                if (valueChanged)
+                {
+                    m_inputBuffer.assign(std::max(value.size(), size_t{ 256 }), '\0');
+                    std::copy(value.begin(), value.end(), m_inputBuffer.begin());
+                }
+
+                if (ImGui::InputText(m_inputLabel.data(), m_inputBuffer.data(), m_inputBuffer.size(), ImGuiInputTextFlags_AutoSelectAll))
+                {
+                    m_inputParseable = model.fromString(m_inputBuffer.data());
+                }
+            }
+
+            ImGui::PopItemWidth();
+            ImGui::PopStyleColor();
+        }
+
+        // render 'Invalidate' button
+        {
+            ImGui::SameLine();
+
+            if (ImGui::Button(m_invalidateLabel.data()))
+            {
+                model.invalidate();
+                m_inputParseable = true;
+            }
+
+            ImGuiExt::TooltipLastHoveredItem("Invalidate property");
+        }
+
+        // render 'Randomize' button
+        {
+            ImGui::SameLine();
+
+            if (ImGui::Button(m_randomizeLabel.data()))
+            {
+                model.randomize();
+                m_inputParseable = true;
+            }
+
+            ImGuiExt::TooltipLastHoveredItem("Randomize property");
+        }
+
+        // render time point 'Now' button
+        {
+            ImVec2 randomizeButtonSize = ImGui::GetItemRectSize();
+            ImGui::SameLine();
+
+            if (type == dots::type::Type::timepoint || type == dots::type::Type::steady_timepoint)
+            {
+                if (ImGui::Button(m_timepointNowLabel.data()))
+                {
+                    if (type == dots::type::Type::timepoint)
+                    {
+                        auto timepointProperty = property.to<dots::timepoint_t>();
+                        timepointProperty.constructOrAssign(dots::timepoint_t::Now());
+                    }
+                    else/* if (type == dots::type::Type::steady_timepoint)*/
+                    {
+                        auto steadyTimepointProperty = property.to<dots::steady_timepoint_t>();
+                        steadyTimepointProperty.constructOrAssign(dots::steady_timepoint_t::Now());
+                    }
+
+                    model.fetch();
+                    m_inputParseable = true;
+                }
+                ImGuiExt::TooltipLastHoveredItem("Set to 'now' (i.e. the current time)");
+            }
+            else
+            {
+                ImGui::Dummy(randomizeButtonSize);
             }
         }
-        else
+
+        // render input indicator
         {
-            ImGui::TextUnformatted("     ");
+            ImGui::SameLine();
+
+            if (m_inputParseable != std::nullopt)
+            {
+                if (*m_inputParseable)
+                {
+                    ImGui::TextColored(ColorThemeActive.Success, "Ok   ");
+                }
+                else
+                {
+                    ImGui::TextColored(ColorThemeActive.Error, "Error");
+                }
+            }
+            else
+            {
+                ImGui::TextUnformatted("     ");
+            }
         }
     }
 }

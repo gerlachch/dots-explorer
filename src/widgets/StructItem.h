@@ -5,17 +5,17 @@
 
 struct ImGuiTableSortSpecs;
 
-struct StructListRow
+struct StructItem
 {
     enum MetaData { LastOp, LastPublished, LastPublishedBy, MetaDataSize };
 
-    StructListRow(const StructDescriptorModel& structDescriptorModel, const dots::type::Struct& instance);
-    StructListRow(const StructListRow& other) = delete;
-    StructListRow(StructListRow&& other) = default;
-    ~StructListRow() = default;
+    StructItem(const StructDescriptorModel& structDescriptorModel, const dots::type::Struct& instance);
+    StructItem(const StructItem& other) = delete;
+    StructItem(StructItem&& other) = default;
+    ~StructItem() = default;
 
-    StructListRow& operator = (const StructListRow& rhs) = delete;
-    StructListRow& operator = (StructListRow&& rhs) = default;
+    StructItem& operator = (const StructItem& rhs) = delete;
+    StructItem& operator = (StructItem&& rhs) = default;
 
     const char* widgetId() const;
 
@@ -25,7 +25,7 @@ struct StructListRow
     const StructModel& structModel() const ;
     StructModel& structModel();
 
-    bool less(const ImGuiTableSortSpecs& sortSpecs, const StructListRow& other) const;
+    bool less(const ImGuiTableSortSpecs& sortSpecs, const StructItem& other) const;
 
     bool isSelected() const;
     bool isHovered() const;

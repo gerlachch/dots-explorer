@@ -32,6 +32,43 @@ dots::type::ProxyProperty<>& PropertyModel::property()
     return m_property;
 }
 
+const std::string& PropertyModel::toString() const
+{
+    return valueText().first;
+}
+
+bool PropertyModel::fromString(const std::string& value)
+{
+    try
+    {
+        dots::from_string(value, m_property);
+        fetch();
+
+        return true;
+    }
+    catch (...)
+    {
+        return false;
+    }
+}
+
+void PropertyModel::invalidate()
+{
+    m_property.destroy();
+    fetch();
+}
+
+void PropertyModel::randomize()
+{
+    M_randomizer.randomize(m_property);
+    fetch();
+}
+
+bool PropertyModel::valueChanged() const
+{
+    return m_valueText.first.empty();
+}
+
 const ImGuiExt::ColoredText& PropertyModel::valueText() const
 {
     auto& [text, color] = m_valueText;

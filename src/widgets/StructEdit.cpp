@@ -46,7 +46,7 @@ bool StructEdit::render()
                 return propertyEdit.inputParseable() == false;
             });
 
-            if (allInputParseable)
+            if (allInputParseable && m_instance->_hasProperties(m_instance->_keyProperties()))
             {
                 if (ImGui::Button("Publish"))
                 {
