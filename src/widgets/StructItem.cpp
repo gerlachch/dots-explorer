@@ -159,10 +159,12 @@ void StructItem::render(bool hoverCondition)
     // render property columns
     for (const PropertyModel& propertyModel : m_propertyModels)
     {
-        ImGui::TableNextColumn();
-        ImGui::PushStyleColor(ImGuiCol_Text, propertyModel.valueText().second);
-        ImGui::Selectable(propertyModel.valueText().first.data(), &m_isSelected, ImGuiSelectableFlags_SpanAllColumns);
-        ImGui::PopStyleColor();
-        m_isHovered |= hoverCondition && ImGui::IsItemHovered();
+        if (ImGui::TableNextColumn())
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, propertyModel.valueText().second);
+            ImGui::Selectable(propertyModel.valueText().first.data(), &m_isSelected, ImGuiSelectableFlags_SpanAllColumns);
+            ImGui::PopStyleColor();
+            m_isHovered |= hoverCondition && ImGui::IsItemHovered();
+        }
     }
 }
