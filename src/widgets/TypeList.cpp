@@ -8,7 +8,7 @@
 #include <EnumDescriptorData.dots.h>
 
 TypeList::TypeList() :
-    m_containerFilterBuffer(256, '\0'),
+    m_typeFilterBuffer(256, '\0'),
     m_typesChanged(false),
     m_filterSettingsInitialized(false),
     m_filterSettings{ Settings::Register<FilterSettings>() }
@@ -49,8 +49,8 @@ void TypeList::render()
         if (m_filterSettings.regexFilter.isValid())
         {
             const std::string& regexFilter = m_filterSettings.regexFilter;
-            m_containerFilterBuffer.assign(std::max(regexFilter.size(), m_containerFilterBuffer.size()), '\0');
-            std::copy(regexFilter.begin(), regexFilter.end(), m_containerFilterBuffer.begin());
+            m_typeFilterBuffer.assign(std::max(regexFilter.size(), m_typeFilterBuffer.size()), '\0');
+            std::copy(regexFilter.begin(), regexFilter.end(), m_typeFilterBuffer.begin());
         }
         else
         {
@@ -76,14 +76,14 @@ void TypeList::render()
 
         ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f);
-        m_typesChanged |= ImGui::InputTextWithHint("##containerFilter", "<none>", m_containerFilterBuffer.data(), m_containerFilterBuffer.size());
+        m_typesChanged |= ImGui::InputTextWithHint("##typeFilter", "<none>", m_typeFilterBuffer.data(), m_typeFilterBuffer.size());
         ImGui::PopItemWidth();
         
         {
             ImGui::SameLine();
             constexpr char ClearLabel[] = "Clear";
 
-            if (m_containerFilterBuffer.front() == '\0')
+            if (m_typeFilterBuffer.front() == '\0')
             {
                 ImGui::BeginDisabled();
                 ImGui::Button(ClearLabel);
@@ -93,7 +93,7 @@ void TypeList::render()
             {
                 if (ImGui::Button(ClearLabel))
                 {
-                    m_containerFilterBuffer.assign(m_containerFilterBuffer.size(), '\0');
+                    m_typeFilterBuffer.assign(m_typeFilterBuffer.size(), '\0');
                     m_typesChanged = true;
                 }
             }
@@ -131,9 +131,9 @@ void TypeList::render()
         if (m_typesChanged)
         {
             m_structListsFiltered.clear();
-            std::string_view containerFilter = m_containerFilterBuffer.data();
-            m_filterSettings.regexFilter = containerFilter;
-            std::regex regex{ containerFilter.data() };
+            std::string_view typeFilter = m_typeFilterBuffer.data();
+            m_filterSettings.regexFilter = typeFilter;
+            std::regex regex{ typeFilter.data() };
 
             std::copy_if(m_structLists.begin(), m_structLists.end(), std::back_inserter(m_structListsFiltered), [&](const auto& structList)
             {
@@ -153,7 +153,7 @@ void TypeList::render()
                 }
                 else
                 {
-                    return containerFilter.empty() || std::regex_search(descriptor.name(), regex);
+                    return typeFilter.empty() || std::regex_search(descriptor.name(), regex);
                 }
             });
         }
@@ -213,7 +213,7 @@ void TypeList::render()
             ImGui::TableNextRow();
 
             ImGui::TableNextColumn();
-            bool containerOpen = structList->renderBegin();
+            bool structListOpen = structList->renderBegin();
 
             if (ImGui::TableNextColumn())
             {
@@ -230,7 +230,7 @@ void TypeList::render()
                 ImGui::Text("%zu", structList->container().size());
             }
 
-            if (containerOpen)
+            if (structListOpen)
             {
                 ImGui::TableNextColumn();
                 structList->renderEnd();

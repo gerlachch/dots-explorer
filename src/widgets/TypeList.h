@@ -21,7 +21,7 @@ private:
 
     std::vector<std::shared_ptr<StructList>> m_structLists;
     std::vector<std::shared_ptr<StructList>> m_structListsFiltered;
-    std::string m_containerFilterBuffer;
+    std::string m_typeFilterBuffer;
     bool m_typesChanged;
     bool m_filterSettingsInitialized;
     FilterSettings& m_filterSettings;
