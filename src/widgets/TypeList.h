@@ -19,8 +19,8 @@ struct TypeList
 
 private:
 
-    std::vector<std::shared_ptr<StructList>> m_structLists;
-    std::vector<std::shared_ptr<StructList>> m_structListsFiltered;
+    std::vector<std::shared_ptr<StructList>> m_typeList;
+    std::vector<std::shared_ptr<StructList>> m_typeListFiltered;
     std::string m_typeFilterBuffer;
     bool m_typesChanged;
     bool m_filterSettingsInitialized;
