@@ -64,6 +64,11 @@ void PropertyModel::randomize()
     fetch();
 }
 
+bool PropertyModel::valueChanged() const
+{
+    return m_valueText.first.empty();
+}
+
 const ImGuiExt::ColoredText& PropertyModel::valueText() const
 {
     auto& [text, color] = m_valueText;

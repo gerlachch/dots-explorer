@@ -11,12 +11,7 @@ PropertyEdit::PropertyEdit(PropertyModel& model) :
     m_randomizeLabel{ fmt::format("R##PropertyEdit_{}_Randomize", static_cast<void*>(this)) },
     m_timepointNowLabel{ fmt::format("N##PropertyEdit_{}_TimePointNow", static_cast<void*>(this)) }
 {
-    // init input buffer
-    {
-        const std::string& value = model.valueText().first;
-        m_inputBuffer.assign(std::max(value.size(), size_t{ 256 }), '\0');
-        std::copy(value.begin(), value.end(), m_inputBuffer.begin());
-    }
+    /* do nothing */
 }
 
 const PropertyModel& PropertyEdit::model() const
@@ -51,6 +46,8 @@ void PropertyEdit::render()
 
     if (dots::type::Type type = property.descriptor().valueDescriptor().type(); type != dots::type::Type::Struct)
     {
+        bool valueChanged = model.valueChanged();
+
         if (property.isValid())
         {
             ImGui::PushStyleColor(ImGuiCol_Text, model.valueText().second);
@@ -113,6 +110,13 @@ void PropertyEdit::render()
         }
         else
         {
+            if (valueChanged)
+            {
+                const std::string& value = model.valueText().first;
+                m_inputBuffer.assign(std::max(value.size(), size_t{ 256 }), '\0');
+                std::copy(value.begin(), value.end(), m_inputBuffer.begin());
+            }
+
             if (ImGui::InputText(m_inputLabel.data(), m_inputBuffer.data(), m_inputBuffer.size(), ImGuiInputTextFlags_AutoSelectAll))
             {
                 m_inputParseable = model.fromString(m_inputBuffer.data());
@@ -125,10 +129,8 @@ void PropertyEdit::render()
         ImGui::SameLine();
         if (ImGui::Button(m_invalidateLabel.data()))
         {
-            constexpr char Invalid[] = "<invalid>";
-            std::copy(Invalid, Invalid + sizeof Invalid, m_inputBuffer.begin());
-            m_inputParseable = true;
             model.invalidate();
+            m_inputParseable = true;
         }
         ImGuiExt::TooltipLastHoveredItem("Invalidate property");
 
@@ -136,10 +138,6 @@ void PropertyEdit::render()
         if (ImGui::Button(m_randomizeLabel.data()))
         {
             model.randomize();
-            const std::string& value = model.valueText().first;
-            m_inputBuffer.assign(std::max(value.size(), m_inputBuffer.size()), '\0');
-            std::copy(value.begin(), value.end(), m_inputBuffer.begin());
-            
             m_inputParseable = true;
         }
         ImGuiExt::TooltipLastHoveredItem("Randomize property");
@@ -163,10 +161,6 @@ void PropertyEdit::render()
                 }
 
                 model.fetch();
-                const std::string& value = model.valueText().first;
-                m_inputBuffer.assign(std::max(value.size(), m_inputBuffer.size()), '\0');
-                std::copy(value.begin(), value.end(), m_inputBuffer.begin());
-
                 m_inputParseable = true;
             }
             ImGuiExt::TooltipLastHoveredItem("Set to 'now' (i.e. the current time)");

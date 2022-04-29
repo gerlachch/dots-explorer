@@ -22,6 +22,7 @@ struct PropertyModel
     void invalidate();
     void randomize();
 
+    bool valueChanged() const;
     const ImGuiExt::ColoredText& valueText() const;
 
     bool less(const ImGuiTableColumnSortSpecs& sortSpec, const PropertyModel& other) const;
