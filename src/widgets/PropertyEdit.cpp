@@ -47,15 +47,9 @@ void PropertyEdit::render()
     if (dots::type::Type type = property.descriptor().valueDescriptor().type(); type != dots::type::Type::Struct)
     {
         bool valueChanged = model.valueChanged();
+        const auto& [value, color] = model.valueText();
 
-        if (property.isValid())
-        {
-            ImGui::PushStyleColor(ImGuiCol_Text, model.valueText().second);
-        }
-        else
-        {
-            ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.Disabled);
-        }
+        ImGui::PushStyleColor(ImGuiCol_Text, color);
         ImGui::PushItemWidth(ImGui::GetIO().DisplaySize.x * 0.25f);
 
         if (type == dots::type::Type::boolean)
@@ -66,7 +60,7 @@ void PropertyEdit::render()
 
             if (ImGui::BeginCombo(m_inputLabel.data(), Items[itemIndex]))
             {
-                ImGui::PushStyleColor(ImGuiCol_Text, model.valueText().second);
+                ImGui::PushStyleColor(ImGuiCol_Text, color);
                 if (ImGui::Selectable(Items[2], itemIndex == 2))
                 {
                     boolProperty.constructOrAssign(true);
@@ -91,14 +85,14 @@ void PropertyEdit::render()
 
             if (ImGui::BeginCombo(m_inputLabel.data(), previewValue))
             {
-                ImGui::PushStyleColor(ImGuiCol_Text, model.valueText().second);
+                ImGui::PushStyleColor(ImGuiCol_Text, color);
                 for (const dots::type::EnumeratorDescriptor<>& enumeratorDescriptor : enumDescriptor.enumeratorsTypeless())
                 {
-                    const auto& value = enumeratorDescriptor.valueTypeless();
+                    const auto& enumerator = enumeratorDescriptor.valueTypeless();
 
-                    if (ImGui::Selectable(enumeratorDescriptor.name().data(), property == value))
+                    if (ImGui::Selectable(enumeratorDescriptor.name().data(), property == enumerator))
                     {
-                        property.constructOrAssign(value);
+                        property.constructOrAssign(enumerator);
                         model.fetch();
                         m_inputParseable = true;
                     }
@@ -112,7 +106,6 @@ void PropertyEdit::render()
         {
             if (valueChanged)
             {
-                const std::string& value = model.valueText().first;
                 m_inputBuffer.assign(std::max(value.size(), size_t{ 256 }), '\0');
                 std::copy(value.begin(), value.end(), m_inputBuffer.begin());
             }
