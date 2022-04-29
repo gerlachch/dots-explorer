@@ -43,6 +43,7 @@ void PropertyEdit::render()
     if (dots::type::Type type = model().property().descriptor().valueDescriptor().type(); type != dots::type::Type::Struct)
     {
         ImGui::TableNextColumn();
+
         PropertyModel& model = m_model.get();
         dots::type::ProxyProperty<>& property = model.property();
 
@@ -125,11 +126,13 @@ void PropertyEdit::render()
         // render 'Invalidate' button
         {
             ImGui::SameLine();
+
             if (ImGui::Button(m_invalidateLabel.data()))
             {
                 model.invalidate();
                 m_inputParseable = true;
             }
+
             ImGuiExt::TooltipLastHoveredItem("Invalidate property");
         }
 
@@ -161,10 +164,10 @@ void PropertyEdit::render()
                         timepointProperty.constructOrAssign(dots::timepoint_t::Now());
                     }
                     else/* if (type == dots::type::Type::steady_timepoint)*/
-                        {
+                    {
                         auto steadyTimepointProperty = property.to<dots::steady_timepoint_t>();
                         steadyTimepointProperty.constructOrAssign(dots::steady_timepoint_t::Now());
-                        }
+                    }
 
                     model.fetch();
                     m_inputParseable = true;
