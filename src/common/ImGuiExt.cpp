@@ -10,7 +10,7 @@ namespace ImGuiExt
         ImGui::PopStyleColor();
     }
 
-    void TextColored(const std::vector<ColoredText>& text)
+    void TextColored(const std::vector<ColoredText>& text, float spacing/* = -1.0f*/)
     {
         bool first = true;
 
@@ -22,7 +22,7 @@ namespace ImGuiExt
             }
             else
             {
-                ImGui::SameLine();
+                ImGui::SameLine(0, spacing);
             }
 
             TextColored(textPart);

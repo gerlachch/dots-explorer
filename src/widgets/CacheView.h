@@ -6,15 +6,15 @@
 #include <widgets/StructList.h>
 #include <FilterSettings.dots.h>
 
-struct TypeList
+struct CacheView
 {
-    TypeList();
-    TypeList(const TypeList& other) = delete;
-    TypeList(TypeList&& other) = delete;
-    ~TypeList() = default;
+    CacheView();
+    CacheView(const CacheView& other) = delete;
+    CacheView(CacheView&& other) = delete;
+    ~CacheView() = default;
 
-    TypeList& operator = (const TypeList& rhs) = delete;
-    TypeList& operator = (TypeList&& rhs) = delete;
+    CacheView& operator = (const CacheView& rhs) = delete;
+    CacheView& operator = (CacheView&& rhs) = delete;
 
     void update(const dots::type::StructDescriptor<>& descriptor);
     void render();
@@ -22,8 +22,8 @@ struct TypeList
 private:
 
     std::optional<FilterSettingsEdit> m_filterSettingsEdit;
-    std::vector<std::shared_ptr<StructList>> m_typeList;
-    std::vector<std::shared_ptr<StructList>> m_typeListFiltered;
+    std::vector<std::shared_ptr<StructList>> m_cacheList;
+    std::vector<std::shared_ptr<StructList>> m_cacheListFiltered;
     std::string m_typeFilterBuffer;
     bool m_typesChanged;
     bool m_filterSettingsInitialized;

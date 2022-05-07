@@ -10,6 +10,15 @@ struct HostSettings {
     3: bool autoConnect;
 }
 
+enum View {
+    1: Cache,
+    2: Trace
+}
+
+struct ViewSettings {
+    1: View selectedView;
+}
+
 struct Filter [substruct_only] {
     1: string regex;
     2: string description;

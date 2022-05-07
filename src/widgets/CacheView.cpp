@@ -1,4 +1,4 @@
-#include <widgets/TypeList.h>
+#include <widgets/CacheView.h>
 #include <string_view>
 #include <regex>
 #include <imgui.h>
@@ -7,7 +7,7 @@
 #include <StructDescriptorData.dots.h>
 #include <EnumDescriptorData.dots.h>
 
-TypeList::TypeList() :
+CacheView::CacheView() :
     m_typeFilterBuffer(256, '\0'),
     m_typesChanged(false),
     m_filterSettingsInitialized(false),
@@ -15,14 +15,14 @@ TypeList::TypeList() :
 {
     m_subscriptions.emplace_back(dots::subscribe<StructDescriptorData>([](auto&){}));
     m_subscriptions.emplace_back(dots::subscribe<EnumDescriptorData>([](auto&){}));
-    m_subscriptions.emplace_back(dots::subscribe<dots::type::StructDescriptor<>>({ &TypeList::update, this }));
+    m_subscriptions.emplace_back(dots::subscribe<dots::type::StructDescriptor<>>({ &CacheView::update, this }));
 }
 
-void TypeList::update(const dots::type::StructDescriptor<>& descriptor)
+void CacheView::update(const dots::type::StructDescriptor<>& descriptor)
 {
     if (!descriptor.substructOnly())
     {
-        StructList& structList = *m_typeList.emplace_back(std::make_shared<StructList>(descriptor));
+        StructList& structList = *m_cacheList.emplace_back(std::make_shared<StructList>(descriptor));
         m_typesChanged = true;
 
         m_subscriptions.emplace_back(dots::subscribe(descriptor, [this, &structList](const dots::Event<>& event)
@@ -39,7 +39,7 @@ void TypeList::update(const dots::type::StructDescriptor<>& descriptor)
     }
 }
 
-void TypeList::render()
+void CacheView::render()
 {
     // init filter settings
     if (!m_filterSettingsInitialized)
@@ -67,7 +67,7 @@ void TypeList::render()
             dots::vector_t<Filter>& filters = m_filterSettings.filters.constructOrValue();
             filters.erase(std::remove_if(filters.begin(), filters.end(), [](const Filter& filter){ return !filter._hasProperties(filter._properties()); }), filters.end());
 
-            if (auto& selectedFilter = m_filterSettings.selectedFilter; selectedFilter.isValid() && (*selectedFilter < 0 || *selectedFilter >= filters.size()))
+            if (auto& selectedFilter = m_filterSettings.selectedFilter; selectedFilter.isValid() && *selectedFilter >= filters.size())
             {
                 selectedFilter.destroy();
             }
@@ -241,7 +241,7 @@ void TypeList::render()
         // apply filters to type list
         if (m_typesChanged)
         {
-            m_typeListFiltered.clear();
+            m_cacheListFiltered.clear();
             std::string_view typeFilter = m_typeFilterBuffer.data();
             m_filterSettings.regexFilter = typeFilter;
 
@@ -254,7 +254,7 @@ void TypeList::render()
 
             std::regex regex{ typeFilter.data(), regexFlags };
 
-            std::copy_if(m_typeList.begin(), m_typeList.end(), std::back_inserter(m_typeListFiltered), [&](const auto& structList)
+            std::copy_if(m_cacheList.begin(), m_cacheList.end(), std::back_inserter(m_cacheListFiltered), [&](const auto& structList)
             {
                 const dots::type::StructDescriptor<>& descriptor = structList->container().descriptor();
 
@@ -280,13 +280,13 @@ void TypeList::render()
         // render filtered types hint label
         {
             ImGui::SameLine();
-            if (m_typeListFiltered.size() == 1)
+            if (m_cacheListFiltered.size() == 1)
             {
                 ImGui::TextDisabled("(showing 1 type)");
             }
             else
             {
-                ImGui::TextDisabled("(showing %zu types)", m_typeListFiltered.size());
+                ImGui::TextDisabled("(showing %zu types)", m_cacheListFiltered.size());
             }
         }
     }
@@ -334,7 +334,7 @@ void TypeList::render()
             // sort type list
             if (ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs(); m_typesChanged || sortSpecs->SpecsDirty)
             {
-                std::sort(m_typeListFiltered.begin(), m_typeListFiltered.end(), [sortSpecs](const auto& lhs, const auto& rhs)
+                std::sort(m_cacheListFiltered.begin(), m_cacheListFiltered.end(), [sortSpecs](const auto& lhs, const auto& rhs)
                 {
                     return lhs->less(*sortSpecs, *rhs);
                 });
@@ -344,7 +344,7 @@ void TypeList::render()
             }
 
             // render type list
-            for (auto& structList : m_typeListFiltered) 
+            for (auto& structList : m_cacheListFiltered)
             {
                 ImGui::TableNextRow();
 
