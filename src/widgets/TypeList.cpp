@@ -62,8 +62,22 @@ void TypeList::render()
         m_filterSettings.showEmpty.constructOrValue();
         m_filterSettings.matchCase.constructOrValue();
 
+        // ensure filters are valid
+        {
+            dots::vector_t<Filter>& filters = m_filterSettings.filters.constructOrValue();
+            filters.erase(std::remove_if(filters.begin(), filters.end(), [](const Filter& filter){ return !filter._hasProperties(filter._properties()); }), filters.end());
+
+            if (auto& selectedFilter = m_filterSettings.selectedFilter; selectedFilter.isValid() && (*selectedFilter < 0 || *selectedFilter >= filters.size()))
+            {
+                selectedFilter.destroy();
+            }
+        }
+
         ImGui::SetKeyboardFocusHere();
     }
+
+    bool openFilterSettingsEdit = false;
+    Filter* editFilter = nullptr;
 
     // render control area
     {
@@ -78,9 +92,71 @@ void TypeList::render()
             }
 
             ImGui::SameLine();
-            ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f);
-            m_typesChanged |= ImGui::InputTextWithHint("##typeFilter", "<none>", m_typeFilterBuffer.data(), m_typeFilterBuffer.size());
+            ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f - 19);
+            if (ImGui::InputTextWithHint("##typeFilter", "<none>", m_typeFilterBuffer.data(), m_typeFilterBuffer.size()))
+            {
+                m_typesChanged = true;
+                m_filterSettings.selectedFilter.destroy();
+            }
             ImGui::PopItemWidth();
+        }
+
+        // render filter list
+        {
+            dots::vector_t<Filter>& filters = m_filterSettings.filters;
+            auto& selectedFilter = m_filterSettings.selectedFilter;
+
+            ImGui::SameLine(0, 0);
+
+            if (ImGui::BeginCombo("##Filters", "", ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft))
+            {
+                if (ImGui::Selectable("<New>"))
+                {
+                    openFilterSettingsEdit = true;
+                }
+
+                if (selectedFilter.isValid())
+                {
+                    if (ImGui::Selectable("<Edit>"))
+                    {
+                        openFilterSettingsEdit = true;
+                        editFilter = &filters[selectedFilter];
+                    }
+
+                    if (ImGui::Selectable("<Remove>"))
+                    {
+                        filters.erase(filters.begin() + selectedFilter);
+
+                        if (*selectedFilter > filters.size())
+                        {
+                            --*selectedFilter;
+                        }
+                        else
+                        {
+                            selectedFilter.destroy();
+                        }
+                    }
+                }
+
+                ImGui::Separator();
+
+                uint32_t i = 0;
+
+                for (Filter& filter : filters)
+                {
+                    if (ImGui::Selectable(filter.description->data(), selectedFilter == i) && selectedFilter != i)
+                    {
+                        selectedFilter = i;
+                        const std::string& regexFilter = filters[selectedFilter].regex;
+                        m_typeFilterBuffer.assign(std::max(regexFilter.size(), m_typeFilterBuffer.size()), '\0');
+                        std::copy(regexFilter.begin(), regexFilter.end(), m_typeFilterBuffer.begin());
+                    }
+
+                    ++i;
+                }
+
+                ImGui::EndCombo();
+            }
         }
 
         // render 'Match case' button
@@ -117,6 +193,7 @@ void TypeList::render()
                 {
                     m_typeFilterBuffer.assign(m_typeFilterBuffer.size(), '\0');
                     m_typesChanged = true;
+                    m_filterSettings.selectedFilter.destroy();
                 }
             }
         }
@@ -216,6 +293,19 @@ void TypeList::render()
             {
                 ImGui::TextDisabled("(showing %zu types)", m_typeListFiltered.size());
             }
+        }
+    }
+
+    // render filter settings edit
+    {
+        if (openFilterSettingsEdit)
+        {
+            m_filterSettingsEdit.emplace(m_filterSettings, editFilter);
+        }
+
+        if (m_filterSettingsEdit != std::nullopt && !m_filterSettingsEdit->render())
+        {
+            m_filterSettingsEdit = std::nullopt;
         }
     }
 

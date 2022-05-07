@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
+#include <optional>
 #include <dots/dots.h>
+#include <widgets/FilterSettingsEdit.h>
 #include <widgets/StructList.h>
 #include <FilterSettings.dots.h>
 
@@ -19,6 +21,7 @@ struct TypeList
 
 private:
 
+    std::optional<FilterSettingsEdit> m_filterSettingsEdit;
     std::vector<std::shared_ptr<StructList>> m_typeList;
     std::vector<std::shared_ptr<StructList>> m_typeListFiltered;
     std::string m_typeFilterBuffer;

@@ -102,6 +102,7 @@ target_sources(${TARGET_NAME}
         src/models/MetadataModel.cpp
         src/models/StructModel.cpp
         src/models/StructDescriptorModel.cpp
+        src/widgets/FilterSettingsEdit.cpp
         src/widgets/StructList.cpp
         src/widgets/HostSettingsEdit.cpp
         src/widgets/StructEdit.cpp
