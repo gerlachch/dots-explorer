@@ -99,6 +99,16 @@ void TypeList::render()
                 m_filterSettings.selectedFilter.destroy();
             }
             ImGui::PopItemWidth();
+
+            // render filter hint tooltip
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+                ImGui::TextUnformatted("Types can be filtered by specifying substrings or ECMAScript regular expressions.");
+                ImGui::PopTextWrapPos();
+                ImGui::EndTooltip();
+            }
         }
 
         // render filter list
@@ -195,21 +205,6 @@ void TypeList::render()
                     m_typesChanged = true;
                     m_filterSettings.selectedFilter.destroy();
                 }
-            }
-        }
-
-        // render input filter hint
-        {
-            ImGui::SameLine();
-            ImGui::TextDisabled("(?)");
-
-            if (ImGui::IsItemHovered())
-            {
-                ImGui::BeginTooltip();
-                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                ImGui::TextUnformatted("Types can be filtered by specifying substrings or ECMAScript regular expressions.");
-                ImGui::PopTextWrapPos();
-                ImGui::EndTooltip();
             }
         }
 
