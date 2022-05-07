@@ -315,7 +315,6 @@ void TraceView::renderEventList()
         ImGuiTableFlags_BordersOuter   |
         ImGuiTableFlags_BordersInner   |
         ImGuiTableFlags_SizingFixedFit |
-        ImGuiTableFlags_Resizable      |
         ImGuiTableFlags_ScrollX        |
         ImGuiTableFlags_ScrollY        |
         ImGuiTableFlags_Reorderable    |
@@ -328,11 +327,11 @@ void TraceView::renderEventList()
     {
         // render event list headers
         ImGui::TableSetupScrollFreeze(0, 1);
-        ImGui::TableSetupColumn("No.", ImGuiTableColumnFlags_NoResize);
-        ImGui::TableSetupColumn("Published At", ImGuiTableColumnFlags_NoResize);
-        ImGui::TableSetupColumn("Published By", ImGuiTableColumnFlags_NoResize);
-        ImGui::TableSetupColumn("Operation", ImGuiTableColumnFlags_NoResize);
-        ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_DefaultHide);
+        ImGui::TableSetupColumn("No.");
+        ImGui::TableSetupColumn("Published At");
+        ImGui::TableSetupColumn("Published By");
+        ImGui::TableSetupColumn("Operation");
+        ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_DefaultHide);
         ImGui::TableSetupColumn("Published Instance");
         ImGui::TableHeadersRow();
 
