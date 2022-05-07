@@ -75,7 +75,7 @@ void HostPanel::render()
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f);
             if (ImGui::BeginCombo("##Hosts", create_host_label(*m_selectedHost)))
             {
-                if (ImGui::Selectable("<New"))
+                if (ImGui::Selectable("<New>"))
                 {
                     openHostSettingsEdit = true;
                 }
