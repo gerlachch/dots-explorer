@@ -241,7 +241,6 @@ void CacheView::render()
         // apply filters to type list
         if (m_typesChanged)
         {
-            m_cacheListFiltered.clear();
             std::string_view typeFilter = m_typeFilterBuffer.data();
             m_filterSettings.regexFilter = typeFilter;
 
@@ -252,29 +251,36 @@ void CacheView::render()
                 regexFlags |= std::regex_constants::icase;
             }
 
-            std::regex regex{ typeFilter.data(), regexFlags };
-
-            std::copy_if(m_cacheList.begin(), m_cacheList.end(), std::back_inserter(m_cacheListFiltered), [&](const auto& structList)
+            try
             {
-                const dots::type::StructDescriptor<>& descriptor = structList->container().descriptor();
+                std::regex regex{ typeFilter.data(), regexFlags };
+                m_cacheListFiltered.clear();
 
-                if (descriptor.internal() && !*m_filterSettings.showInternal)
+                std::copy_if(m_cacheList.begin(), m_cacheList.end(), std::back_inserter(m_cacheListFiltered), [&](const auto& structList)
                 {
-                    return false;
-                }
-                else if (!descriptor.cached() && !*m_filterSettings.showUncached)
-                {
-                    return false;
-                }
-                else if (descriptor.cached() && structList->container().empty() && !*m_filterSettings.showEmpty)
-                {
-                    return false;
-                }
-                else
-                {
-                    return typeFilter.empty() || std::regex_search(descriptor.name(), regex);
-                }
-            });
+                    const dots::type::StructDescriptor<>& descriptor = structList->container().descriptor();
+
+                    if (descriptor.internal() && !*m_filterSettings.showInternal)
+                    {
+                        return false;
+                    }
+                    else if (!descriptor.cached() && !*m_filterSettings.showUncached)
+                    {
+                        return false;
+                    }
+                    else if (descriptor.cached() && structList->container().empty() && !*m_filterSettings.showEmpty)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        return typeFilter.empty() || std::regex_search(descriptor.name(), regex);
+                    }
+                });
+            }
+            catch (...)
+            {
+            }
         }
 
         // render filtered types hint label

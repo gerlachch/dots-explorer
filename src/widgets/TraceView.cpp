@@ -75,7 +75,6 @@ void TraceView::initFilterSettings()
 
 void TraceView::applyFilters()
 {
-    m_itemsFiltered.clear();
     std::string_view eventFilter = m_eventFilterBuffer.data();
     m_filterSettings.regexFilter = eventFilter;
 
@@ -86,25 +85,32 @@ void TraceView::applyFilters()
         regexFlags |= std::regex_constants::icase;
     }
 
-    std::regex regex{ eventFilter.data(), regexFlags };
-
-    std::copy_if(m_items.begin(), m_items.end(), std::back_inserter(m_itemsFiltered), [&](const auto& item)
+    try
     {
-        const dots::type::StructDescriptor<>& descriptor = item->eventModel().structModel().descriptorModel().descriptor();
+        std::regex regex{ eventFilter.data(), regexFlags };
+        m_itemsFiltered.clear();
 
-        if (descriptor.internal() && !*m_filterSettings.showInternal)
+        std::copy_if(m_items.begin(), m_items.end(), std::back_inserter(m_itemsFiltered), [&](const auto& item)
         {
-            return false;
-        }
-        else if (!descriptor.cached() && !*m_filterSettings.showUncached)
-        {
-            return false;
-        }
-        else
-        {
-            return eventFilter.empty() || std::regex_search(descriptor.name(), regex);
-        }
-    });
+            const dots::type::StructDescriptor<>& descriptor = item->eventModel().structModel().descriptorModel().descriptor();
+
+            if (descriptor.internal() && !*m_filterSettings.showInternal)
+            {
+                return false;
+            }
+            else if (!descriptor.cached() && !*m_filterSettings.showUncached)
+            {
+                return false;
+            }
+            else
+            {
+                return eventFilter.empty() || std::regex_search(descriptor.name(), regex);
+            }
+        });
+    }
+    catch (...)
+    {
+    }
 }
 
 void TraceView::renderFilterArea()
