@@ -97,17 +97,21 @@ target_sources(${TARGET_NAME}
         src/components/MainWindow.cpp
         src/common/ImGuiExt.cpp
         src/common/Settings.cpp
+        src/models/EventModel.cpp
         src/models/PropertyModel.cpp
         src/models/PropertyDescriptorModel.cpp
         src/models/MetadataModel.cpp
         src/models/StructModel.cpp
         src/models/StructDescriptorModel.cpp
+        src/widgets/TraceView.cpp
+        src/widgets/TraceItem.cpp
+        src/widgets/FilterSettingsEdit.cpp
         src/widgets/StructList.cpp
         src/widgets/HostSettingsEdit.cpp
         src/widgets/StructEdit.cpp
         src/widgets/StructItem.cpp
         src/widgets/StructView.cpp
-        src/widgets/TypeList.cpp
+        src/widgets/CacheView.cpp
         src/widgets/PropertyEdit.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
         $<$<BOOL:${Vulkan_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp>

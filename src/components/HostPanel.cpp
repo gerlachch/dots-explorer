@@ -12,6 +12,7 @@ HostPanel::HostPanel(std::string appName) :
     m_selectedHost(nullptr),
     m_deltaSinceError(0.0f),
     m_hostSettings{ Settings::Register<HostSettings>() },
+    m_viewSettings{ Settings::Register<ViewSettings>() },
     m_appName{ std::move(appName) }
 {
     /* do nothing */
@@ -75,7 +76,7 @@ void HostPanel::render()
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f);
             if (ImGui::BeginCombo("##Hosts", create_host_label(*m_selectedHost)))
             {
-                if (ImGui::Selectable("<New"))
+                if (ImGui::Selectable("<New>"))
                 {
                     openHostSettingsEdit = true;
                 }
@@ -170,12 +171,63 @@ void HostPanel::render()
             ImGui::TextColored(stateColor, "%s", stateStr);
         }
 
+        View& selectedView = m_viewSettings.selectedView.constructOrValue(View::Cache);
+
+        // process view select key
+        if (ImGui::IsKeyPressed(ImGuiKey_Tab, false) && !ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId))
+        {
+            if (selectedView == View::Cache)
+            {
+                selectedView = View::Trace;
+            }
+            else if (selectedView == View::Trace)
+            {
+                selectedView = View::Cache;
+            }
+        }
+
+        // render view selector
+        {
+            constexpr std::pair<View, const char*> ViewLabels[] = {
+                { View::Cache, "Cache" },
+                { View::Trace, "Trace" }
+            };
+
+            ImGui::SameLine();
+            ImGui::TextUnformatted("View");
+
+            ImGui::SameLine();
+            ImGui::PushItemWidth(120.0f);
+
+            if (ImGui::BeginCombo("##Views", ViewLabels[static_cast<int>(selectedView)].second))
+            {
+                for (const auto& [view, label] : ViewLabels)
+                {
+                    if (ImGui::Selectable(label, view == selectedView) && view != selectedView)
+                    {
+                        selectedView = view;
+                    }
+                }
+
+                ImGui::EndCombo();
+            }
+
+            ImGui::PopItemWidth();
+        }
+
         ImGui::Separator();
 
-        // render type list
+        // render views
         if (m_state == State::Connected)
         {
-            m_typeList->render();
+            if (selectedView == View::Cache)
+            {
+                m_cacheView->render();
+            }
+            else if (selectedView == View::Trace)
+            {
+                m_traceView->render();
+            }
         }
     }
 
@@ -200,7 +252,8 @@ void HostPanel::disconnect()
     try
     {
         ioContext.stop();
-        m_typeList.reset();
+        m_cacheView.reset();
+        m_traceView.reset();
         dots::global_transceiver().reset();
         ioContext.restart();
         ioContext.poll();
@@ -257,7 +310,8 @@ void HostPanel::update()
                 if (auto status = m_connectTask->wait_for(std::chrono::milliseconds{ 5 }); status == std::future_status::ready)
                 {
                     m_connectTask->get();
-                    m_typeList.emplace();
+                    m_cacheView.emplace();
+                    m_traceView.emplace();
                     dots::publish(DotsDescriptorRequest{});
                     m_state = State::Connected;
                 }

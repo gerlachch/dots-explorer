@@ -10,9 +10,26 @@ struct HostSettings {
     3: bool autoConnect;
 }
 
+enum View {
+    1: Cache,
+    2: Trace
+}
+
+struct ViewSettings {
+    1: View selectedView;
+}
+
+struct Filter [substruct_only] {
+    1: string regex;
+    2: string description;
+}
+
 struct FilterSettings {
     1: string regexFilter;
     2: bool showInternal;
     3: bool showUncached;
     4: bool showEmpty;
+    5: bool matchCase;
+    6: vector<Filter> filters;
+    7: uint32 selectedFilter;
 }
