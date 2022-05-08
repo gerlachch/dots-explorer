@@ -169,6 +169,7 @@ void CacheView::renderFilterArea()
                         const std::string& regexFilter = filters[selectedFilter].regex;
                         m_typeFilterBuffer.assign(std::max(regexFilter.size(), m_typeFilterBuffer.size()), '\0');
                         std::copy(regexFilter.begin(), regexFilter.end(), m_typeFilterBuffer.begin());
+                        m_typesChanged = true;
                     }
 
                     ++i;
