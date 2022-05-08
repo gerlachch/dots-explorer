@@ -45,37 +45,46 @@ void CacheView::render()
     if (!m_filterSettingsInitialized)
     {
         m_filterSettingsInitialized = true;
-
-        if (m_filterSettings.regexFilter.isValid())
-        {
-            const std::string& regexFilter = m_filterSettings.regexFilter;
-            m_typeFilterBuffer.assign(std::max(regexFilter.size(), m_typeFilterBuffer.size()), '\0');
-            std::copy(regexFilter.begin(), regexFilter.end(), m_typeFilterBuffer.begin());
-        }
-        else
-        {
-            m_filterSettings.regexFilter.construct();
-        }
-
-        m_filterSettings.showInternal.constructOrValue();
-        m_filterSettings.showUncached.constructOrValue();
-        m_filterSettings.showEmpty.constructOrValue();
-        m_filterSettings.matchCase.constructOrValue();
-
-        // ensure filters are valid
-        {
-            dots::vector_t<Filter>& filters = m_filterSettings.filters.constructOrValue();
-            filters.erase(std::remove_if(filters.begin(), filters.end(), [](const Filter& filter){ return !filter._hasProperties(filter._properties()); }), filters.end());
-
-            if (auto& selectedFilter = m_filterSettings.selectedFilter; selectedFilter.isValid() && *selectedFilter >= filters.size())
-            {
-                selectedFilter.destroy();
-            }
-        }
-
+        initFilterSettings();
         ImGui::SetKeyboardFocusHere();
     }
 
+    renderFilterArea();
+    renderCacheList();
+}
+
+void CacheView::initFilterSettings()
+{
+    if (m_filterSettings.regexFilter.isValid())
+    {
+        const std::string& regexFilter = m_filterSettings.regexFilter;
+        m_typeFilterBuffer.assign(std::max(regexFilter.size(), m_typeFilterBuffer.size()), '\0');
+        std::copy(regexFilter.begin(), regexFilter.end(), m_typeFilterBuffer.begin());
+    }
+    else
+    {
+        m_filterSettings.regexFilter.construct();
+    }
+
+    m_filterSettings.showInternal.constructOrValue();
+    m_filterSettings.showUncached.constructOrValue();
+    m_filterSettings.showEmpty.constructOrValue();
+    m_filterSettings.matchCase.constructOrValue();
+
+    // ensure filters are valid
+    {
+        dots::vector_t<Filter>& filters = m_filterSettings.filters.constructOrValue();
+        filters.erase(std::remove_if(filters.begin(), filters.end(), [](const Filter& filter){ return !filter._hasProperties(filter._properties()); }), filters.end());
+
+        if (auto& selectedFilter = m_filterSettings.selectedFilter; selectedFilter.isValid() && *selectedFilter >= filters.size())
+        {
+            selectedFilter.destroy();
+        }
+    }
+}
+
+void CacheView::renderFilterArea()
+{
     bool openFilterSettingsEdit = false;
     Filter* editFilter = nullptr;
 
@@ -309,77 +318,77 @@ void CacheView::render()
             m_filterSettingsEdit = std::nullopt;
         }
     }
+}
 
-    // type list
+void CacheView::renderCacheList()
+{
+    constexpr ImGuiTableFlags TableFlags = 
+        ImGuiTableFlags_Borders       |
+        ImGuiTableFlags_BordersH      |
+        ImGuiTableFlags_BordersOuterH |
+        ImGuiTableFlags_BordersInnerH |
+        ImGuiTableFlags_BordersV      |
+        ImGuiTableFlags_BordersOuterV |
+        ImGuiTableFlags_BordersInnerV |
+        ImGuiTableFlags_BordersOuter  |
+        ImGuiTableFlags_BordersInner  |
+        ImGuiTableFlags_ScrollY       |
+        ImGuiTableFlags_Sortable      |
+        ImGuiTableFlags_Hideable
+    ;
+
+    if (ImGui::BeginTable("Cached Types", 4, TableFlags, ImGui::GetContentRegionAvail()))
     {
-        constexpr ImGuiTableFlags TableFlags = 
-           ImGuiTableFlags_Borders       |
-           ImGuiTableFlags_BordersH      |
-           ImGuiTableFlags_BordersOuterH |
-           ImGuiTableFlags_BordersInnerH |
-           ImGuiTableFlags_BordersV      |
-           ImGuiTableFlags_BordersOuterV |
-           ImGuiTableFlags_BordersInnerV |
-           ImGuiTableFlags_BordersOuter  |
-           ImGuiTableFlags_BordersInner  |
-           ImGuiTableFlags_ScrollY       |
-           ImGuiTableFlags_Sortable      |
-           ImGuiTableFlags_Hideable
-        ;
-    
-        if (ImGui::BeginTable("Cached Types", 4, TableFlags, ImGui::GetContentRegionAvail()))
+        // render cache list headers
+        ImGui::TableSetupScrollFreeze(0, 1);
+        ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoHide);
+        ImGui::TableSetupColumn("Activity", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide);
+        ImGui::TableSetupColumn("Activity [dot]", ImGuiTableColumnFlags_NoHeaderLabel | ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide);
+        ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableHeadersRow();
+
+        // sort cache list
+        if (ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs(); m_typesChanged || sortSpecs->SpecsDirty)
         {
-            // render type list headers
-            ImGui::TableSetupScrollFreeze(0, 1);
-            ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoHide);
-            ImGui::TableSetupColumn("Activity", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide);
-            ImGui::TableSetupColumn("Activity [dot]", ImGuiTableColumnFlags_NoHeaderLabel | ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide);
-            ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed);
-            ImGui::TableHeadersRow();
-
-            // sort type list
-            if (ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs(); m_typesChanged || sortSpecs->SpecsDirty)
+            std::sort(m_cacheListFiltered.begin(), m_cacheListFiltered.end(), [sortSpecs](const auto& lhs, const auto& rhs)
             {
-                std::sort(m_cacheListFiltered.begin(), m_cacheListFiltered.end(), [sortSpecs](const auto& lhs, const auto& rhs)
-                {
-                    return lhs->less(*sortSpecs, *rhs);
-                });
+                return lhs->less(*sortSpecs, *rhs);
+            });
 
-                m_typesChanged = false;
-                sortSpecs->SpecsDirty = false;
-            }
-
-            // render type list
-            for (auto& structList : m_cacheListFiltered)
-            {
-                ImGui::TableNextRow();
-
-                ImGui::TableNextColumn();
-                bool structListOpen = structList->renderBegin();
-
-                if (ImGui::TableNextColumn())
-                {
-                    structList->renderActivity();
-                }
-
-                if (ImGui::TableNextColumn())
-                {
-                    structList->renderActivityDot();
-                }
-
-                if (ImGui::TableNextColumn())
-                {
-                    ImGui::Text("%zu", structList->container().size());
-                }
-
-                if (structListOpen)
-                {
-                    ImGui::TableNextColumn();
-                    structList->renderEnd();
-                }
-            }
-
-            ImGui::EndTable();
+            m_typesChanged = false;
+            sortSpecs->SpecsDirty = false;
         }
+
+        // render cache list
+        for (auto& structList : m_cacheListFiltered)
+        {
+            ImGui::TableNextRow();
+
+            ImGui::TableNextColumn();
+            bool structListOpen = structList->renderBegin();
+
+            if (ImGui::TableNextColumn())
+            {
+                structList->renderActivity();
+            }
+
+            if (ImGui::TableNextColumn())
+            {
+                structList->renderActivityDot();
+            }
+
+            if (ImGui::TableNextColumn())
+            {
+                ImGui::Text("%zu", structList->container().size());
+            }
+
+            if (structListOpen)
+            {
+                ImGui::TableNextColumn();
+                structList->renderEnd();
+            }
+        }
+
+        ImGui::EndTable();
     }
 }

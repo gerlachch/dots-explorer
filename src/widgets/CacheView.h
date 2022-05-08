@@ -21,6 +21,11 @@ struct CacheView
 
 private:
 
+    void initFilterSettings();
+
+    void renderFilterArea();
+    void renderCacheList();
+
     std::optional<FilterSettingsEdit> m_filterSettingsEdit;
     std::vector<std::shared_ptr<StructList>> m_cacheList;
     std::vector<std::shared_ptr<StructList>> m_cacheListFiltered;
