@@ -249,7 +249,7 @@ void HostPanel::render()
         ImGui::Separator();
 
         // render views
-        if (m_state == State::Connected)
+        if (m_cacheView != std::nullopt)
         {
             if (selectedView == View::Cache)
             {
