@@ -199,6 +199,7 @@ void TraceView::renderFilterArea()
                         const std::string& regexFilter = filters[selectedFilter].regex;
                         m_eventFilterBuffer.assign(std::max(regexFilter.size(), m_eventFilterBuffer.size()), '\0');
                         std::copy(regexFilter.begin(), regexFilter.end(), m_eventFilterBuffer.begin());
+                        m_eventsChanged = true;
                     }
 
                     ++i;

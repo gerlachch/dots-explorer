@@ -80,7 +80,23 @@ void TraceItem::render(bool hoverCondition)
 
     if (ImGui::TableNextColumn())
     {
-        ImGuiExt::TextColored(m_eventModel.publishedInstanceTextSimple(), 0.0f);
+        const StructModel& structModel = m_eventModel.structModel();
+        ImGuiExt::TextColored(structModel.descriptorModel().declarationText()[1]);
+
+        for (const PropertyModel& propertyModel : structModel.propertyModels())
+        {
+            if (!propertyModel.property().isValid())
+            {
+                continue;
+            }
+
+            ImGui::SameLine(0, 0);
+            ImGui::TextColored(ColorThemeActive.Identifier, " %s:", propertyModel.descriptorModel().propertyPath().destination().name().data());
+
+            ImGui::SameLine(0, 0);
+            ImGuiExt::TextColored(propertyModel.valueText());
+        }
+
         m_isHovered |= hoverCondition && ImGui::IsItemHovered();
     }
 }
