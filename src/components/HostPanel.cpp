@@ -92,16 +92,6 @@ void HostPanel::render()
 
         // render hosts list
         {
-            auto create_host_label = [this](const Host& host)
-            {
-                m_hostLabel.clear();
-                m_hostLabel += host.description;
-                m_hostLabel += " [";
-                m_hostLabel += host.endpoint;
-                m_hostLabel += "]";
-                return m_hostLabel.data();
-            };
-
             ImGui::SameLine();
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f);
             if (ImGui::BeginCombo("##Hosts", create_host_label(*m_selectedHost)))
@@ -137,6 +127,16 @@ void HostPanel::render()
 
                 for (Host& host : hosts)
                 {
+                    auto create_host_label = [this](const Host& host)
+                    {
+                        m_hostLabel.clear();
+                        m_hostLabel += host.description;
+                        m_hostLabel += " [";
+                        m_hostLabel += host.endpoint;
+                        m_hostLabel += "]";
+                        return m_hostLabel.data();
+                    };
+
                     if (ImGui::Selectable(create_host_label(host), i == m_hostSettings.selectedHost) && i != m_hostSettings.selectedHost)
                     {
                         m_hostSettings.selectedHost = i;
@@ -150,6 +150,7 @@ void HostPanel::render()
                 ImGui::EndCombo();
             }
             ImGui::PopItemWidth();
+            ImGuiExt::TooltipLastHoveredItem(m_selectedHost->endpoint->data());
         }
 
         // render auto connect option
