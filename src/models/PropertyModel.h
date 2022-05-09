@@ -1,7 +1,7 @@
 #pragma once
 #include <dots/dots.h>
 #include <common/ImGuiExt.h>
-#include <tools/TypeRandomizer.h>
+#include <dots_ext/TypeRandomizer.h>
 #include <models/PropertyDescriptorModel.h>
 
 struct ImGuiTableColumnSortSpecs;
