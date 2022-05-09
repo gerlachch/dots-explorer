@@ -1,4 +1,5 @@
 #include <backends/GlfwBackend.h>
+#include <common/System.h>
 #include <stdexcept>
 
 // Dear ImGui: standalone example application for GLFW + OpenGL 3, using programmable pipeline
@@ -108,6 +109,17 @@ GlfwBackend::GlfwBackend(int width, int height, std::string_view title)
     //io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
     //IM_ASSERT(font != NULL);
+
+    // set drop callback
+    glfwSetDropCallback(g_window, [](GLFWwindow*/* window*/, int path_count, const char* paths[])
+    {
+        System::DroppedFiles.clear();
+
+        for (int i = 0; i < path_count; ++i)
+        {
+            System::DroppedFiles.emplace_back(std::filesystem::canonical(paths[i]));
+        }
+    });
 }
 
 GlfwBackend::~GlfwBackend()

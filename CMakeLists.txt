@@ -103,6 +103,7 @@ target_sources(${TARGET_NAME}
         src/models/MetadataModel.cpp
         src/models/StructModel.cpp
         src/models/StructDescriptorModel.cpp
+        src/tools/FileInChannel.cpp
         src/widgets/TraceView.cpp
         src/widgets/TraceItem.cpp
         src/widgets/FilterSettingsEdit.cpp

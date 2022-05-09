@@ -3,8 +3,11 @@
 #include <imgui.h>
 #include <fmt/format.h>
 #include <dots/io/Io.h>
+#include <dots/io/channels/LocalListener.h>
+#include <tools/FileInChannel.h>
 #include <common/Colors.h>
 #include <common/Settings.h>
+#include <common/System.h>
 #include <DotsDescriptorRequest.dots.h>
 
 HostPanel::HostPanel(std::string appName) :
@@ -55,6 +58,33 @@ void HostPanel::render()
             }
 
             m_hostSettings.autoConnect.constructOrValue();
+        }
+
+        // check dropped files
+        if (!System::DroppedFiles.empty())
+        {
+            for (const auto& path : System::DroppedFiles)
+            {
+                if (exists(path))
+                {
+                    if (is_regular_file(path))
+                    {
+                        hosts.emplace_back(
+                            Host::endpoint_i{ fmt::format("file:{}{}", path.root_name() == "/" ? "" : "/", path.string() ) },
+                            Host::description_i{ path.filename().string() }
+                        );
+                    }
+                }
+            }
+
+            if (System::DroppedFiles.size() == 1 && m_state == State::Disconnected)
+            {
+                m_hostSettings.selectedHost = static_cast<uint32_t>(hosts.size() - 1);
+                m_selectedHost = &hosts.back();
+                m_state = State::Pending;
+            }
+
+            System::DroppedFiles.clear();
         }
 
         ImGui::BeginDisabled(m_state == State::Connecting);
@@ -283,7 +313,24 @@ void HostPanel::update()
                     dots::type::Registry::StaticTypePolicy::InternalOnly,
                     transition_handler_t{ &HostPanel::handleTransceiverTransition, this }
                 );
-                transceiver.open(dots::io::Endpoint{ m_selectedHost->endpoint->data() });
+
+                dots::io::Endpoint endpoint{ *m_selectedHost->endpoint };
+
+                if (endpoint.scheme() == "file" || endpoint.scheme() == "file-v1")
+                {
+                    std::string_view path = endpoint.path();
+                    #ifdef _WIN32
+                    if (path.front() == '/')
+                    {
+                        path.remove_prefix(1);
+                    }
+                    #endif
+                    transceiver.open<dots::io::FileInChannel>(path);
+                }
+                else
+                {
+                    transceiver.open(endpoint);
+                }
 
                 for (;;)
                 {
