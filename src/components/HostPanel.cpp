@@ -94,7 +94,7 @@ void HostPanel::render()
         {
             ImGui::SameLine();
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f);
-            if (ImGui::BeginCombo("##Hosts", create_host_label(*m_selectedHost)))
+            if (ImGui::BeginCombo("##Hosts", m_selectedHost->description->data(), ImGuiComboFlags_HeightLarge))
             {
                 if (ImGui::Selectable("<New>"))
                 {
