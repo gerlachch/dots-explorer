@@ -371,7 +371,21 @@ void HostPanel::update()
             }
             break;
         case State::Connected:
-            dots::global_transceiver()->ioContext().poll();
+            {
+                using namespace dots::literals;
+                auto start = dots::steady_timepoint_t::Now();
+
+                for (size_t totalHandlersExecuted = 0;;)
+                {
+                    size_t handlersExecuted = dots::global_transceiver()->ioContext().poll_one();
+                    totalHandlersExecuted += handlersExecuted;
+
+                    if (!handlersExecuted || (totalHandlersExecuted % 1000 == 0 && (dots::steady_timepoint_t::Now() - start > 15ms)))
+                    {
+                        break;
+                    }
+                }
+            }
             break;
         case State::Error:
             m_deltaSinceError += ImGui::GetIO().DeltaTime;
