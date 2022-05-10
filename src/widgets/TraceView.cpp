@@ -1,5 +1,4 @@
 #include <widgets/TraceView.h>
-#include <regex>
 #include <imgui.h>
 #include <common/Settings.h>
 #include <widgets/StructView.h>
@@ -9,7 +8,7 @@
 TraceView::TraceView() :
     m_traceIndex(0),
     m_eventFilterBuffer(256, '\0'),
-    m_eventsChanged(false),
+    m_filtersChanged(true),
     m_filterSettingsInitialized(false),
     m_filterSettings{ Settings::Register<FilterSettings>() }
 {
@@ -25,8 +24,12 @@ void TraceView::update(const dots::type::StructDescriptor<>& descriptor)
         m_subscriptions.emplace_back(dots::subscribe(descriptor, [this](const dots::Event<>& event)
         {
             StructDescriptorModel& descriptorModel = m_descriptorModels.try_emplace(&event.descriptor(), event.descriptor()).first->second;
-            m_items.emplace_back(std::make_shared<TraceItem>(++m_traceIndex, descriptorModel, event));
-            m_eventsChanged = true;
+            auto& item = m_items.emplace_back(std::make_shared<TraceItem>(++m_traceIndex, descriptorModel, event));
+
+            if (applyFilter(*item))
+            {
+                m_itemsFiltered.emplace_back(item);
+            }
         }));
     }
 }
@@ -74,6 +77,25 @@ void TraceView::initFilterSettings()
     }
 }
 
+bool TraceView::applyFilter(const TraceItem& item)
+{
+    std::string_view eventFilter = m_eventFilterBuffer.data();
+    const dots::type::StructDescriptor<>& descriptor = item.eventModel().structModel().descriptorModel().descriptor();
+
+    if (descriptor.internal() && !*m_filterSettings.showInternal)
+    {
+        return false;
+    }
+    else if (!descriptor.cached() && !*m_filterSettings.showUncached)
+    {
+        return false;
+    }
+    else
+    {
+        return eventFilter.empty() || (m_regex != std::nullopt && std::regex_search(descriptor.name(), *m_regex));
+    }
+}
+
 void TraceView::applyFilters()
 {
     std::string_view eventFilter = m_eventFilterBuffer.data();
@@ -89,24 +111,12 @@ void TraceView::applyFilters()
     try
     {
         std::regex regex{ eventFilter.data(), regexFlags };
+        m_regex.emplace(std::move(regex));
         m_itemsFiltered.clear();
 
         std::copy_if(m_items.begin(), m_items.end(), std::back_inserter(m_itemsFiltered), [&](const auto& item)
         {
-            const dots::type::StructDescriptor<>& descriptor = item->eventModel().structModel().descriptorModel().descriptor();
-
-            if (descriptor.internal() && !*m_filterSettings.showInternal)
-            {
-                return false;
-            }
-            else if (!descriptor.cached() && !*m_filterSettings.showUncached)
-            {
-                return false;
-            }
-            else
-            {
-                return eventFilter.empty() || std::regex_search(descriptor.name(), regex);
-            }
+            return applyFilter(*item);
         });
     }
     catch (...)
@@ -135,7 +145,7 @@ void TraceView::renderFilterArea()
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f - 19);
             if (ImGui::InputTextWithHint("##typeFilter", "<none>", m_eventFilterBuffer.data(), m_eventFilterBuffer.size()))
             {
-                m_eventsChanged = true;
+                m_filtersChanged = true;
                 m_filterSettings.selectedFilter.destroy();
             }
             ImGui::PopItemWidth();
@@ -200,7 +210,7 @@ void TraceView::renderFilterArea()
                         const std::string& regexFilter = filters[selectedFilter].regex;
                         m_eventFilterBuffer.assign(std::max(regexFilter.size(), m_eventFilterBuffer.size()), '\0');
                         std::copy(regexFilter.begin(), regexFilter.end(), m_eventFilterBuffer.begin());
-                        m_eventsChanged = true;
+                        m_filtersChanged = true;
                     }
 
                     ++i;
@@ -219,7 +229,7 @@ void TraceView::renderFilterArea()
             if (ImGui::Button("Aa"))
             {
                 m_filterSettings.matchCase = !*m_filterSettings.matchCase;
-                m_eventsChanged = true;
+                m_filtersChanged = true;
             }
 
             ImGui::PopStyleColor();
@@ -243,7 +253,7 @@ void TraceView::renderFilterArea()
                 if (ImGui::Button(ClearLabel))
                 {
                     m_eventFilterBuffer.assign(m_eventFilterBuffer.size(), '\0');
-                    m_eventsChanged = true;
+                    m_filtersChanged = true;
                     m_filterSettings.selectedFilter.destroy();
                 }
             }
@@ -255,7 +265,7 @@ void TraceView::renderFilterArea()
 
             if (ImGui::Checkbox("Internal", &*m_filterSettings.showInternal))
             {
-                m_eventsChanged = true;
+                m_filtersChanged = true;
             }
         }
 
@@ -265,15 +275,15 @@ void TraceView::renderFilterArea()
 
             if (ImGui::Checkbox("Uncached", &*m_filterSettings.showUncached))
             {
-                m_eventsChanged = true;
+                m_filtersChanged = true;
             }
         }
 
         // apply filters to event list
-        if (m_eventsChanged)
+        if (m_filtersChanged)
         {
             applyFilters();
-            m_eventsChanged = false;
+            m_filtersChanged = false;
         }
 
         // render filtered events hint label
@@ -441,11 +451,11 @@ void TraceView::renderEventList()
             {
                 m_items.erase(m_items.begin(), it);
             }
+
             if (auto it = std::lower_bound(m_itemsFiltered.begin(), m_itemsFiltered.end(), discardUntilItem, comp); it != m_itemsFiltered.end())
             {
                 m_itemsFiltered.erase(m_itemsFiltered.begin(), it);
             }
-
         }
 
         if (discardAll)
