@@ -34,6 +34,7 @@ private:
     std::unordered_map<const dots::type::StructDescriptor<>*, StructDescriptorModel> m_descriptorModels;
     std::vector<std::shared_ptr<TraceItem>> m_items;
     std::vector<std::shared_ptr<TraceItem>> m_itemsFiltered;
+    size_t m_traceIndex;
     std::string m_eventFilterBuffer;
     bool m_eventsChanged;
     bool m_filterSettingsInitialized;

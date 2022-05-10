@@ -7,6 +7,7 @@
 #include <EnumDescriptorData.dots.h>
 
 TraceView::TraceView() :
+    m_traceIndex(0),
     m_eventFilterBuffer(256, '\0'),
     m_eventsChanged(false),
     m_filterSettingsInitialized(false),
@@ -24,7 +25,7 @@ void TraceView::update(const dots::type::StructDescriptor<>& descriptor)
         m_subscriptions.emplace_back(dots::subscribe(descriptor, [this](const dots::Event<>& event)
         {
             StructDescriptorModel& descriptorModel = m_descriptorModels.try_emplace(&event.descriptor(), event.descriptor()).first->second;
-            m_items.emplace_back(std::make_shared<TraceItem>(m_items.size() + 1, descriptorModel, event));
+            m_items.emplace_back(std::make_shared<TraceItem>(++m_traceIndex, descriptorModel, event));
             m_eventsChanged = true;
         }));
     }
@@ -323,6 +324,8 @@ void TraceView::renderEventList()
     ;
 
     const TraceItem* editItem = nullptr;
+    std::shared_ptr<TraceItem> discardUntilItem;
+    bool discardAll = false;
 
     if (ImGui::BeginTable("EventTrace", 6, TableFlags, ImGui::GetContentRegionAvail()))
     {
@@ -386,6 +389,16 @@ void TraceView::renderEventList()
                             editItem = &item;
                         }
 
+                        if (ImGui::MenuItem("Discard Until [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
+                        {
+                            discardUntilItem = m_itemsFiltered[itemIndex];
+                        }
+
+                        if (ImGui::MenuItem("Discard All [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
+                        {
+                            discardAll = true;
+                        }
+
                         ImGui::EndPopup();
                     }
                 }
@@ -412,6 +425,34 @@ void TraceView::renderEventList()
         if (m_structEdit != std::nullopt && !m_structEdit->render())
         {
             m_structEdit = std::nullopt;
+        }
+    }
+
+    // discard items
+    {
+        if (discardUntilItem != nullptr)
+        {
+            auto comp = [](const auto& lhs, const auto& rhs)
+            {
+                return lhs->eventModel().index() < rhs->eventModel().index();
+            };
+
+            if (auto it = std::lower_bound(m_items.begin(), m_items.end(), discardUntilItem, comp); it != m_items.end())
+            {
+                m_items.erase(m_items.begin(), it);
+            }
+            if (auto it = std::lower_bound(m_itemsFiltered.begin(), m_itemsFiltered.end(), discardUntilItem, comp); it != m_itemsFiltered.end())
+            {
+                m_itemsFiltered.erase(m_itemsFiltered.begin(), it);
+            }
+
+        }
+
+        if (discardAll)
+        {
+            m_traceIndex = 0;
+            m_items.clear();
+            m_itemsFiltered.clear();
         }
     }
 }

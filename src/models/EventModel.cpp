@@ -10,6 +10,11 @@ EventModel::EventModel(size_t index, const StructDescriptorModel& descriptorMode
     m_metadataModel.fetch(event);
 }
 
+size_t EventModel::index() const
+{
+    return m_index;
+}
+
 const StructModel& EventModel::structModel() const
 {
     return m_structModel;
