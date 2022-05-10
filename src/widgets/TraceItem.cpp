@@ -48,9 +48,10 @@ void TraceItem::render(bool hoverCondition)
     if (ImGui::TableNextColumn())
     {
         const auto& [text, color] = m_eventModel.indexText();
+        ImGui::PushStyleColor(ImGuiCol_Header, ColorThemeActive.Marker);
         ImGui::PushStyleColor(ImGuiCol_Text, color);
-        ImGui::Selectable(text.data(), false, ImGuiSelectableFlags_SpanAllColumns);
-        ImGui::PopStyleColor();
+        ImGui::Selectable(text.data(), &m_isSelected, ImGuiSelectableFlags_SpanAllColumns);
+        ImGui::PopStyleColor(2);
         m_isHovered |= hoverCondition && ImGui::IsItemHovered();
     }
 
