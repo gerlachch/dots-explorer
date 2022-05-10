@@ -8,6 +8,7 @@ struct EventModel
 {
     EventModel(size_t index, const StructDescriptorModel& descriptorModel, const dots::Event<>& event);
 
+    size_t index() const;
     const StructModel& structModel() const;
     const MetadataModel& metadataModel() const;
 

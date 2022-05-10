@@ -3,8 +3,11 @@
 #include <imgui.h>
 #include <fmt/format.h>
 #include <dots/io/Io.h>
+#include <dots/io/channels/LocalListener.h>
+#include <dots_ext//FileInChannel.h>
 #include <common/Colors.h>
 #include <common/Settings.h>
+#include <common/System.h>
 #include <DotsDescriptorRequest.dots.h>
 
 HostPanel::HostPanel(std::string appName) :
@@ -57,24 +60,41 @@ void HostPanel::render()
             m_hostSettings.autoConnect.constructOrValue();
         }
 
+        // check dropped files
+        if (!System::DroppedFiles.empty())
+        {
+            for (const auto& path : System::DroppedFiles)
+            {
+                if (exists(path))
+                {
+                    if (is_regular_file(path))
+                    {
+                        hosts.emplace_back(
+                            Host::endpoint_i{ fmt::format("file:{}{}", path.root_name() == "/" ? "" : "/", path.string() ) },
+                            Host::description_i{ path.filename().string() }
+                        );
+                    }
+                }
+            }
+
+            if (System::DroppedFiles.size() == 1 && m_state == State::Disconnected)
+            {
+                m_hostSettings.selectedHost = static_cast<uint32_t>(hosts.size() - 1);
+                m_selectedHost = &hosts.back();
+                m_state = State::Pending;
+            }
+
+            System::DroppedFiles.clear();
+        }
+
         ImGui::BeginDisabled(m_state == State::Connecting);
         m_selectedHost = &hosts[m_hostSettings.selectedHost];
 
         // render hosts list
         {
-            auto create_host_label = [this](const Host& host)
-            {
-                m_hostLabel.clear();
-                m_hostLabel += host.description;
-                m_hostLabel += " [";
-                m_hostLabel += host.endpoint;
-                m_hostLabel += "]";
-                return m_hostLabel.data();
-            };
-
             ImGui::SameLine();
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f);
-            if (ImGui::BeginCombo("##Hosts", create_host_label(*m_selectedHost)))
+            if (ImGui::BeginCombo("##Hosts", m_selectedHost->description->data(), ImGuiComboFlags_HeightLarge))
             {
                 if (ImGui::Selectable("<New>"))
                 {
@@ -107,6 +127,16 @@ void HostPanel::render()
 
                 for (Host& host : hosts)
                 {
+                    auto create_host_label = [this](const Host& host)
+                    {
+                        m_hostLabel.clear();
+                        m_hostLabel += host.description;
+                        m_hostLabel += " [";
+                        m_hostLabel += host.endpoint;
+                        m_hostLabel += "]";
+                        return m_hostLabel.data();
+                    };
+
                     if (ImGui::Selectable(create_host_label(host), i == m_hostSettings.selectedHost) && i != m_hostSettings.selectedHost)
                     {
                         m_hostSettings.selectedHost = i;
@@ -120,6 +150,7 @@ void HostPanel::render()
                 ImGui::EndCombo();
             }
             ImGui::PopItemWidth();
+            ImGuiExt::TooltipLastHoveredItem(m_selectedHost->endpoint->data());
         }
 
         // render auto connect option
@@ -187,6 +218,7 @@ void HostPanel::render()
         }
 
         // render view selector
+        if (m_cacheView != std::nullopt)
         {
             constexpr std::pair<View, const char*> ViewLabels[] = {
                 { View::Cache, "Cache" },
@@ -218,7 +250,7 @@ void HostPanel::render()
         ImGui::Separator();
 
         // render views
-        if (m_state == State::Connected)
+        if (m_cacheView != std::nullopt)
         {
             if (selectedView == View::Cache)
             {
@@ -283,7 +315,24 @@ void HostPanel::update()
                     dots::type::Registry::StaticTypePolicy::InternalOnly,
                     transition_handler_t{ &HostPanel::handleTransceiverTransition, this }
                 );
-                transceiver.open(dots::io::Endpoint{ m_selectedHost->endpoint->data() });
+
+                dots::io::Endpoint endpoint{ *m_selectedHost->endpoint };
+
+                if (endpoint.scheme() == "file" || endpoint.scheme() == "file-v1")
+                {
+                    std::string_view path = endpoint.path();
+                    #ifdef _WIN32
+                    if (path.front() == '/')
+                    {
+                        path.remove_prefix(1);
+                    }
+                    #endif
+                    transceiver.open<dots::io::FileInChannel>(path);
+                }
+                else
+                {
+                    transceiver.open(endpoint);
+                }
 
                 for (;;)
                 {
@@ -323,7 +372,21 @@ void HostPanel::update()
             }
             break;
         case State::Connected:
-            dots::global_transceiver()->ioContext().poll();
+            {
+                using namespace dots::literals;
+                auto start = dots::steady_timepoint_t::Now();
+
+                for (size_t totalHandlersExecuted = 0;;)
+                {
+                    size_t handlersExecuted = dots::global_transceiver()->ioContext().poll_one();
+                    totalHandlersExecuted += handlersExecuted;
+
+                    if (!handlersExecuted || (totalHandlersExecuted % 1000 == 0 && (dots::steady_timepoint_t::Now() - start > 15ms)))
+                    {
+                        break;
+                    }
+                }
+            }
             break;
         case State::Error:
             m_deltaSinceError += ImGui::GetIO().DeltaTime;

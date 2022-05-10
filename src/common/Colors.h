@@ -21,6 +21,8 @@ struct Colors
     ImVec4 Create;
     ImVec4 Update;
     ImVec4 Remove;
+
+    ImVec4 Marker;
 };
 
 inline constexpr Colors ColorThemeDark{
@@ -41,7 +43,9 @@ inline constexpr Colors ColorThemeDark{
 
     ImVec4{ 0.00f, 1.00f, 0.00f, 1.00f },
     ImVec4{ 1.00f, 1.00f, 0.00f, 1.00f },
-    ImVec4{ 1.00f, 0.00f, 0.00f, 1.00f }
+    ImVec4{ 1.00f, 0.00f, 0.00f, 1.00f },
+    
+    ImVec4{ 1.00f, 0.00f, 0.60f, 0.70f }
 };
 
 inline constexpr Colors ColorThemeActive = ColorThemeDark;

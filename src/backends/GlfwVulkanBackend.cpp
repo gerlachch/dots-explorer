@@ -1,4 +1,5 @@
 #include <backends/GlfwBackend.h>
+#include <common/System.h>
 #include <stdexcept>
 // Dear ImGui: standalone example application for Glfw + Vulkan
 // If you are new to Dear ImGui, read documentation from the docs/ folder + read the top of imgui.cpp.
@@ -467,6 +468,17 @@ GlfwBackend::GlfwBackend(int width, int height, std::string_view title)
         check_vk_result(err);
         ImGui_ImplVulkan_DestroyFontUploadObjects();
     }
+
+    // set drop callback
+    glfwSetDropCallback(g_window, [](GLFWwindow*/* window*/, int path_count, const char* paths[])
+    {
+        System::DroppedFiles.clear();
+
+        for (int i = 0; i < path_count; ++i)
+        {
+            System::DroppedFiles.emplace_back(std::filesystem::canonical(paths[i]));
+        }
+    });
 }
 
 GlfwBackend::~GlfwBackend()
