@@ -218,6 +218,7 @@ void HostPanel::render()
         }
 
         // render view selector
+        if (m_cacheView != std::nullopt)
         {
             constexpr std::pair<View, const char*> ViewLabels[] = {
                 { View::Cache, "Cache" },
