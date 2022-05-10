@@ -2,6 +2,7 @@
 #include <string>
 #include <future>
 #include <dots/dots.h>
+#include <widgets/HelpDialog.h>
 #include <widgets/HostSettingsEdit.h>
 #include <widgets/CacheView.h>
 #include <widgets/TraceView.h>
@@ -35,6 +36,7 @@ private:
     void update();
     void handleTransceiverTransition(const dots::Connection& connection, std::exception_ptr ePtr);
 
+    std::optional<HelpDialog> m_helpDialog;
     std::optional<HostSettingsEdit> m_hostSettingsEdit;
     std::optional<CacheView> m_cacheView;
     std::optional<TraceView> m_traceView;
@@ -43,6 +45,7 @@ private:
     State m_state;
     Host* m_selectedHost;
     float m_deltaSinceError;
+    float m_helpHintWidth;
     HostSettings& m_hostSettings;
     ViewSettings& m_viewSettings;
     std::string m_hostLabel;

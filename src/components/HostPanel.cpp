@@ -4,7 +4,7 @@
 #include <fmt/format.h>
 #include <dots/io/Io.h>
 #include <dots/io/channels/LocalListener.h>
-#include <dots_ext//FileInChannel.h>
+#include <dots_ext/FileInChannel.h>
 #include <common/Colors.h>
 #include <common/Settings.h>
 #include <common/System.h>
@@ -14,6 +14,7 @@ HostPanel::HostPanel(std::string appName) :
     m_state(State::Disconnected),
     m_selectedHost(nullptr),
     m_deltaSinceError(0.0f),
+    m_helpHintWidth(100.0f),
     m_hostSettings{ Settings::Register<HostSettings>() },
     m_viewSettings{ Settings::Register<ViewSettings>() },
     m_appName{ std::move(appName) }
@@ -245,6 +246,28 @@ void HostPanel::render()
             }
 
             ImGui::PopItemWidth();
+        }
+
+        // render help area
+        {
+            ImGui::SameLine(ImGui::GetContentRegionAvail().x - m_helpHintWidth);
+
+            ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.Disabled);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_Button]);
+            ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_WindowBg]);
+
+            if (ImGui::Button("Help/About [F1]") || ImGui::IsKeyPressed(ImGuiKey_F1, false))
+            {
+                m_helpDialog.emplace();
+            }
+
+            ImGui::PopStyleColor(3);
+            m_helpHintWidth = ImGui::GetItemRectSize().x;
+
+            if (m_helpDialog != std::nullopt && !m_helpDialog->render())
+            {
+                m_helpDialog = std::nullopt;
+            }
         }
 
         ImGui::Separator();

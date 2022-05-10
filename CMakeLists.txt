@@ -109,6 +109,7 @@ target_sources(${TARGET_NAME}
         src/widgets/FilterSettingsEdit.cpp
         src/widgets/StructList.cpp
         src/widgets/HostSettingsEdit.cpp
+        src/widgets/HelpDialog.cpp
         src/widgets/StructEdit.cpp
         src/widgets/StructItem.cpp
         src/widgets/StructView.cpp
