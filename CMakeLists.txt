@@ -93,8 +93,8 @@ target_sources(${TARGET_NAME}
         src/main.cpp
         $<$<BOOL:${Vulkan_FOUND}>:src/backends/GlfwVulkanBackend.cpp>
         $<$<BOOL:${OpenGL_FOUND}>:src/backends/GlfwOpenGl3Backend.cpp>
-        src/components/HostPanel.cpp
-        src/components/MainWindow.cpp
+        src/widgets/views/HostPanel.cpp
+        src/widgets/MainWindow.cpp
         src/common/ImGuiExt.cpp
         src/common/Settings.cpp
         src/models/EventModel.cpp
@@ -104,17 +104,17 @@ target_sources(${TARGET_NAME}
         src/models/StructModel.cpp
         src/models/StructDescriptorModel.cpp
         src/dots_ext/FileInChannel.cpp
-        src/widgets/TraceView.cpp
-        src/widgets/TraceItem.cpp
-        src/widgets/FilterSettingsEdit.cpp
-        src/widgets/StructList.cpp
-        src/widgets/HostSettingsEdit.cpp
-        src/widgets/HelpDialog.cpp
-        src/widgets/StructEdit.cpp
-        src/widgets/StructItem.cpp
-        src/widgets/StructView.cpp
-        src/widgets/CacheView.cpp
-        src/widgets/PropertyEdit.cpp
+        src/widgets/views/TraceView.cpp
+        src/widgets/views/TraceItem.cpp
+        src/widgets/dialogs/FilterSettingsEdit.cpp
+        src/widgets/views/StructList.cpp
+        src/widgets/dialogs/HostSettingsEdit.cpp
+        src/widgets/dialogs/HelpDialog.cpp
+        src/widgets/dialogs/StructEdit.cpp
+        src/widgets/views/StructItem.cpp
+        src/widgets/views/StructView.cpp
+        src/widgets/views/CacheView.cpp
+        src/widgets/dialogs/PropertyEdit.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
         $<$<BOOL:${Vulkan_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp>
         $<$<BOOL:${OpenGL_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp>

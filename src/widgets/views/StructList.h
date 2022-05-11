@@ -4,8 +4,8 @@
 #include <vector>
 #include <dots/dots.h>
 #include <models/StructDescriptorModel.h>
-#include <widgets/StructItem.h>
-#include <widgets/StructEdit.h>
+#include <widgets/views/StructItem.h>
+#include <widgets/dialogs/StructEdit.h>
 
 struct ImGuiTableSortSpecs;
 

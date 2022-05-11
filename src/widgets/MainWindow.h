@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <components/HostPanel.h>
+#include <widgets/views/HostPanel.h>
 
 struct MainWindow
 {

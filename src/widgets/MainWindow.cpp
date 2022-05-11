@@ -1,4 +1,4 @@
-#include <components/MainWindow.h>
+#include <widgets/MainWindow.h>
 #include <boost/asio.hpp>
 #include <imgui.h>
 #include <fmt/format.h>

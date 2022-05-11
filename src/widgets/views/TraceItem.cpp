@@ -1,4 +1,4 @@
-#include <widgets/TraceItem.h>
+#include <widgets/views/TraceItem.h>
 #include <fmt/format.h>
 #include <common/Colors.h>
 #include <common/ImGuiExt.h>

@@ -1,4 +1,4 @@
-#include <widgets/HostSettingsEdit.h>
+#include <widgets/dialogs/HostSettingsEdit.h>
 #include <algorithm>
 #include <imgui.h>
 #include <fmt/format.h>

@@ -1,4 +1,4 @@
-#include <widgets/StructView.h>
+#include <widgets/views/StructView.h>
 
 StructView::StructView(const MetadataModel& metadataModel, const StructModel& structModel) :
     m_metadataModel{ metadataModel },

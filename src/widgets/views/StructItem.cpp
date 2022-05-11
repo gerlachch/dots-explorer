@@ -1,4 +1,4 @@
-#include <widgets/StructItem.h>
+#include <widgets/views/StructItem.h>
 #include <imgui_internal.h>
 #include <fmt/format.h>
 #include <common/Colors.h>

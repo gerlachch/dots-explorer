@@ -4,7 +4,7 @@
 #include <optional>
 #include <fmt/format.h>
 #include <backends/GlfwBackend.h>
-#include <components/MainWindow.h>
+#include <widgets/MainWindow.h>
 #include <common/Settings.h>
 
 int main()

@@ -1,4 +1,4 @@
-#include <widgets/FilterSettingsEdit.h>
+#include <widgets/dialogs/FilterSettingsEdit.h>
 #include <algorithm>
 #include <imgui.h>
 #include <fmt/format.h>

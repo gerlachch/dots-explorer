@@ -2,8 +2,8 @@
 #include <vector>
 #include <optional>
 #include <dots/dots.h>
-#include <widgets/FilterSettingsEdit.h>
-#include <widgets/StructList.h>
+#include <widgets/dialogs/FilterSettingsEdit.h>
+#include <widgets/views/StructList.h>
 #include <FilterSettings.dots.h>
 
 struct CacheView

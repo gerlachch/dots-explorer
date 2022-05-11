@@ -1,4 +1,4 @@
-#include <components/HostPanel.h>
+#include <widgets/views/HostPanel.h>
 #include <boost/asio.hpp>
 #include <imgui.h>
 #include <fmt/format.h>

@@ -1,4 +1,4 @@
-#include <widgets/StructEdit.h>
+#include <widgets/dialogs/StructEdit.h>
 #include <algorithm>
 #include <imgui.h>
 #include <fmt/format.h>

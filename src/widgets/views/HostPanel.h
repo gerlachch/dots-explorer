@@ -2,10 +2,10 @@
 #include <string>
 #include <future>
 #include <dots/dots.h>
-#include <widgets/HelpDialog.h>
-#include <widgets/HostSettingsEdit.h>
-#include <widgets/CacheView.h>
-#include <widgets/TraceView.h>
+#include <widgets/dialogs/HelpDialog.h>
+#include <widgets/dialogs/HostSettingsEdit.h>
+#include <widgets/views/CacheView.h>
+#include <widgets/views/TraceView.h>
 #include <HostSettings.dots.h>
 #include <ViewSettings.dots.h>
 

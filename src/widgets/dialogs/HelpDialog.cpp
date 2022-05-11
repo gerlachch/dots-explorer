@@ -1,4 +1,4 @@
-#include <widgets/HelpDialog.h>
+#include <widgets/dialogs/HelpDialog.h>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <fmt/format.h>

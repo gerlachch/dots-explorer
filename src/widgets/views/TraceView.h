@@ -4,9 +4,9 @@
 #include <unordered_map>
 #include <regex>
 #include <dots/dots.h>
-#include <widgets/TraceItem.h>
-#include <widgets/FilterSettingsEdit.h>
-#include <widgets/StructEdit.h>
+#include <widgets/views/TraceItem.h>
+#include <widgets/dialogs/FilterSettingsEdit.h>
+#include <widgets/dialogs/StructEdit.h>
 #include <FilterSettings.dots.h>
 
 struct TraceView
