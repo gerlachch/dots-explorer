@@ -47,7 +47,7 @@ bool FilterSettingsEdit::render()
                 ImGui::TextUnformatted("Regex");
 
                 ImGui::TableNextColumn();
-                ImGui::PushItemWidth(ImGui::GetIO().DisplaySize.x * 0.25f);
+                ImGui::PushItemWidth(ImGui::GetIO().DisplaySize.x * 0.35f);
                 ImGui::AlignTextToFramePadding();
                 ImGui::InputText("##regexInput", m_regexBuffer.data(), m_regexBuffer.size());
                 ImGui::PopItemWidth();
@@ -58,7 +58,7 @@ bool FilterSettingsEdit::render()
                 ImGui::TextUnformatted("Description");
 
                 ImGui::TableNextColumn();
-                ImGui::PushItemWidth(ImGui::GetIO().DisplaySize.x * 0.25f);
+                ImGui::PushItemWidth(ImGui::GetIO().DisplaySize.x * 0.35f);
                 ImGui::AlignTextToFramePadding();
                 ImGui::InputText("##descriptionInput", m_descriptionBuffer.data(), m_descriptionBuffer.size());
                 ImGui::PopItemWidth();
