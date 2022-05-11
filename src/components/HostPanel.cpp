@@ -64,6 +64,8 @@ void HostPanel::render()
         // check dropped files
         if (!System::DroppedFiles.empty())
         {
+            size_t hostsAdded = 0;
+
             for (const auto& path : System::DroppedFiles)
             {
                 if (exists(path))
@@ -74,11 +76,12 @@ void HostPanel::render()
                             Host::endpoint_i{ fmt::format("file:{}{}", path.root_name() == "/" ? "" : "/", path.string() ) },
                             Host::description_i{ path.filename().string() }
                         );
+                        ++hostsAdded;
                     }
                 }
             }
 
-            if (System::DroppedFiles.size() == 1 && m_state == State::Disconnected)
+            if (hostsAdded == 1 && m_state == State::Disconnected)
             {
                 m_hostSettings.selectedHost = static_cast<uint32_t>(hosts.size() - 1);
                 m_selectedHost = &hosts.back();
