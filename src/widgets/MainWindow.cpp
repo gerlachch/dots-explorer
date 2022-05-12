@@ -7,7 +7,7 @@
 #include <FilterSettings.dots.h>
 
 MainWindow::MainWindow(std::string appName) :
-    m_hostPanel{ std::move(appName) }
+    m_hostView{ std::move(appName) }
 {
     // register settings
     Settings::Register<HostSettings>();
@@ -30,7 +30,7 @@ void MainWindow::render()
         if (ImGui::Begin("MainWindow", nullptr, WindowFlags))
         {
             // render host panel
-            m_hostPanel.render();
+            m_hostView.render();
         }
 
         ImGui::End();

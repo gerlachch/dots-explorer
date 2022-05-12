@@ -1,4 +1,4 @@
-#include <widgets/views/HostPanel.h>
+#include <widgets/views/HostView.h>
 #include <boost/asio.hpp>
 #include <imgui.h>
 #include <fmt/format.h>
@@ -10,7 +10,7 @@
 #include <common/System.h>
 #include <DotsDescriptorRequest.dots.h>
 
-HostPanel::HostPanel(std::string appName) :
+HostView::HostView(std::string appName) :
     m_state(State::Disconnected),
     m_selectedHost(nullptr),
     m_deltaSinceError(0.0f),
@@ -22,12 +22,12 @@ HostPanel::HostPanel(std::string appName) :
     /* do nothing */
 }
 
-HostPanel::~HostPanel()
+HostView::~HostView()
 {
     disconnect();
 }
 
-void HostPanel::render()
+void HostView::render()
 {
     // update state
     update();
@@ -303,7 +303,7 @@ void HostPanel::render()
     }
 }
 
-void HostPanel::disconnect()
+void HostView::disconnect()
 {
     boost::asio::io_context& ioContext = dots::io::global_io_context();
 
@@ -324,7 +324,7 @@ void HostPanel::disconnect()
     m_state = State::Disconnected;
 }
 
-void HostPanel::update()
+void HostView::update()
 {
     switch (m_state)
     {
@@ -339,7 +339,7 @@ void HostPanel::update()
                     m_appName,
                     dots::io::global_io_context(),
                     dots::type::Registry::StaticTypePolicy::InternalOnly,
-                    transition_handler_t{ &HostPanel::handleTransceiverTransition, this }
+                    transition_handler_t{ &HostView::handleTransceiverTransition, this }
                 );
 
                 dots::io::Endpoint endpoint{ *m_selectedHost->endpoint };
@@ -420,7 +420,7 @@ void HostPanel::update()
     }
 }
 
-void HostPanel::handleTransceiverTransition(const dots::Connection& connection, std::exception_ptr ePtr)
+void HostView::handleTransceiverTransition(const dots::Connection& connection, std::exception_ptr ePtr)
 {
     m_connectionError = ePtr;
 

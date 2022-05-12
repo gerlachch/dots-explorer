@@ -93,7 +93,7 @@ target_sources(${TARGET_NAME}
         src/main.cpp
         $<$<BOOL:${Vulkan_FOUND}>:src/backends/GlfwVulkanBackend.cpp>
         $<$<BOOL:${OpenGL_FOUND}>:src/backends/GlfwOpenGl3Backend.cpp>
-        src/widgets/views/HostPanel.cpp
+        src/widgets/views/HostView.cpp
         src/widgets/MainWindow.cpp
         src/common/ImGuiExt.cpp
         src/common/Settings.cpp

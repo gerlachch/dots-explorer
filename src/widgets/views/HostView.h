@@ -9,15 +9,15 @@
 #include <HostSettings.dots.h>
 #include <ViewSettings.dots.h>
 
-struct HostPanel
+struct HostView
 {
-    HostPanel(std::string appName);
-    HostPanel(const HostPanel& other) = delete;
-    HostPanel(HostPanel&& other) = delete;
-    ~HostPanel();
+    HostView(std::string appName);
+    HostView(const HostView& other) = delete;
+    HostView(HostView&& other) = delete;
+    ~HostView();
 
-    HostPanel& operator = (const HostPanel& rhs) = delete;
-    HostPanel& operator = (HostPanel&& rhs) = delete;
+    HostView& operator = (const HostView& rhs) = delete;
+    HostView& operator = (HostView&& rhs) = delete;
 
     void render();
 
