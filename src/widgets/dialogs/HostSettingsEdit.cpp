@@ -1,4 +1,4 @@
-#include <widgets/HostSettingsEdit.h>
+#include <widgets/dialogs/HostSettingsEdit.h>
 #include <algorithm>
 #include <imgui.h>
 #include <fmt/format.h>
@@ -47,7 +47,7 @@ bool HostSettingsEdit::render()
                 ImGui::TextUnformatted("Endpoint");
 
                 ImGui::TableNextColumn();
-                ImGui::PushItemWidth(ImGui::GetIO().DisplaySize.x * 0.25f);
+                ImGui::PushItemWidth(ImGui::GetIO().DisplaySize.x * 0.35f);
                 ImGui::AlignTextToFramePadding();
                 ImGui::InputText("##endpointInput", m_endpointBuffer.data(), m_endpointBuffer.size());
                 ImGui::PopItemWidth();
@@ -58,7 +58,7 @@ bool HostSettingsEdit::render()
                 ImGui::TextUnformatted("Description");
 
                 ImGui::TableNextColumn();
-                ImGui::PushItemWidth(ImGui::GetIO().DisplaySize.x * 0.25f);
+                ImGui::PushItemWidth(ImGui::GetIO().DisplaySize.x * 0.35f);
                 ImGui::AlignTextToFramePadding();
                 ImGui::InputText("##descriptionInput", m_descriptionBuffer.data(), m_descriptionBuffer.size());
                 ImGui::PopItemWidth();

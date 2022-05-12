@@ -117,7 +117,14 @@ GlfwBackend::GlfwBackend(int width, int height, std::string_view title)
 
         for (int i = 0; i < path_count; ++i)
         {
-            System::DroppedFiles.emplace_back(std::filesystem::canonical(paths[i]));
+            try
+            {
+                // note that in C++20 this conversion can be replaced by using a char8_t pointer
+                System::DroppedFiles.emplace_back(canonical(std::filesystem::u8path(paths[i])));
+            }
+            catch (...)
+            {
+            }
         }
     });
 }

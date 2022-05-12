@@ -2,7 +2,7 @@
 #include <vector>
 #include <dots/dots.h>
 #include <models/StructModel.h>
-#include <widgets/PropertyEdit.h>
+#include <widgets/dialogs/PropertyEdit.h>
 
 struct StructEdit
 {

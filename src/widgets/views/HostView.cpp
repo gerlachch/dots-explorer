@@ -1,19 +1,20 @@
-#include <components/HostPanel.h>
+#include <widgets/views/HostView.h>
 #include <boost/asio.hpp>
 #include <imgui.h>
 #include <fmt/format.h>
 #include <dots/io/Io.h>
 #include <dots/io/channels/LocalListener.h>
-#include <dots_ext//FileInChannel.h>
+#include <dots_ext/FileInChannel.h>
 #include <common/Colors.h>
 #include <common/Settings.h>
 #include <common/System.h>
 #include <DotsDescriptorRequest.dots.h>
 
-HostPanel::HostPanel(std::string appName) :
+HostView::HostView(std::string appName) :
     m_state(State::Disconnected),
     m_selectedHost(nullptr),
     m_deltaSinceError(0.0f),
+    m_helpHintWidth(100.0f),
     m_hostSettings{ Settings::Register<HostSettings>() },
     m_viewSettings{ Settings::Register<ViewSettings>() },
     m_appName{ std::move(appName) }
@@ -21,12 +22,12 @@ HostPanel::HostPanel(std::string appName) :
     /* do nothing */
 }
 
-HostPanel::~HostPanel()
+HostView::~HostView()
 {
     disconnect();
 }
 
-void HostPanel::render()
+void HostView::render()
 {
     // update state
     update();
@@ -63,6 +64,8 @@ void HostPanel::render()
         // check dropped files
         if (!System::DroppedFiles.empty())
         {
+            size_t hostsAdded = 0;
+
             for (const auto& path : System::DroppedFiles)
             {
                 if (exists(path))
@@ -73,11 +76,12 @@ void HostPanel::render()
                             Host::endpoint_i{ fmt::format("file:{}{}", path.root_name() == "/" ? "" : "/", path.string() ) },
                             Host::description_i{ path.filename().string() }
                         );
+                        ++hostsAdded;
                     }
                 }
             }
 
-            if (System::DroppedFiles.size() == 1 && m_state == State::Disconnected)
+            if (hostsAdded == 1 && m_state == State::Disconnected)
             {
                 m_hostSettings.selectedHost = static_cast<uint32_t>(hosts.size() - 1);
                 m_selectedHost = &hosts.back();
@@ -247,6 +251,28 @@ void HostPanel::render()
             ImGui::PopItemWidth();
         }
 
+        // render help area
+        {
+            ImGui::SameLine(ImGui::GetContentRegionAvail().x - m_helpHintWidth);
+
+            ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.Disabled);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_Button]);
+            ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_WindowBg]);
+
+            if (ImGui::Button("Help/About [F1]") || ImGui::IsKeyPressed(ImGuiKey_F1, false))
+            {
+                m_helpDialog.emplace();
+            }
+
+            ImGui::PopStyleColor(3);
+            m_helpHintWidth = ImGui::GetItemRectSize().x;
+
+            if (m_helpDialog != std::nullopt && !m_helpDialog->render())
+            {
+                m_helpDialog = std::nullopt;
+            }
+        }
+
         ImGui::Separator();
 
         // render views
@@ -277,7 +303,7 @@ void HostPanel::render()
     }
 }
 
-void HostPanel::disconnect()
+void HostView::disconnect()
 {
     boost::asio::io_context& ioContext = dots::io::global_io_context();
 
@@ -298,7 +324,7 @@ void HostPanel::disconnect()
     m_state = State::Disconnected;
 }
 
-void HostPanel::update()
+void HostView::update()
 {
     switch (m_state)
     {
@@ -313,7 +339,7 @@ void HostPanel::update()
                     m_appName,
                     dots::io::global_io_context(),
                     dots::type::Registry::StaticTypePolicy::InternalOnly,
-                    transition_handler_t{ &HostPanel::handleTransceiverTransition, this }
+                    transition_handler_t{ &HostView::handleTransceiverTransition, this }
                 );
 
                 dots::io::Endpoint endpoint{ *m_selectedHost->endpoint };
@@ -394,7 +420,7 @@ void HostPanel::update()
     }
 }
 
-void HostPanel::handleTransceiverTransition(const dots::Connection& connection, std::exception_ptr ePtr)
+void HostView::handleTransceiverTransition(const dots::Connection& connection, std::exception_ptr ePtr)
 {
     m_connectionError = ePtr;
 

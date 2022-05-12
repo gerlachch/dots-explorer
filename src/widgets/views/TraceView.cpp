@@ -1,7 +1,7 @@
-#include <widgets/TraceView.h>
+#include <widgets/views/TraceView.h>
 #include <imgui.h>
 #include <common/Settings.h>
-#include <widgets/StructView.h>
+#include <widgets/views/StructView.h>
 #include <StructDescriptorData.dots.h>
 #include <EnumDescriptorData.dots.h>
 

@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <components/HostPanel.h>
+#include <widgets/views/HostView.h>
 
 struct MainWindow
 {
@@ -9,5 +9,5 @@ struct MainWindow
 
 private:
 
-    HostPanel m_hostPanel;
+    HostView m_hostView;
 };

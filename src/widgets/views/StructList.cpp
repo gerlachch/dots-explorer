@@ -1,9 +1,9 @@
-#include <widgets/StructList.h>
+#include <widgets/views/StructList.h>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <fmt/format.h>
 #include <common/ImGuiExt.h>
-#include <widgets/StructView.h>
+#include <widgets/views/StructView.h>
 #include <DotsClearCache.dots.h>
 
 StructList::StructList(const dots::type::StructDescriptor<>& descriptor) :

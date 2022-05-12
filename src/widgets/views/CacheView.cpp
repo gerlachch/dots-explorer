@@ -1,8 +1,8 @@
-#include <widgets/CacheView.h>
+#include <widgets/views/CacheView.h>
 #include <string_view>
 #include <regex>
 #include <imgui.h>
-#include <widgets/StructList.h>
+#include <widgets/views/StructList.h>
 #include <common/Settings.h>
 #include <StructDescriptorData.dots.h>
 #include <EnumDescriptorData.dots.h>

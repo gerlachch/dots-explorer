@@ -2,21 +2,22 @@
 #include <string>
 #include <future>
 #include <dots/dots.h>
-#include <widgets/HostSettingsEdit.h>
-#include <widgets/CacheView.h>
-#include <widgets/TraceView.h>
+#include <widgets/dialogs/HelpDialog.h>
+#include <widgets/dialogs/HostSettingsEdit.h>
+#include <widgets/views/CacheView.h>
+#include <widgets/views/TraceView.h>
 #include <HostSettings.dots.h>
 #include <ViewSettings.dots.h>
 
-struct HostPanel
+struct HostView
 {
-    HostPanel(std::string appName);
-    HostPanel(const HostPanel& other) = delete;
-    HostPanel(HostPanel&& other) = delete;
-    ~HostPanel();
+    HostView(std::string appName);
+    HostView(const HostView& other) = delete;
+    HostView(HostView&& other) = delete;
+    ~HostView();
 
-    HostPanel& operator = (const HostPanel& rhs) = delete;
-    HostPanel& operator = (HostPanel&& rhs) = delete;
+    HostView& operator = (const HostView& rhs) = delete;
+    HostView& operator = (HostView&& rhs) = delete;
 
     void render();
 
@@ -35,6 +36,7 @@ private:
     void update();
     void handleTransceiverTransition(const dots::Connection& connection, std::exception_ptr ePtr);
 
+    std::optional<HelpDialog> m_helpDialog;
     std::optional<HostSettingsEdit> m_hostSettingsEdit;
     std::optional<CacheView> m_cacheView;
     std::optional<TraceView> m_traceView;
@@ -43,6 +45,7 @@ private:
     State m_state;
     Host* m_selectedHost;
     float m_deltaSinceError;
+    float m_helpHintWidth;
     HostSettings& m_hostSettings;
     ViewSettings& m_viewSettings;
     std::string m_hostLabel;

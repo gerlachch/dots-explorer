@@ -1,4 +1,4 @@
-#include <widgets/PropertyEdit.h>
+#include <widgets/dialogs/PropertyEdit.h>
 #include <algorithm>
 #include <imgui.h>
 #include <fmt/format.h>
