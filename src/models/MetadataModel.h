@@ -1,12 +1,12 @@
 #pragma once
 #include <vector>
+#include <array>
 #include <common/ImGuiExt.h>
+#include <common/Colors.h>
 #include <dots/dots.h>
 
 struct MetadataModel
 {
-    enum MetaData { LastOp, LastPublished, LastPublishedBy, MetaDataSize };
-
     MetadataModel();
 
     DotsMt lastOperation() const;
@@ -21,6 +21,14 @@ struct MetadataModel
     void fetch(const dots::Event<>& event);
 
 private:
+
+    enum MetaData { LastPublished, LastPublishedBy, MetaDataSize };
+
+    inline static std::array<ImGuiExt::ColoredText, 3> LastOperationTexts{
+        ImGuiExt::ColoredText{ "CREATE", ColorThemeActive.Create },
+        ImGuiExt::ColoredText{ "UPDATE", ColorThemeActive.Update },
+        ImGuiExt::ColoredText{ "REMOVE", ColorThemeActive.Remove }
+    };
 
     DotsMt m_lastOperation;
     dots::timepoint_t m_lastPublished;

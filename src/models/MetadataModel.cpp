@@ -33,28 +33,7 @@ const std::vector<ImGuiExt::ColoredText>& MetadataModel::metadataText() const
 
 const ImGuiExt::ColoredText& MetadataModel::lastOperationText() const
 {
-    const ImGuiExt::ColoredText& coloredText = m_metadataText[LastOp];
-
-    if (coloredText.first.empty())
-    {
-        switch (auto& [text, color] = m_metadataText[LastOp]; m_lastOperation)
-        {
-            case DotsMt::create:
-                text = "CREATE";
-                color = ColorThemeActive.Create;
-                break;
-            case DotsMt::update:
-                text = "UPDATE";
-                color = ColorThemeActive.Update;
-                break;
-            case DotsMt::remove:
-                text = "REMOVE";
-                color = ColorThemeActive.Remove;
-                break;
-        }
-    }
-
-    return coloredText;
+    return LastOperationTexts[static_cast<size_t>(m_lastOperation)];
 }
 
 const ImGuiExt::ColoredText& MetadataModel::lastPublishedText() const
