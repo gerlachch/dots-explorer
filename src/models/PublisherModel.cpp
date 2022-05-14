@@ -5,7 +5,7 @@
 PublisherModel::PublisherModel() :
     m_subscription(dots::subscribe<DotsClient>({ &PublisherModel::handleDotsClient, this }))
 {
-    /* do nothing */
+    m_publisherNameTexts.try_emplace(dots::Connection::HostId, fmt::format("\"{}\"", dots::global_transceiver()->connection().peerName()), ColorThemeActive.StringType).first->second;
 }
 
 const ImGuiExt::ColoredText& PublisherModel::publisherNameText(uint32_t id) const
