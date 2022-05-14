@@ -50,6 +50,7 @@ bool FilterSettingsEdit::render()
                 ImGui::AlignTextToFramePadding();
                 m_regexEdit.render();
                 ImGui::PopItemWidth();
+                ImGuiExt::TooltipLastHoveredItem("Types can be filtered by specifying substrings or ECMAScript regular expressions.");
 
                 ImGui::TableNextRow();
 
