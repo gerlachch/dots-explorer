@@ -2,11 +2,10 @@
 #include <algorithm>
 #include <imgui.h>
 #include <fmt/format.h>
-#include <common/Colors.h>
 
 FilterSettingsEdit::FilterSettingsEdit(FilterSettings& settings, Filter* editFilter/* = nullptr*/) :
     m_popupId{ fmt::format("FilterSettingsEdit-{}_Popup", ++M_id) },
-    m_regexBuffer(256, '\0'),
+    m_regexEdit{ {}, {} },
     m_descriptionBuffer(256, '\0'),
     m_settings(settings),
     m_editFilter(editFilter)
@@ -18,7 +17,7 @@ FilterSettingsEdit::FilterSettingsEdit(FilterSettings& settings, Filter* editFil
     else
     {
         m_headerText = "Edit Filter";
-        std::copy(m_editFilter->regex->begin(), m_editFilter->regex->end(), m_regexBuffer.begin());
+        m_regexEdit = std::string_view{ *m_editFilter->regex };
         std::copy(m_editFilter->description->begin(), m_editFilter->description->end(), m_descriptionBuffer.begin());
     }
 
@@ -49,7 +48,7 @@ bool FilterSettingsEdit::render()
                 ImGui::TableNextColumn();
                 ImGui::PushItemWidth(ImGui::GetIO().DisplaySize.x * 0.35f);
                 ImGui::AlignTextToFramePadding();
-                ImGui::InputText("##regexInput", m_regexBuffer.data(), m_regexBuffer.size());
+                m_regexEdit.render();
                 ImGui::PopItemWidth();
 
                 ImGui::TableNextRow();
@@ -69,8 +68,8 @@ bool FilterSettingsEdit::render()
 
         // buttons
         {
-            bool hasRegex = m_regexBuffer.front() != '\0';
-            bool hasDescription = m_regexBuffer.front() != '\0';
+            bool hasRegex = m_regexEdit.isValid();
+            bool hasDescription = m_descriptionBuffer.front() != '\0';
             const char* label = "Save";
 
             if (hasRegex && hasDescription)
@@ -78,7 +77,7 @@ bool FilterSettingsEdit::render()
                 if (ImGui::Button(label))
                 {
                     Filter filter{
-                        Filter::regex_i{ m_regexBuffer.data() },
+                        Filter::regex_i{ m_regexEdit.text().first },
                         Filter::description_i{ m_descriptionBuffer.data() }
                     };
 

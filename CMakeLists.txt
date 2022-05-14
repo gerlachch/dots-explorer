@@ -115,6 +115,7 @@ target_sources(${TARGET_NAME}
         src/widgets/views/StructView.cpp
         src/widgets/views/CacheView.cpp
         src/widgets/dialogs/PropertyEdit.cpp
+        src/widgets/input/RegexEdit.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
         $<$<BOOL:${Vulkan_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp>
         $<$<BOOL:${OpenGL_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp>

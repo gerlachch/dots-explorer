@@ -7,7 +7,6 @@
 
 TraceView::TraceView() :
     m_traceIndex(0),
-    m_eventFilterBuffer(256, '\0'),
     m_filtersChanged(true),
     m_filterSettingsInitialized(false),
     m_filterSettings{ Settings::Register<FilterSettings>() }
@@ -51,9 +50,7 @@ void TraceView::initFilterSettings()
 {
     if (m_filterSettings.regexFilter.isValid())
     {
-        const std::string& regexFilter = m_filterSettings.regexFilter;
-        m_eventFilterBuffer.assign(std::max(regexFilter.size(), m_eventFilterBuffer.size()), '\0');
-        std::copy(regexFilter.begin(), regexFilter.end(), m_eventFilterBuffer.begin());
+        m_filterEdit = std::string_view{ *m_filterSettings.regexFilter };
     }
     else
     {
@@ -79,7 +76,7 @@ void TraceView::initFilterSettings()
 
 bool TraceView::applyFilter(const TraceItem& item)
 {
-    std::string_view eventFilter = m_eventFilterBuffer.data();
+    std::string_view eventFilter = m_filterEdit.text().first;
     const dots::type::StructDescriptor<>& descriptor = item.structModel().descriptorModel().descriptor();
 
     if (descriptor.internal() && !*m_filterSettings.showInternal)
@@ -98,7 +95,7 @@ bool TraceView::applyFilter(const TraceItem& item)
 
 void TraceView::applyFilters()
 {
-    std::string_view eventFilter = m_eventFilterBuffer.data();
+    std::string_view eventFilter = m_filterEdit.text().first;
     m_filterSettings.regexFilter = eventFilter;
 
     std::regex_constants::syntax_option_type regexFlags = std::regex_constants::ECMAScript;
@@ -143,7 +140,7 @@ void TraceView::renderFilterArea()
 
             ImGui::SameLine();
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f - 19);
-            if (ImGui::InputTextWithHint("##typeFilter", "<none>", m_eventFilterBuffer.data(), m_eventFilterBuffer.size()))
+            if (m_filterEdit.render())
             {
                 m_filtersChanged = true;
                 m_filterSettings.selectedFilter.destroy();
@@ -207,9 +204,7 @@ void TraceView::renderFilterArea()
                     if (ImGui::Selectable(filter.description->data(), selectedFilter == i) && selectedFilter != i)
                     {
                         selectedFilter = i;
-                        const std::string& regexFilter = filters[selectedFilter].regex;
-                        m_eventFilterBuffer.assign(std::max(regexFilter.size(), m_eventFilterBuffer.size()), '\0');
-                        std::copy(regexFilter.begin(), regexFilter.end(), m_eventFilterBuffer.begin());
+                        m_filterEdit = std::string_view{ *filters[selectedFilter].regex };
                         m_filtersChanged = true;
                     }
 
@@ -242,7 +237,7 @@ void TraceView::renderFilterArea()
             ImGui::SameLine();
             constexpr char ClearLabel[] = "Clear";
 
-            if (m_eventFilterBuffer.front() == '\0')
+            if (m_filterEdit.text().first.empty())
             {
                 ImGui::BeginDisabled();
                 ImGui::Button(ClearLabel);
@@ -252,7 +247,7 @@ void TraceView::renderFilterArea()
             {
                 if (ImGui::Button(ClearLabel))
                 {
-                    m_eventFilterBuffer.assign(m_eventFilterBuffer.size(), '\0');
+                    m_filterEdit = {};
                     m_filtersChanged = true;
                     m_filterSettings.selectedFilter.destroy();
                 }

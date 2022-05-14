@@ -8,7 +8,6 @@
 #include <EnumDescriptorData.dots.h>
 
 CacheView::CacheView() :
-    m_typeFilterBuffer(256, '\0'),
     m_typesChanged(false),
     m_filterSettingsInitialized(false),
     m_filterSettings{ Settings::Register<FilterSettings>() }
@@ -57,9 +56,7 @@ void CacheView::initFilterSettings()
 {
     if (m_filterSettings.regexFilter.isValid())
     {
-        const std::string& regexFilter = m_filterSettings.regexFilter;
-        m_typeFilterBuffer.assign(std::max(regexFilter.size(), m_typeFilterBuffer.size()), '\0');
-        std::copy(regexFilter.begin(), regexFilter.end(), m_typeFilterBuffer.begin());
+        m_filterEdit = std::string_view{ *m_filterSettings.regexFilter };
     }
     else
     {
@@ -102,7 +99,7 @@ void CacheView::renderFilterArea()
 
             ImGui::SameLine();
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f - 19);
-            if (ImGui::InputTextWithHint("##typeFilter", "<none>", m_typeFilterBuffer.data(), m_typeFilterBuffer.size()))
+            if (m_filterEdit.render())
             {
                 m_typesChanged = true;
                 m_filterSettings.selectedFilter.destroy();
@@ -166,9 +163,7 @@ void CacheView::renderFilterArea()
                     if (ImGui::Selectable(filter.description->data(), selectedFilter == i) && selectedFilter != i)
                     {
                         selectedFilter = i;
-                        const std::string& regexFilter = filters[selectedFilter].regex;
-                        m_typeFilterBuffer.assign(std::max(regexFilter.size(), m_typeFilterBuffer.size()), '\0');
-                        std::copy(regexFilter.begin(), regexFilter.end(), m_typeFilterBuffer.begin());
+                        m_filterEdit = std::string_view{ *filters[selectedFilter].regex };
                         m_typesChanged = true;
                     }
 
@@ -201,7 +196,7 @@ void CacheView::renderFilterArea()
             ImGui::SameLine();
             constexpr char ClearLabel[] = "Clear";
 
-            if (m_typeFilterBuffer.front() == '\0')
+            if (m_filterEdit.text().first.empty())
             {
                 ImGui::BeginDisabled();
                 ImGui::Button(ClearLabel);
@@ -211,7 +206,7 @@ void CacheView::renderFilterArea()
             {
                 if (ImGui::Button(ClearLabel))
                 {
-                    m_typeFilterBuffer.assign(m_typeFilterBuffer.size(), '\0');
+                    m_filterEdit = {};
                     m_typesChanged = true;
                     m_filterSettings.selectedFilter.destroy();
                 }
@@ -251,7 +246,7 @@ void CacheView::renderFilterArea()
         // apply filters to type list
         if (m_typesChanged)
         {
-            std::string_view typeFilter = m_typeFilterBuffer.data();
+            std::string_view typeFilter = m_filterEdit.text().first;
             m_filterSettings.regexFilter = typeFilter;
 
             std::regex_constants::syntax_option_type regexFlags = std::regex_constants::ECMAScript;

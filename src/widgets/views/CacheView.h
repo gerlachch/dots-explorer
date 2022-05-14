@@ -4,6 +4,7 @@
 #include <dots/dots.h>
 #include <widgets/dialogs/FilterSettingsEdit.h>
 #include <widgets/views/StructList.h>
+#include <widgets/input/RegexEdit.h>
 #include <FilterSettings.dots.h>
 
 struct CacheView
@@ -30,7 +31,7 @@ private:
     std::vector<std::shared_ptr<StructList>> m_cacheList;
     std::vector<std::shared_ptr<StructList>> m_cacheListFiltered;
     PublisherModel m_publisherModel;
-    std::string m_typeFilterBuffer;
+    RegexEdit m_filterEdit;
     bool m_typesChanged;
     bool m_filterSettingsInitialized;
     FilterSettings& m_filterSettings;
