@@ -1,6 +1,5 @@
 #include <widgets/views/CacheView.h>
 #include <string_view>
-#include <regex>
 #include <imgui.h>
 #include <widgets/views/StructList.h>
 #include <common/Settings.h>
@@ -77,6 +76,57 @@ void CacheView::initFilterSettings()
         {
             selectedFilter.destroy();
         }
+    }
+}
+
+bool CacheView::applyFilter(const StructList& structList)
+{
+    std::string_view typeFilter = m_filterEdit.text().first;
+    const dots::type::StructDescriptor<>& descriptor = structList.container().descriptor();
+
+    if (descriptor.internal() && !*m_filterSettings.showInternal)
+    {
+        return false;
+    }
+    else if (!descriptor.cached() && !*m_filterSettings.showUncached)
+    {
+        return false;
+    }
+    else if (descriptor.cached() && structList.container().empty() && !*m_filterSettings.showEmpty)
+    {
+        return false;
+    }
+    else
+    {
+        return typeFilter.empty() || (m_regex != std::nullopt && std::regex_search(descriptor.name(), *m_regex));
+    }
+}
+
+void CacheView::applyFilters()
+{
+    std::string_view typeFilter = m_filterEdit.text().first;
+    m_filterSettings.regexFilter = typeFilter;
+
+    std::regex_constants::syntax_option_type regexFlags = std::regex_constants::ECMAScript;
+
+    if (!m_filterSettings.matchCase)
+    {
+        regexFlags |= std::regex_constants::icase;
+    }
+
+    try
+    {
+        std::regex regex{ typeFilter.data(), regexFlags };
+        m_regex.emplace(std::move(regex));
+        m_cacheListFiltered.clear();
+
+        std::copy_if(m_cacheList.begin(), m_cacheList.end(), std::back_inserter(m_cacheListFiltered), [&](const auto& structList)
+        {
+            return applyFilter(*structList);
+        });
+    }
+    catch (...)
+    {
     }
 }
 
@@ -246,46 +296,7 @@ void CacheView::renderFilterArea()
         // apply filters to type list
         if (m_typesChanged)
         {
-            std::string_view typeFilter = m_filterEdit.text().first;
-            m_filterSettings.regexFilter = typeFilter;
-
-            std::regex_constants::syntax_option_type regexFlags = std::regex_constants::ECMAScript;
-
-            if (!m_filterSettings.matchCase)
-            {
-                regexFlags |= std::regex_constants::icase;
-            }
-
-            try
-            {
-                std::regex regex{ typeFilter.data(), regexFlags };
-                m_cacheListFiltered.clear();
-
-                std::copy_if(m_cacheList.begin(), m_cacheList.end(), std::back_inserter(m_cacheListFiltered), [&](const auto& structList)
-                {
-                    const dots::type::StructDescriptor<>& descriptor = structList->container().descriptor();
-
-                    if (descriptor.internal() && !*m_filterSettings.showInternal)
-                    {
-                        return false;
-                    }
-                    else if (!descriptor.cached() && !*m_filterSettings.showUncached)
-                    {
-                        return false;
-                    }
-                    else if (descriptor.cached() && structList->container().empty() && !*m_filterSettings.showEmpty)
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        return typeFilter.empty() || std::regex_search(descriptor.name(), regex);
-                    }
-                });
-            }
-            catch (...)
-            {
-            }
+            applyFilters();
         }
 
         // render filtered types hint label
