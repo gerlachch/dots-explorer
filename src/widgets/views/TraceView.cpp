@@ -24,7 +24,7 @@ void TraceView::update(const dots::type::StructDescriptor<>& descriptor)
         m_subscriptions.emplace_back(dots::subscribe(descriptor, [this](const dots::Event<>& event)
         {
             StructDescriptorModel& descriptorModel = m_descriptorModels.try_emplace(&event.descriptor(), event.descriptor()).first->second;
-            auto& item = m_items.emplace_back(std::make_shared<TraceItem>(++m_traceIndex, descriptorModel, event));
+            auto& item = m_items.emplace_back(std::make_shared<TraceItem>(++m_traceIndex, descriptorModel, m_publisherModel, event));
 
             if (applyFilter(*item))
             {

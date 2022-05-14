@@ -100,6 +100,7 @@ target_sources(${TARGET_NAME}
         src/models/EventModel.cpp
         src/models/PropertyModel.cpp
         src/models/PropertyDescriptorModel.cpp
+        src/models/PublisherModel.cpp
         src/models/MetadataModel.cpp
         src/models/StructModel.cpp
         src/models/StructDescriptorModel.cpp

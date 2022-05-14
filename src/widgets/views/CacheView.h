@@ -29,6 +29,7 @@ private:
     std::optional<FilterSettingsEdit> m_filterSettingsEdit;
     std::vector<std::shared_ptr<StructList>> m_cacheList;
     std::vector<std::shared_ptr<StructList>> m_cacheListFiltered;
+    PublisherModel m_publisherModel;
     std::string m_typeFilterBuffer;
     bool m_typesChanged;
     bool m_filterSettingsInitialized;

@@ -6,7 +6,7 @@ struct ImGuiTableSortSpecs;
 
 struct TraceItem
 {
-    TraceItem(size_t index, const StructDescriptorModel& structDescriptorModel, const dots::Event<>& event);
+    TraceItem(size_t index, const StructDescriptorModel& structDescriptorModel, const PublisherModel& publisherModel, const dots::Event<>& event);
     TraceItem(const TraceItem& other) = delete;
     TraceItem(TraceItem&& other) = default;
     ~TraceItem() = default;

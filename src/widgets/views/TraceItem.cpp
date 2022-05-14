@@ -3,10 +3,10 @@
 #include <common/Colors.h>
 #include <common/ImGuiExt.h>
 
-TraceItem::TraceItem(size_t index, const StructDescriptorModel& structDescriptorModel, const dots::Event<>& event) :
+TraceItem::TraceItem(size_t index, const StructDescriptorModel& structDescriptorModel, const PublisherModel& publisherModel, const dots::Event<>& event) :
     m_isSelected(false),
     m_isHovered(false),
-    m_eventModel{ index, structDescriptorModel, event }
+    m_eventModel{ index, structDescriptorModel, publisherModel, event }
 {
     /* do nothing */
 }

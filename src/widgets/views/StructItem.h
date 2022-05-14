@@ -9,7 +9,7 @@ struct StructItem
 {
     enum MetaData { LastOp, LastPublished, LastPublishedBy, MetaDataSize };
 
-    StructItem(const StructDescriptorModel& structDescriptorModel, const dots::type::Struct& instance);
+    StructItem(const StructDescriptorModel& structDescriptorModel, const PublisherModel& publisherModel, const dots::type::Struct& instance);
     StructItem(const StructItem& other) = delete;
     StructItem(StructItem&& other) = default;
     ~StructItem() = default;

@@ -22,7 +22,7 @@ void CacheView::update(const dots::type::StructDescriptor<>& descriptor)
 {
     if (!descriptor.substructOnly())
     {
-        StructList& structList = *m_cacheList.emplace_back(std::make_shared<StructList>(descriptor));
+        StructList& structList = *m_cacheList.emplace_back(std::make_shared<StructList>(descriptor, m_publisherModel));
         m_typesChanged = true;
 
         m_subscriptions.emplace_back(dots::subscribe(descriptor, [this, &structList](const dots::Event<>& event)

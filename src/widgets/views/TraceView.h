@@ -37,6 +37,7 @@ private:
     std::vector<std::shared_ptr<TraceItem>> m_items;
     std::vector<std::shared_ptr<TraceItem>> m_itemsFiltered;
     std::optional<std::regex> m_regex;
+    PublisherModel m_publisherModel;
     size_t m_traceIndex;
     std::string m_eventFilterBuffer;
     bool m_filtersChanged;

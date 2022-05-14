@@ -6,7 +6,7 @@
 
 struct EventModel
 {
-    EventModel(size_t index, const StructDescriptorModel& descriptorModel, const dots::Event<>& event);
+    EventModel(size_t index, const StructDescriptorModel& descriptorModel, const PublisherModel& publisherModel, const dots::Event<>& event);
 
     size_t index() const;
     const StructModel& structModel() const;
@@ -16,9 +16,9 @@ struct EventModel
 
 private:
 
-    MetadataModel m_metadataModel;
     mutable ImGuiExt::ColoredText m_indexText;
     size_t m_index;
     dots::type::AnyStruct m_publishedInstance;
+    MetadataModel m_metadataModel;
     StructModel m_structModel;
 };

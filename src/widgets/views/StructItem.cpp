@@ -5,9 +5,10 @@
 #include <common/ImGuiExt.h>
 #include <DotsClient.dots.h>
 
-StructItem::StructItem(const StructDescriptorModel& structDescriptorModel, const dots::type::Struct& instance) :
+StructItem::StructItem(const StructDescriptorModel& structDescriptorModel, const PublisherModel& publisherModel, const dots::type::Struct& instance) :
     m_isSelected(false),
     m_isHovered(false),
+    m_metadataModel{ publisherModel },
     m_structModel{ structDescriptorModel, instance }
 {
     m_propertyModels.reserve(m_structModel.propertyModels().size());
@@ -96,24 +97,46 @@ bool StructItem::less(const ImGuiTableSortSpecs& sortSpecs, const StructItem& ot
             {
                 if (sortSpec.SortDirection == ImGuiSortDirection_Ascending)
                 {
-                    return std::less{}(lhs, rhs);
+                    return std::less{}(lhs.first, rhs.first);
                 }
                 else
                 {
-                    return std::greater{}(lhs, rhs);
+                    return std::greater{}(lhs.first, rhs.first);
                 }
             };
 
-            const std::string& metaDataStrThis = m_metadataModel.metadataText()[columnIndex].first;
-            const std::string& metaDataStrOther = other.m_metadataModel.metadataText()[columnIndex].first;
-
-            if (compare(metaDataStrThis, metaDataStrOther))
+            if (columnIndex == 0)
             {
-                return true;
+                if (compare(m_metadataModel.lastOperationText(), other.m_metadataModel.lastOperationText()))
+                {
+                    return true;
+                }
+                else if (compare(other.m_metadataModel.lastOperationText(), m_metadataModel.lastOperationText()))
+                {
+                    return false;
+                }
             }
-            else if (compare(metaDataStrOther, metaDataStrThis))
+            else if (columnIndex == 1)
             {
-                return false;
+                if (compare(m_metadataModel.lastPublishedText(), other.m_metadataModel.lastPublishedText()))
+                {
+                    return true;
+                }
+                else if (compare(other.m_metadataModel.lastPublishedText(), m_metadataModel.lastPublishedText()))
+                {
+                    return false;
+                }
+            }
+            else/* if (columnIndex == 2)*/
+            {
+                if (compare(m_metadataModel.lastPublishedByText(), other.m_metadataModel.lastPublishedByText()))
+                {
+                    return true;
+                }
+                else if (compare(other.m_metadataModel.lastPublishedByText(), m_metadataModel.lastPublishedByText()))
+                {
+                    return false;
+                }
             }
         }
     }

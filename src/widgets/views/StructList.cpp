@@ -6,14 +6,15 @@
 #include <widgets/views/StructView.h>
 #include <DotsClearCache.dots.h>
 
-StructList::StructList(const dots::type::StructDescriptor<>& descriptor) :
+StructList::StructList(const dots::type::StructDescriptor<>& descriptor, const PublisherModel& publisherModel) :
     m_lastPublishedItem(nullptr),
     m_lastPublishedItemTime{ dots::timepoint_t::min() },
     m_lastUpdateDelta(0.0f),
     m_containerChanged(false),
     m_containerStorage{ descriptor.cached() ? std::optional<dots::Container<>>{ std::nullopt } : dots::Container<>{ descriptor } },
     m_container{ descriptor.cached() ? dots::container(descriptor) : *m_containerStorage },
-    m_structDescriptorModel{ descriptor }
+    m_structDescriptorModel{ descriptor },
+    m_publisherModel{ publisherModel }
 {
     const auto& propertyPaths = descriptor.propertyPaths();
 
@@ -110,7 +111,7 @@ void StructList::update(const dots::Event<>& event)
 
     m_containerChanged = true;
 
-    auto [it, emplaced] = m_itemsStorage.try_emplace(instance, StructItem{ m_structDescriptorModel, *instance });
+    auto [it, emplaced] = m_itemsStorage.try_emplace(instance, StructItem{ m_structDescriptorModel, m_publisherModel, *instance });
     StructItem& item = it->second;
 
     if (emplaced)
