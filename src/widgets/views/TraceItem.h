@@ -1,6 +1,7 @@
 #pragma once
 #include <dots/dots.h>
-#include <models/EventModel.h>
+#include <models/MetadataModel.h>
+#include <models/StructModel.h>
 
 struct ImGuiTableSortSpecs;
 
@@ -16,8 +17,9 @@ struct TraceItem
 
     const char* widgetId() const;
 
-    const EventModel& eventModel() const ;
-    EventModel& eventModel();
+    size_t index() const;
+    const StructModel& structModel() const;
+    const MetadataModel& metadataModel() const;
 
     bool isSelected() const;
     bool isHovered() const;
@@ -31,5 +33,9 @@ private:
     mutable std::string m_widgetId;
     bool m_isSelected;
     bool m_isHovered;
-    EventModel m_eventModel;
+    size_t m_index;
+    ImGuiExt::ColoredText m_indexText;
+    dots::type::AnyStruct m_publishedInstance;
+    MetadataModel m_metadataModel;
+    StructModel m_structModel;
 };

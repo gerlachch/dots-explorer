@@ -97,7 +97,6 @@ target_sources(${TARGET_NAME}
         src/widgets/MainWindow.cpp
         src/common/ImGuiExt.cpp
         src/common/Settings.cpp
-        src/models/EventModel.cpp
         src/models/PropertyModel.cpp
         src/models/PropertyDescriptorModel.cpp
         src/models/PublisherModel.cpp

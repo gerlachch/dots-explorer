@@ -6,9 +6,13 @@
 TraceItem::TraceItem(size_t index, const StructDescriptorModel& structDescriptorModel, const PublisherModel& publisherModel, const dots::Event<>& event) :
     m_isSelected(false),
     m_isHovered(false),
-    m_eventModel{ index, structDescriptorModel, publisherModel, event }
+    m_index(index),
+    m_indexText{ fmt::format("#{}", m_index), ColorThemeActive.Disabled },
+    m_publishedInstance(event.transmitted()),
+    m_metadataModel{ publisherModel },
+    m_structModel{ structDescriptorModel, *m_publishedInstance }
 {
-    /* do nothing */
+    m_metadataModel.fetch(event);
 }
 
 const char* TraceItem::widgetId() const
@@ -21,14 +25,19 @@ const char* TraceItem::widgetId() const
     return m_widgetId.data();
 }
 
-const EventModel& TraceItem::eventModel() const
+size_t TraceItem::index() const
 {
-    return m_eventModel;
+    return m_index;
 }
 
-EventModel& TraceItem::eventModel()
+const StructModel& TraceItem::structModel() const
 {
-    return m_eventModel;
+    return m_structModel;
+}
+
+const MetadataModel& TraceItem::metadataModel() const
+{
+    return m_metadataModel;
 }
 
 bool TraceItem::isSelected() const
@@ -47,7 +56,7 @@ void TraceItem::render(bool hoverCondition)
 
     if (ImGui::TableNextColumn())
     {
-        const auto& [text, color] = m_eventModel.indexText();
+        const auto& [text, color] = m_indexText;
         ImGui::PushStyleColor(ImGuiCol_Header, ColorThemeActive.Marker);
         ImGui::PushStyleColor(ImGuiCol_Text, color);
         ImGui::Selectable(text.data(), &m_isSelected, ImGuiSelectableFlags_SpanAllColumns);
@@ -57,34 +66,33 @@ void TraceItem::render(bool hoverCondition)
 
     if (ImGui::TableNextColumn())
     {
-        ImGuiExt::TextColored(m_eventModel.metadataModel().lastPublishedText());
+        ImGuiExt::TextColored(m_metadataModel.lastPublishedText());
         m_isHovered |= hoverCondition && ImGui::IsItemHovered();
     }
 
     if (ImGui::TableNextColumn())
     {
-        ImGuiExt::TextColored(m_eventModel.metadataModel().lastPublishedByText());
+        ImGuiExt::TextColored(m_metadataModel.lastPublishedByText());
         m_isHovered |= hoverCondition && ImGui::IsItemHovered();
     }
 
     if (ImGui::TableNextColumn())
     {
-        ImGuiExt::TextColored(m_eventModel.metadataModel().lastOperationText());
+        ImGuiExt::TextColored(m_metadataModel.lastOperationText());
         m_isHovered |= hoverCondition && ImGui::IsItemHovered();
     }
 
     if (ImGui::TableNextColumn())
     {
-        ImGuiExt::TextColored(m_eventModel.structModel().descriptorModel().declarationText()[1]);
+        ImGuiExt::TextColored(m_structModel.descriptorModel().declarationText()[1]);
         m_isHovered |= hoverCondition && ImGui::IsItemHovered();
     }
 
     if (ImGui::TableNextColumn())
     {
-        const StructModel& structModel = m_eventModel.structModel();
-        ImGuiExt::TextColored(structModel.descriptorModel().declarationText()[1]);
+        ImGuiExt::TextColored(m_structModel.descriptorModel().declarationText()[1]);
 
-        for (const PropertyModel& propertyModel : structModel.propertyModels())
+        for (const PropertyModel& propertyModel : m_structModel.propertyModels())
         {
             if (!propertyModel.property().isValid())
             {

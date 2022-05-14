@@ -80,7 +80,7 @@ void TraceView::initFilterSettings()
 bool TraceView::applyFilter(const TraceItem& item)
 {
     std::string_view eventFilter = m_eventFilterBuffer.data();
-    const dots::type::StructDescriptor<>& descriptor = item.eventModel().structModel().descriptorModel().descriptor();
+    const dots::type::StructDescriptor<>& descriptor = item.structModel().descriptorModel().descriptor();
 
     if (descriptor.internal() && !*m_filterSettings.showInternal)
     {
@@ -372,7 +372,7 @@ void TraceView::renderEventList()
                 if (const TraceItem& item = *m_itemsFiltered[itemIndex]; item.isHovered())
                 {
                     ImGui::BeginTooltip();
-                    StructView structView{ item.eventModel().metadataModel(), item.eventModel().structModel() };
+                    StructView structView{ item.metadataModel(), item.structModel() };
                     structView.render();
                     ImGui::EndTooltip();
 
@@ -389,7 +389,7 @@ void TraceView::renderEventList()
 
                     if (ImGui::BeginPopupContextItem(item.widgetId()))
                     {
-                        const StructDescriptorModel& descriptorModel = item.eventModel().structModel().descriptorModel();
+                        const StructDescriptorModel& descriptorModel = item.structModel().descriptorModel();
 
                         ImGuiExt::TextColored(descriptorModel.declarationText());
                         ImGui::Separator();
@@ -428,7 +428,7 @@ void TraceView::renderEventList()
     {
         if (editItem != nullptr)
         {
-            const StructModel& structModel = editItem->eventModel().structModel();
+            const StructModel& structModel = editItem->structModel();
             m_structEdit.emplace(structModel.descriptorModel(), structModel.instance());
         }
 
@@ -444,7 +444,7 @@ void TraceView::renderEventList()
         {
             auto comp = [](const auto& lhs, const auto& rhs)
             {
-                return lhs->eventModel().index() < rhs->eventModel().index();
+                return lhs->index() < rhs->index();
             };
 
             if (auto it = std::lower_bound(m_items.begin(), m_items.end(), discardUntilItem, comp); it != m_items.end())
