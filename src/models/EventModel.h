@@ -14,8 +14,6 @@ struct EventModel
 
     const ImGuiExt::ColoredText& indexText() const;
 
-    void fetch();
-
 private:
 
     MetadataModel m_metadataModel;

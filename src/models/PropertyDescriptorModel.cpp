@@ -37,13 +37,3 @@ const std::vector<ImGuiExt::ColoredText>& PropertyDescriptorModel::declarationTe
 {
     return m_declarationText;
 }
-
-void PropertyDescriptorModel::fetch()
-{
-    /* do nothing */
-}
-
-void PropertyDescriptorModel::refresh()
-{
-    /* do nothing */
-}

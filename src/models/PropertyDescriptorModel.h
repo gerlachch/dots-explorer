@@ -11,9 +11,6 @@ struct PropertyDescriptorModel
     const dots::type::PropertyPath& propertyPath() const;
     const std::vector<ImGuiExt::ColoredText>& declarationText() const;
 
-    void fetch();
-    void refresh();
-
 private:
 
     using property_path_ref_t = std::reference_wrapper<const dots::type::PropertyPath>;

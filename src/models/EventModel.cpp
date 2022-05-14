@@ -34,8 +34,3 @@ const ImGuiExt::ColoredText& EventModel::indexText() const
 
     return m_indexText;
 }
-
-void EventModel::fetch()
-{
-    /* do nothing */
-}

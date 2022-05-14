@@ -67,13 +67,3 @@ auto StructDescriptorModel::declarationText() const -> const std::vector<colored
 {
     return m_declarationText;
 }
-
-void StructDescriptorModel::fetch()
-{
-    /* do nothing */
-}
-
-void StructDescriptorModel::refresh()
-{
-    /* do nothing */
-}
