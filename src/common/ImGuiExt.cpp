@@ -2,12 +2,17 @@
 
 namespace ImGuiExt
 {
-    void TextColored(const ColoredText& text)
+    void TextColored(ColoredTextView text)
     {
         const auto& [textStr, textColor] = text;
         ImGui::PushStyleColor(ImGuiCol_Text, textColor);
-        ImGui::TextUnformatted(textStr.data());
+        ImGui::TextUnformatted(textStr.data(), textStr.data() + textStr.size());
         ImGui::PopStyleColor();
+    }
+
+    void TextColored(const ColoredText& text)
+    {
+        TextColored(ColoredTextView{ text.first, text.second });
     }
 
     void TextColored(const std::vector<ColoredText>& text, float spacing/* = -1.0f*/)

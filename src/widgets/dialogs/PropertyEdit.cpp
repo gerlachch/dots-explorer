@@ -50,7 +50,7 @@ void PropertyEdit::render()
         // render input field
         {
             bool valueChanged = model.valueChanged();
-            const auto& [value, color] = model.valueText();
+            auto [value, color] = model.valueText();
 
             ImGui::PushStyleColor(ImGuiCol_Text, color);
             ImGui::PushItemWidth(ImGui::GetIO().DisplaySize.x * 0.25f);
