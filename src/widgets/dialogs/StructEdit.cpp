@@ -6,9 +6,9 @@
 StructEdit::StructEdit(const StructDescriptorModel& structDescriptorModel, dots::type::AnyStruct instance) :
     m_popupId{ fmt::format("StructEdit-{}_Popup", ++M_id) },
     m_instance{ std::move(instance) },
-    m_structModel{ structDescriptorModel, m_instance }
+    m_structRefModel{ structDescriptorModel, m_instance }
 {
-    for (PropertyModel& propertyModel : m_structModel.propertyModels())
+    for (PropertyModel& propertyModel : m_structRefModel.propertyModels())
     {
         m_propertyEdits.emplace_back(propertyModel);
     }
@@ -24,7 +24,7 @@ bool StructEdit::render()
     {
         // description
         {
-            ImGuiExt::TextColored(m_structModel.descriptorModel().declarationText());
+            ImGuiExt::TextColored(m_structRefModel.descriptorModel().declarationText());
             ImGui::Separator();
         }
 

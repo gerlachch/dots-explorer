@@ -1,7 +1,7 @@
 #pragma once
 #include <dots/dots.h>
 #include <models/MetadataModel.h>
-#include <models/StructModel.h>
+#include <models/StructRefModel.h>
 
 struct ImGuiTableSortSpecs;
 
@@ -22,8 +22,8 @@ struct StructItem
     const MetadataModel& metadataModel() const;
     MetadataModel& metadataModel();
 
-    const StructModel& structModel() const ;
-    StructModel& structModel();
+    const StructRefModel& structRefModel() const ;
+    StructRefModel& structRefModel();
 
     bool less(const ImGuiTableSortSpecs& sortSpecs, const StructItem& other) const;
 
@@ -42,6 +42,6 @@ private:
     bool m_isSelected;
     bool m_isHovered;
     MetadataModel m_metadataModel;
-    StructModel m_structModel;
+    StructRefModel m_structRefModel;
     std::vector<property_model_ref_t> m_propertyModels;
 };

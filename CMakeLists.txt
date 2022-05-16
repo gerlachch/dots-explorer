@@ -101,7 +101,7 @@ target_sources(${TARGET_NAME}
         src/models/PropertyDescriptorModel.cpp
         src/models/PublisherModel.cpp
         src/models/MetadataModel.cpp
-        src/models/StructModel.cpp
+        src/models/StructRefModel.cpp
         src/models/StructDescriptorModel.cpp
         src/dots_ext/FileInChannel.cpp
         src/widgets/views/TraceView.cpp

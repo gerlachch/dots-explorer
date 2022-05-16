@@ -1,9 +1,9 @@
-#include <models/StructModel.h>
+#include <models/StructRefModel.h>
 #include <cassert>
 #include <fmt/format.h>
 #include <common/Colors.h>
 
-StructModel::StructModel(const StructDescriptorModel& descriptorModel, dots::type::Struct& instance) :
+StructRefModel::StructRefModel(const StructDescriptorModel& descriptorModel, dots::type::Struct& instance) :
     m_mutable(true),
     m_descriptorModel{ descriptorModel },
     m_instance{ instance }
@@ -16,7 +16,7 @@ StructModel::StructModel(const StructDescriptorModel& descriptorModel, dots::typ
     }
 }
 
-StructModel::StructModel(const StructDescriptorModel& descriptorModel, const dots::type::Struct& instance) :
+StructRefModel::StructRefModel(const StructDescriptorModel& descriptorModel, const dots::type::Struct& instance) :
     m_mutable(false),
     m_descriptorModel{ descriptorModel },
     m_instance{ const_cast<dots::type::Struct&>(instance)}
@@ -29,33 +29,33 @@ StructModel::StructModel(const StructDescriptorModel& descriptorModel, const dot
     }
 }
 
-const StructDescriptorModel& StructModel::descriptorModel() const
+const StructDescriptorModel& StructRefModel::descriptorModel() const
 {
     return m_descriptorModel;
 }
 
-const std::vector<PropertyModel>& StructModel::propertyModels() const
+const std::vector<PropertyModel>& StructRefModel::propertyModels() const
 {
     return m_propertyModels;
 }
 
-std::vector<PropertyModel>& StructModel::propertyModels()
+std::vector<PropertyModel>& StructRefModel::propertyModels()
 {
     return m_propertyModels;
 }
 
-const dots::type::Struct& StructModel::instance() const
+const dots::type::Struct& StructRefModel::instance() const
 {
     return m_instance;
 }
 
-dots::type::Struct& StructModel::instance()
+dots::type::Struct& StructRefModel::instance()
 {
     assert(m_mutable);
     return m_instance;
 }
 
-void StructModel::fetch()
+void StructRefModel::fetch()
 {
     for (PropertyModel& propertyModel : m_propertyModels)
     {

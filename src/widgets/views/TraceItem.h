@@ -1,7 +1,7 @@
 #pragma once
 #include <dots/dots.h>
 #include <models/MetadataModel.h>
-#include <models/StructModel.h>
+#include <models/StructRefModel.h>
 
 struct ImGuiTableSortSpecs;
 
@@ -18,7 +18,7 @@ struct TraceItem
     const char* widgetId() const;
 
     size_t index() const;
-    const StructModel& structModel() const;
+    const StructRefModel& structRefModel() const;
     const MetadataModel& metadataModel() const;
 
     bool isSelected() const;
@@ -37,5 +37,5 @@ private:
     ImGuiExt::ColoredText m_indexText;
     dots::type::AnyStruct m_publishedInstance;
     MetadataModel m_metadataModel;
-    StructModel m_structModel;
+    StructRefModel m_structRefModel;
 };

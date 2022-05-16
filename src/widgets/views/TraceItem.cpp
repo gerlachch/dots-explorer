@@ -10,7 +10,7 @@ TraceItem::TraceItem(size_t index, const StructDescriptorModel& structDescriptor
     m_indexText{ fmt::format("#{}", m_index), ColorThemeActive.Disabled },
     m_publishedInstance(event.transmitted()),
     m_metadataModel{ publisherModel },
-    m_structModel{ structDescriptorModel, *m_publishedInstance }
+    m_structRefModel{ structDescriptorModel, *m_publishedInstance }
 {
     m_metadataModel.fetch(event);
 }
@@ -30,9 +30,9 @@ size_t TraceItem::index() const
     return m_index;
 }
 
-const StructModel& TraceItem::structModel() const
+const StructRefModel& TraceItem::structRefModel() const
 {
-    return m_structModel;
+    return m_structRefModel;
 }
 
 const MetadataModel& TraceItem::metadataModel() const
@@ -84,15 +84,15 @@ void TraceItem::render(bool hoverCondition)
 
     if (ImGui::TableNextColumn())
     {
-        ImGuiExt::TextColored(m_structModel.descriptorModel().declarationText()[1]);
+        ImGuiExt::TextColored(m_structRefModel.descriptorModel().declarationText()[1]);
         m_isHovered |= hoverCondition && ImGui::IsItemHovered();
     }
 
     if (ImGui::TableNextColumn())
     {
-        ImGuiExt::TextColored(m_structModel.descriptorModel().declarationText()[1]);
+        ImGuiExt::TextColored(m_structRefModel.descriptorModel().declarationText()[1]);
 
-        for (const PropertyModel& propertyModel : m_structModel.propertyModels())
+        for (const PropertyModel& propertyModel : m_structRefModel.propertyModels())
         {
             if (!propertyModel.property().isValid())
             {

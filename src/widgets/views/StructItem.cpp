@@ -9,13 +9,13 @@ StructItem::StructItem(const StructDescriptorModel& structDescriptorModel, const
     m_isSelected(false),
     m_isHovered(false),
     m_metadataModel{ publisherModel },
-    m_structModel{ structDescriptorModel, instance }
+    m_structRefModel{ structDescriptorModel, instance }
 {
-    m_propertyModels.reserve(m_structModel.propertyModels().size());
+    m_propertyModels.reserve(m_structRefModel.propertyModels().size());
 
-    if (m_structModel.propertyModels().size() <= IMGUI_TABLE_MAX_COLUMNS)
+    if (m_structRefModel.propertyModels().size() <= IMGUI_TABLE_MAX_COLUMNS)
     {
-        for (PropertyModel& propertyModel : m_structModel.propertyModels())
+        for (PropertyModel& propertyModel : m_structRefModel.propertyModels())
         {
             const dots::type::PropertyPath& propertyPath = propertyModel.descriptorModel().propertyPath();
 
@@ -29,7 +29,7 @@ StructItem::StructItem(const StructDescriptorModel& structDescriptorModel, const
     }
     else
     {
-        for (PropertyModel& propertyModel : m_structModel.propertyModels())
+        for (PropertyModel& propertyModel : m_structRefModel.propertyModels())
         {
             if (propertyModel.descriptorModel().propertyPath().elements().size() == 1)
             {
@@ -59,14 +59,14 @@ MetadataModel& StructItem::metadataModel()
     return m_metadataModel;
 }
 
-const StructModel& StructItem::structModel() const
+const StructRefModel& StructItem::structRefModel() const
 {
-    return m_structModel;
+    return m_structRefModel;
 }
 
-StructModel& StructItem::structModel()
+StructRefModel& StructItem::structRefModel()
 {
-    return m_structModel;
+    return m_structRefModel;
 }
 
 bool StructItem::less(const ImGuiTableSortSpecs& sortSpecs, const StructItem& other) const
@@ -141,7 +141,7 @@ bool StructItem::less(const ImGuiTableSortSpecs& sortSpecs, const StructItem& ot
         }
     }
 
-    return &structModel().instance() < &other.structModel().instance();
+    return &structRefModel().instance() < &other.structRefModel().instance();
 }
 
 bool StructItem::isSelected() const

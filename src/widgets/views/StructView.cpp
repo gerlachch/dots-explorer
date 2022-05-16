@@ -1,8 +1,8 @@
 #include <widgets/views/StructView.h>
 
-StructView::StructView(const MetadataModel& metadataModel, const StructModel& structModel) :
+StructView::StructView(const MetadataModel& metadataModel, const StructRefModel& structRefModel) :
     m_metadataModel{ metadataModel },
-    m_structModel{ structModel }
+    m_structRefModel{ structRefModel }
 {
     /* do nothing */
 }
@@ -12,16 +12,16 @@ const MetadataModel& StructView::metadataModel() const
     return m_metadataModel;
 }
 
-const StructModel& StructView::structModel() const
+const StructRefModel& StructView::structRefModel() const
 {
-    return m_structModel;
+    return m_structRefModel;
 }
 
 void StructView::render()
 {
     // render header
     {
-        ImGuiExt::TextColored(m_structModel.get().descriptorModel().declarationText());
+        ImGuiExt::TextColored(m_structRefModel.get().descriptorModel().declarationText());
     }
 
     ImGui::Separator();
@@ -29,7 +29,7 @@ void StructView::render()
     // render properties
     if (ImGui::BeginTable("PropertyTable", 2))
     {
-        for (const PropertyModel& propertyModel : m_structModel.get().propertyModels())
+        for (const PropertyModel& propertyModel : m_structRefModel.get().propertyModels())
         {
             ImGui::TableNextRow();
 

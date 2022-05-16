@@ -4,10 +4,10 @@
 #include <models/StructDescriptorModel.h>
 #include <models/PropertyModel.h>
 
-struct StructModel
+struct StructRefModel
 {
-    StructModel(const StructDescriptorModel& descriptorModel, dots::type::Struct& instance);
-    StructModel(const StructDescriptorModel& descriptorModel, const dots::type::Struct& instance);
+    StructRefModel(const StructDescriptorModel& descriptorModel, dots::type::Struct& instance);
+    StructRefModel(const StructDescriptorModel& descriptorModel, const dots::type::Struct& instance);
 
     const StructDescriptorModel& descriptorModel() const;
     

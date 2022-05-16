@@ -77,7 +77,7 @@ void TraceView::initFilterSettings()
 bool TraceView::applyFilter(const TraceItem& item)
 {
     std::string_view eventFilter = m_filterEdit.text().first;
-    const dots::type::StructDescriptor<>& descriptor = item.structModel().descriptorModel().descriptor();
+    const dots::type::StructDescriptor<>& descriptor = item.structRefModel().descriptorModel().descriptor();
 
     if (descriptor.internal() && !*m_filterSettings.showInternal)
     {
@@ -358,7 +358,7 @@ void TraceView::renderEventList()
                 if (const TraceItem& item = *m_itemsFiltered[itemIndex]; item.isHovered())
                 {
                     ImGui::BeginTooltip();
-                    StructView structView{ item.metadataModel(), item.structModel() };
+                    StructView structView{ item.metadataModel(), item.structRefModel() };
                     structView.render();
                     ImGui::EndTooltip();
 
@@ -375,7 +375,7 @@ void TraceView::renderEventList()
 
                     if (ImGui::BeginPopupContextItem(item.widgetId()))
                     {
-                        const StructDescriptorModel& descriptorModel = item.structModel().descriptorModel();
+                        const StructDescriptorModel& descriptorModel = item.structRefModel().descriptorModel();
 
                         ImGuiExt::TextColored(descriptorModel.declarationText());
                         ImGui::Separator();
@@ -414,8 +414,8 @@ void TraceView::renderEventList()
     {
         if (editItem != nullptr)
         {
-            const StructModel& structModel = editItem->structModel();
-            m_structEdit.emplace(structModel.descriptorModel(), structModel.instance());
+            const StructRefModel& structRefModel = editItem->structRefModel();
+            m_structEdit.emplace(structRefModel.descriptorModel(), structRefModel.instance());
         }
 
         if (m_structEdit != std::nullopt && !m_structEdit->render())

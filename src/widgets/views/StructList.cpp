@@ -120,7 +120,7 @@ void StructList::update(const dots::Event<>& event)
     }
 
     item.metadataModel().fetch(event);
-    item.structModel().fetch();
+    item.structRefModel().fetch();
 
     if (dots::timepoint_t lastPublished = item.metadataModel().lastPublished(); lastPublished > m_lastPublishedItemTime)
     {
@@ -152,7 +152,7 @@ bool StructList::renderBegin()
         }
 
         ImGui::BeginTooltip();
-        StructView structView{ m_lastPublishedItem->metadataModel(), m_lastPublishedItem->structModel() };
+        StructView structView{ m_lastPublishedItem->metadataModel(), m_lastPublishedItem->structRefModel() };
         structView.render();
         ImGui::EndTooltip();
 
@@ -160,7 +160,7 @@ bool StructList::renderBegin()
         if (ImGui::GetIO().MouseClicked[ImGuiMouseButton_Left])
         {
             openStructEdit = true;
-            editInstance = m_lastPublishedItem->structModel().instance();
+            editInstance = m_lastPublishedItem->structRefModel().instance();
         }
     }
 
@@ -263,7 +263,7 @@ void StructList::renderEnd()
                         m_lastPublishedItem = nullptr;
                     }
 
-                    m_itemsStorage.erase(&item.structModel().instance());
+                    m_itemsStorage.erase(&item.structRefModel().instance());
                     return true;
                 }
                 else
@@ -304,14 +304,14 @@ void StructList::renderEnd()
                 if (const StructItem& item = m_items[itemIndex]; item.isHovered())
                 {
                     ImGui::BeginTooltip();
-                    StructView structView{ item.metadataModel(), item.structModel() };
+                    StructView structView{ item.metadataModel(), item.structRefModel() };
                     structView.render();
                     ImGui::EndTooltip();
 
                     // open instance in struct edit when clicked
                     if (ImGui::GetIO().MouseClicked[ImGuiMouseButton_Left])
                     {
-                        editInstance = item.structModel().instance();
+                        editInstance = item.structRefModel().instance();
                     }
                 }
 
@@ -332,21 +332,21 @@ void StructList::renderEnd()
 
                         if (selection.empty() && ImGui::MenuItem(m_structDescriptorModel.descriptor().cached() ? "View/Update" : "View/Publish"))
                         {
-                            editInstance = item.structModel().instance();
+                            editInstance = item.structRefModel().instance();
                         }
 
                         if (m_structDescriptorModel.descriptor().cached())
                         {
                             if (selection.empty() && ImGui::MenuItem("Remove [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
                             {
-                                dots::remove(item.structModel().instance());
+                                dots::remove(item.structRefModel().instance());
                             }
 
                             if (!selection.empty() && ImGui::MenuItem("Remove Selection [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
                             {
                                 for (const StructItem& selected : selection)
                                 {
-                                    dots::remove(selected.structModel().instance());
+                                    dots::remove(selected.structRefModel().instance());
                                 }
                             }
                         }
