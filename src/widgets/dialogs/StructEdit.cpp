@@ -56,7 +56,8 @@ bool StructEdit::render()
                     {
                         if (propertyEdit.inputParseable() == true)
                         {
-                            includedProperties += propertyEdit.model().property().descriptor().set();
+                            const dots::type::PropertyPath& propertyPath = propertyEdit.model().descriptorModel().propertyPath();
+                            includedProperties += propertyPath.elements().front().get().set();
                         }
                     }
 
