@@ -9,8 +9,10 @@ TraceItem::TraceItem(size_t index, const StructDescriptorModel& structDescriptor
     m_index(index),
     m_indexText{ fmt::format("#{}", m_index), ColorThemeActive.Disabled },
     m_publishedInstance(event.transmitted()),
+    m_updatedInstance(event.updated()),
     m_metadataModel{ publisherModel },
-    m_structRefModel{ structDescriptorModel, *m_publishedInstance }
+    m_publishedInstanceModel{ structDescriptorModel, *m_publishedInstance },
+    m_updatedInstanceModel{ structDescriptorModel, *m_updatedInstance }
 {
     m_metadataModel.fetch(event);
 }
@@ -30,14 +32,18 @@ size_t TraceItem::index() const
     return m_index;
 }
 
-const StructRefModel& TraceItem::structRefModel() const
-{
-    return m_structRefModel;
-}
-
 const MetadataModel& TraceItem::metadataModel() const
 {
     return m_metadataModel;
+}
+const StructRefModel& TraceItem::publishedInstanceModel() const
+{
+    return m_publishedInstanceModel;
+}
+
+const StructRefModel& TraceItem::updatedInstanceModel() const
+{
+    return m_updatedInstanceModel;
 }
 
 bool TraceItem::isSelected() const
@@ -84,15 +90,15 @@ void TraceItem::render(bool hoverCondition)
 
     if (ImGui::TableNextColumn())
     {
-        ImGuiExt::TextColored(m_structRefModel.descriptorModel().declarationText()[1]);
+        ImGuiExt::TextColored(m_publishedInstanceModel.descriptorModel().declarationText()[1]);
         m_isHovered |= hoverCondition && ImGui::IsItemHovered();
     }
 
-    if (ImGui::TableNextColumn())
+    auto render_instance = [this, &hoverCondition](const StructRefModel& structRefModel)
     {
-        ImGuiExt::TextColored(m_structRefModel.descriptorModel().declarationText()[1]);
+        ImGuiExt::TextColored(structRefModel.descriptorModel().declarationText()[1]);
 
-        for (const PropertyModel& propertyModel : m_structRefModel.propertyModels())
+        for (const PropertyModel& propertyModel : structRefModel.propertyModels())
         {
             if (!propertyModel.property().isValid())
             {
@@ -107,5 +113,15 @@ void TraceItem::render(bool hoverCondition)
         }
 
         m_isHovered |= hoverCondition && ImGui::IsItemHovered();
+    };
+
+    if (ImGui::TableNextColumn())
+    {
+        render_instance(m_publishedInstanceModel);
+    }
+
+    if (ImGui::TableNextColumn())
+    {
+        render_instance(m_updatedInstanceModel);
     }
 }

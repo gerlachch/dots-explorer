@@ -1,7 +1,7 @@
 #include <widgets/views/TraceView.h>
 #include <imgui.h>
 #include <common/Settings.h>
-#include <widgets/views/StructView.h>
+#include <widgets/views/EventView.h>
 #include <StructDescriptorData.dots.h>
 #include <EnumDescriptorData.dots.h>
 
@@ -77,7 +77,7 @@ void TraceView::initFilterSettings()
 bool TraceView::applyFilter(const TraceItem& item)
 {
     std::string_view eventFilter = m_filterEdit.text().first;
-    const dots::type::StructDescriptor<>& descriptor = item.structRefModel().descriptorModel().descriptor();
+    const dots::type::StructDescriptor<>& descriptor = item.publishedInstanceModel().descriptorModel().descriptor();
 
     if (descriptor.internal() && !*m_filterSettings.showInternal)
     {
@@ -323,7 +323,7 @@ void TraceView::renderEventList()
     std::shared_ptr<TraceItem> discardUntilItem;
     bool discardAll = false;
 
-    if (ImGui::BeginTable("EventTrace", 6, TableFlags, ImGui::GetContentRegionAvail()))
+    if (ImGui::BeginTable("EventTrace", 7, TableFlags, ImGui::GetContentRegionAvail()))
     {
         // render event list headers
         ImGui::TableSetupScrollFreeze(0, 1);
@@ -333,6 +333,7 @@ void TraceView::renderEventList()
         ImGui::TableSetupColumn("Operation");
         ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_DefaultHide);
         ImGui::TableSetupColumn("Published Instance");
+        ImGui::TableSetupColumn("Updated Instance", ImGuiTableColumnFlags_DefaultHide);
         ImGui::TableHeadersRow();
 
         // render event list
@@ -358,8 +359,7 @@ void TraceView::renderEventList()
                 if (const TraceItem& item = *m_itemsFiltered[itemIndex]; item.isHovered())
                 {
                     ImGui::BeginTooltip();
-                    StructView structView{ item.metadataModel(), item.structRefModel() };
-                    structView.render();
+                    EventView{ item.metadataModel(), item.publishedInstanceModel(), item.updatedInstanceModel() }.render();
                     ImGui::EndTooltip();
 
                     // open instance in struct edit when clicked
@@ -375,7 +375,7 @@ void TraceView::renderEventList()
 
                     if (ImGui::BeginPopupContextItem(item.widgetId()))
                     {
-                        const StructDescriptorModel& descriptorModel = item.structRefModel().descriptorModel();
+                        const StructDescriptorModel& descriptorModel = item.publishedInstanceModel().descriptorModel();
 
                         ImGuiExt::TextColored(descriptorModel.declarationText());
                         ImGui::Separator();
@@ -414,7 +414,7 @@ void TraceView::renderEventList()
     {
         if (editItem != nullptr)
         {
-            const StructRefModel& structRefModel = editItem->structRefModel();
+            const StructRefModel& structRefModel = editItem->publishedInstanceModel();
             m_structEdit.emplace(structRefModel.descriptorModel(), structRefModel.instance());
         }
 

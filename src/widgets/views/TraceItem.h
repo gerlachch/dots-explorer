@@ -18,8 +18,9 @@ struct TraceItem
     const char* widgetId() const;
 
     size_t index() const;
-    const StructRefModel& structRefModel() const;
     const MetadataModel& metadataModel() const;
+    const StructRefModel& publishedInstanceModel() const;
+    const StructRefModel& updatedInstanceModel() const;
 
     bool isSelected() const;
     bool isHovered() const;
@@ -36,6 +37,8 @@ private:
     size_t m_index;
     ImGuiExt::ColoredText m_indexText;
     dots::type::AnyStruct m_publishedInstance;
+    dots::type::AnyStruct m_updatedInstance;
     MetadataModel m_metadataModel;
-    StructRefModel m_structRefModel;
+    StructRefModel m_publishedInstanceModel;
+    StructRefModel m_updatedInstanceModel;
 };

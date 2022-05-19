@@ -12,6 +12,7 @@ struct MetadataModel
     DotsMt lastOperation() const;
     dots::timepoint_t lastPublished() const;
     dots::uint32_t lastPublishedBy() const;
+    dots::property_set_t lastPublishedProperties() const;
 
     const ImGuiExt::ColoredText& lastOperationText() const;
     const ImGuiExt::ColoredText& lastPublishedText() const;
@@ -34,6 +35,7 @@ private:
     DotsMt m_lastOperation;
     dots::timepoint_t m_lastPublished;
     dots::uint32_t m_lastPublishedBy;
+    dots::property_set_t m_lastPublishedProperties;
     mutable ImGuiExt::ColoredText m_lastPublishedText;
     publisher_model_ref_t m_publisherModel;
 };
