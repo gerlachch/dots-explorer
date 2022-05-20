@@ -126,6 +126,7 @@ void PropertyEdit::render()
 
         // render 'Invalidate' button
         {
+            ImGui::BeginDisabled(property.descriptor().isKey() || !property.isValid());
             ImGui::SameLine();
 
             if (ImGui::Button(m_invalidateLabel.data()))
@@ -135,6 +136,7 @@ void PropertyEdit::render()
             }
 
             ImGuiExt::TooltipLastHoveredItem("Invalidate property");
+            ImGui::EndDisabled();
         }
 
         // render 'Randomize' button
