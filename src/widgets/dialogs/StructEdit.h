@@ -21,6 +21,7 @@ private:
     inline static uint64_t M_id;
 
     std::string m_popupId;
+    bool m_remove;
     dots::type::AnyStruct m_instance;
     StructRefModel m_structRefModel;
     std::vector<PropertyEdit> m_propertyEdits;

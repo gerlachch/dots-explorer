@@ -6,6 +6,7 @@
 
 StructEdit::StructEdit(const StructDescriptorModel& structDescriptorModel, dots::type::AnyStruct instance) :
     m_popupId{ fmt::format("StructEdit-{}_Popup", ++M_id) },
+    m_remove(false),
     m_instance{ std::move(instance) },
     m_structRefModel{ structDescriptorModel, m_instance }
 {
@@ -166,25 +167,30 @@ bool StructEdit::render()
                 }
             }
 
-            if (!errors && m_instance->_hasProperties(m_instance->_keyProperties()))
+            ImGui::BeginDisabled(errors || !m_instance->_hasProperties(m_instance->_keyProperties()));
             {
                 if (ImGui::Button("Publish"))
                 {
-                    dots::publish(m_instance, includedProperties);
+                    dots::publish(m_instance, includedProperties, m_remove);
                     ImGui::CloseCurrentPopup();
                 }
             }
-            else
-            {
-                ImGui::BeginDisabled();
-                ImGui::Button("Publish");
-                ImGui::EndDisabled();
-            }
+            ImGui::EndDisabled();
 
             ImGui::SameLine();
             if (ImGui::Button("Cancel"))
             {
                 ImGui::CloseCurrentPopup();
+            }
+
+            if (m_instance->_descriptor().cached())
+            {
+                ImGui::SameLine();
+                ImGui::Checkbox("Remove", &m_remove);
+                ImGuiExt::TooltipLastHoveredItem(
+                    "Setting this will publish the instance with the remove flag.\n\n"
+                    "Note that contrary to other ways of removing instances, the resulting publish will include non-key properties."
+                );
             }
 
             ImGui::SameLine();
@@ -206,7 +212,20 @@ bool StructEdit::render()
                     : fmt::format("{} properties", includedCount)
                 ;
 
-                if (existingInstance == nullptr)
+                if (m_remove)
+                {
+                    ImGui::TextColored(ColorThemeActive.Remove, "[%zu selected]", includedCount);
+
+                    if (existingInstance == nullptr)
+                    {
+                        ImGuiExt::TooltipLastHoveredItem(fmt::format("The publish will contain {} and attempt to remove an existing instance, but it will probably have no effect.", includedCountStr));
+                    }
+                    else
+                    {
+                        ImGuiExt::TooltipLastHoveredItem(fmt::format("The publish will contain {} and attempt to remove an existing instance.", includedCountStr));
+                    }
+                }
+                else if (existingInstance == nullptr)
                 {
                     ImGui::TextColored(ColorThemeActive.Create, "[%zu selected]", includedCount);
                     ImGuiExt::TooltipLastHoveredItem(fmt::format("The publish will contain {} and probably create a new instance.", includedCountStr));
