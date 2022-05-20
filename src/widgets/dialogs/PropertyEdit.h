@@ -28,6 +28,7 @@ private:
     std::string m_inputBuffer;
     model_ref_t m_model;
     std::string m_inputLabel;
+    std::string m_excludeLabel;
     std::string m_invalidateLabel;
     std::string m_randomizeLabel;
     std::string m_timepointNowLabel;

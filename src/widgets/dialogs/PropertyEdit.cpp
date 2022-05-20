@@ -7,6 +7,7 @@
 PropertyEdit::PropertyEdit(PropertyModel& model, std::optional<bool> included/* = std::nullopt*/) :
     m_model{ model },
     m_inputLabel{ fmt::format("##PropertyEdit_{}_Input", static_cast<void*>(this)) },
+    m_excludeLabel{ fmt::format("E##PropertyEdit_{}_Exclude", static_cast<void*>(this)) },
     m_invalidateLabel{ fmt::format("X##PropertyEdit_{}_Invalidate", static_cast<void*>(this)) },
     m_randomizeLabel{ fmt::format("R##PropertyEdit_{}_Randomize", static_cast<void*>(this)) },
     m_timepointNowLabel{ fmt::format("N##PropertyEdit_{}_TimePointNow", static_cast<void*>(this)) },
@@ -122,6 +123,20 @@ void PropertyEdit::render()
 
             ImGui::PopItemWidth();
             ImGui::PopStyleColor();
+        }
+
+        // render 'Exclude' button
+        {
+            ImGui::BeginDisabled(property.descriptor().isKey() || m_included == std::nullopt);
+            ImGui::SameLine();
+
+            if (ImGui::Button(m_excludeLabel.data()))
+            {
+                m_included = std::nullopt;
+            }
+
+            ImGuiExt::TooltipLastHoveredItem("Exclude property from publish");
+            ImGui::EndDisabled();
         }
 
         // render 'Invalidate' button
