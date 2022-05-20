@@ -166,6 +166,8 @@ void HostView::render()
             {
                 m_state = State::Pending;
             }
+
+            ImGuiExt::TooltipLastHoveredItem("Automatically connect/reconnect on startup and connection loss.");
         }
 
         // render connect button
