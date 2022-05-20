@@ -17,7 +17,7 @@ struct PropertyEdit
     const PropertyModel& model() const;
     PropertyModel& model();
 
-    std::optional<bool> inputParseable() const;
+    std::optional<bool> included() const;
 
     void render();
 
@@ -26,7 +26,7 @@ private:
     using model_ref_t = std::reference_wrapper<PropertyModel>;
 
     std::string m_inputBuffer;
-    std::optional<bool> m_inputParseable;
+    std::optional<bool> m_included;
     model_ref_t m_model;
     std::string m_inputLabel;
     std::string m_invalidateLabel;
