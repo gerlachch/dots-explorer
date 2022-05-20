@@ -111,7 +111,7 @@ void StructList::update(const dots::Event<>& event)
 
     m_containerChanged = true;
 
-    auto [it, emplaced] = m_itemsStorage.try_emplace(instance, StructItem{ m_structDescriptorModel, m_publisherModel, *instance });
+    auto [it, emplaced] = m_itemsStorage.try_emplace(instance, m_structDescriptorModel, m_publisherModel, *instance);
     StructItem& item = it->second;
 
     if (emplaced)
