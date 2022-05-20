@@ -2,14 +2,15 @@
 #include <fmt/format.h>
 #include <common/Colors.h>
 #include <common/ImGuiExt.h>
+#include <dots_ext/struct_ops.h>
 
 TraceItem::TraceItem(size_t index, const StructDescriptorModel& structDescriptorModel, const PublisherModel& publisherModel, const dots::Event<>& event) :
     m_isSelected(false),
     m_isHovered(false),
     m_index(index),
     m_indexText{ fmt::format("#{}", m_index), ColorThemeActive.Disabled },
-    m_publishedInstance(event.transmitted()),
-    m_updatedInstance(event.updated()),
+    m_publishedInstance{ copy_all(event.transmitted()) },
+    m_updatedInstance{ copy_all(event.updated()) },
     m_metadataModel{ publisherModel },
     m_publishedInstanceModel{ structDescriptorModel, *m_publishedInstance },
     m_updatedInstanceModel{ structDescriptorModel, *m_updatedInstance }

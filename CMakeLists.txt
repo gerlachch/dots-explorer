@@ -104,6 +104,7 @@ target_sources(${TARGET_NAME}
         src/models/StructRefModel.cpp
         src/models/StructDescriptorModel.cpp
         src/dots_ext/FileInChannel.cpp
+        src/dots_ext/struct_ops.cpp
         src/widgets/views/TraceView.cpp
         src/widgets/views/TraceItem.cpp
         src/widgets/dialogs/FilterSettingsEdit.cpp
