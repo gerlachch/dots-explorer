@@ -98,13 +98,13 @@ bool StructEdit::render()
 
                         if (isKey)
                         {
-                            ImGuiExt::TooltipLastHoveredItem("The publish will probably create a new instance identified by this key property.");
+                            ImGuiExt::TooltipLastHoveredItem("The publish will create a new instance identified by this key property.");
                         }
                         else
                         {
                             if (isValid)
                             {
-                                ImGuiExt::TooltipLastHoveredItem("The publish will probably create this property.");
+                                ImGuiExt::TooltipLastHoveredItem("The publish will create this property.");
                             }
                             else
                             {
@@ -122,7 +122,7 @@ bool StructEdit::render()
 
                             if (isKey)
                             {
-                                ImGuiExt::TooltipLastHoveredItem("The publish will probably update the existing instance identified by this key property.");
+                                ImGuiExt::TooltipLastHoveredItem("The publish will update the existing instance identified by this key property.");
                             }
                             else
                             {
@@ -134,7 +134,7 @@ bool StructEdit::render()
                             if (isValid)
                             {
                                 render_indicator(ColorThemeActive.Update);
-                                ImGuiExt::TooltipLastHoveredItem("The publish will probably update this property.");
+                                ImGuiExt::TooltipLastHoveredItem("The publish will update this property.");
                             }
                             else
                             {
@@ -222,18 +222,18 @@ bool StructEdit::render()
                     }
                     else
                     {
-                        ImGuiExt::TooltipLastHoveredItem(fmt::format("The publish will contain {} and attempt to remove an existing instance.", includedCountStr));
+                        ImGuiExt::TooltipLastHoveredItem(fmt::format("The publish will contain {} and attempt to remove the existing instance.", includedCountStr));
                     }
                 }
                 else if (existingInstance == nullptr)
                 {
                     ImGui::TextColored(ColorThemeActive.Create, "[%zu selected]", includedCount);
-                    ImGuiExt::TooltipLastHoveredItem(fmt::format("The publish will contain {} and probably create a new instance.", includedCountStr));
+                    ImGuiExt::TooltipLastHoveredItem(fmt::format("The publish will contain {} and create a new instance.", includedCountStr));
                 }
                 else
                 {
                     ImGui::TextColored(ColorThemeActive.Update, "[%zu selected]", includedCount);
-                    ImGuiExt::TooltipLastHoveredItem(fmt::format("The publish will contain {} and probably update an existing instance.", includedCountStr));
+                    ImGuiExt::TooltipLastHoveredItem(fmt::format("The publish will contain {} and update the existing instance.", includedCountStr));
                 }
             }
         }
