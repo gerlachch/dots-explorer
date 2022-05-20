@@ -150,26 +150,26 @@ bool StructEdit::render()
 
         // buttons
         {
-            bool noErrors = std::none_of(m_propertyEdits.begin(), m_propertyEdits.end(), [](const PropertyEdit& propertyEdit)
+            bool errors = std::any_of(m_propertyEdits.begin(), m_propertyEdits.end(), [](const PropertyEdit& propertyEdit)
             {
                 return propertyEdit.included() == false;
             });
 
-            if (noErrors && m_instance->_hasProperties(m_instance->_keyProperties()))
+            dots::property_set_t includedProperties;
+
+            for (const PropertyEdit& propertyEdit : m_propertyEdits)
+            {
+                if (propertyEdit.included() == true)
+                {
+                    const dots::type::PropertyPath& propertyPath = propertyEdit.model().descriptorModel().propertyPath();
+                    includedProperties += propertyPath.elements().front().get().set();
+                }
+            }
+
+            if (!errors && m_instance->_hasProperties(m_instance->_keyProperties()))
             {
                 if (ImGui::Button("Publish"))
                 {
-                    dots::property_set_t includedProperties;
-
-                    for (const PropertyEdit& propertyEdit : m_propertyEdits)
-                    {
-                        if (propertyEdit.included() == true)
-                        {
-                            const dots::type::PropertyPath& propertyPath = propertyEdit.model().descriptorModel().propertyPath();
-                            includedProperties += propertyPath.elements().front().get().set();
-                        }
-                    }
-
                     dots::publish(m_instance, includedProperties);
                     ImGui::CloseCurrentPopup();
                 }
@@ -185,6 +185,37 @@ bool StructEdit::render()
             if (ImGui::Button("Cancel"))
             {
                 ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::SameLine();
+            if (!m_instance->_hasProperties(m_instance->_keyProperties()))
+            {
+                ImGui::TextColored(ColorThemeActive.Error, "[missing keys]");
+                ImGuiExt::TooltipLastHoveredItem("At lest one key property does not have a valid value.");
+            }
+            else if (errors)
+            {
+                ImGui::TextColored(ColorThemeActive.Error, "[input error]");
+                ImGuiExt::TooltipLastHoveredItem("At least one property could not be created from the specified input.");
+            }
+            else
+            {
+                size_t includedCount = includedProperties.count();
+                std::string includedCountStr = includedCount == 1
+                    ? std::string{ "1 property" }
+                    : fmt::format("{} properties", includedCount)
+                ;
+
+                if (existingInstance == nullptr)
+                {
+                    ImGui::TextColored(ColorThemeActive.Create, "[%zu selected]", includedCount);
+                    ImGuiExt::TooltipLastHoveredItem(fmt::format("The publish will contain {} and probably create a new instance.", includedCountStr));
+                }
+                else
+                {
+                    ImGui::TextColored(ColorThemeActive.Update, "[%zu selected]", includedCount);
+                    ImGuiExt::TooltipLastHoveredItem(fmt::format("The publish will contain {} and probably update an existing instance.", includedCountStr));
+                }
             }
         }
 
