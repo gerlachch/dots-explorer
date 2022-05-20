@@ -9,9 +9,18 @@ StructEdit::StructEdit(const StructDescriptorModel& structDescriptorModel, dots:
     m_instance{ std::move(instance) },
     m_structRefModel{ structDescriptorModel, m_instance }
 {
+    const dots::type::StructDescriptor<>& structDescriptor = structDescriptorModel.descriptor();
+
     for (PropertyModel& propertyModel : m_structRefModel.propertyModels())
     {
-        m_propertyEdits.emplace_back(propertyModel);
+        const dots::type::PropertyDescriptor& propertyDescriptor = propertyModel.descriptorModel().propertyPath().destination();
+
+        m_propertyEdits.emplace_back(
+            propertyModel,
+            propertyModel.property().isValid() && (propertyDescriptor.isKey() || !structDescriptor.cached())
+                ? std::optional{ true }
+                : std::nullopt
+        );
     }
 
     ImGui::OpenPopup(m_popupId.data());

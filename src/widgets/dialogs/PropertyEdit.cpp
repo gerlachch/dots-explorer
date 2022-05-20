@@ -4,12 +4,13 @@
 #include <fmt/format.h>
 #include <common/Colors.h>
 
-PropertyEdit::PropertyEdit(PropertyModel& model) :
+PropertyEdit::PropertyEdit(PropertyModel& model, std::optional<bool> included/* = std::nullopt*/) :
     m_model{ model },
     m_inputLabel{ fmt::format("##PropertyEdit_{}_Input", static_cast<void*>(this)) },
     m_invalidateLabel{ fmt::format("X##PropertyEdit_{}_Invalidate", static_cast<void*>(this)) },
     m_randomizeLabel{ fmt::format("R##PropertyEdit_{}_Randomize", static_cast<void*>(this)) },
-    m_timepointNowLabel{ fmt::format("N##PropertyEdit_{}_TimePointNow", static_cast<void*>(this)) }
+    m_timepointNowLabel{ fmt::format("N##PropertyEdit_{}_TimePointNow", static_cast<void*>(this)) },
+    m_included{ included }
 {
     /* do nothing */
 }
