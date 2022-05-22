@@ -81,6 +81,8 @@ if (NOT imgui_POPULATED)
   FetchContent_Populate(imgui)
 endif()
 
+find_package(Boost REQUIRED COMPONENTS filesystem)
+
 # target
 add_executable(${TARGET_NAME})
 
@@ -160,6 +162,7 @@ target_link_libraries(${TARGET_NAME}
         glfw
         $<$<BOOL:${Vulkan_FOUND}>:Vulkan::Vulkan>
         $<$<BOOL:${OpenGL_FOUND}>:${OPENGL_LIBRARIES}>
+        Boost::filesystem
 )
 
 # install

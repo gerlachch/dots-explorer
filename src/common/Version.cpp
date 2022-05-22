@@ -1,7 +1,9 @@
 #include <common/Version.h>
-#include <string>
 #include <regex>
-#include <cstdio>
+#include <boost/process.hpp>
+#ifdef _WIN32
+#include <boost/process/windows.hpp>
+#endif
 #include <fmt/format.h>
 #include <dots/serialization/TextSerializer.h>
 #include <dots/serialization/formats/JsonReader.h>
@@ -29,39 +31,26 @@ std::future<GitHubReleaseInfo> Version::GetReleaseInfo(std::string_view release/
 {
     return std::async(std::launch::async, [=]
     {
+        constexpr std::string_view ReleasesUri = "https://api.github.com/repos/gerlachch/dots-explorer/releases";
+
+        boost::process::ipstream pipeStream;
+        auto redirectStdout = boost::process::std_out > pipeStream;
+
         #ifdef _WIN32
-        #define popen _popen
-        #define pclose _pclose
-        constexpr char CurlCmd[] = "curl.exe";
+        boost::process::child curl{ fmt::format("curl.exe {}/{}", ReleasesUri, release), redirectStdout, ::boost::process::windows::create_no_window };
         #else
-        constexpr char CurlCmd[] = "curl";
+        boost::process::child curl{ fmt::format("curl {}/{}", ReleasesUri, release), redirectStdout };
         #endif
 
-        std::string cmd{ fmt::format("{} https://api.github.com/repos/gerlachch/dots-explorer/releases/{}", CurlCmd, release) };
-
-        char line[1024];
-        FILE* pipe;
-
-        if (pipe = ::popen(cmd.data(), "rt"); pipe == nullptr)
-        {
-           throw std::runtime_error{ "error getting release information: could not execute curl" };
-        }
-
         std::string body;
+        std::string line;
 
-        while(std::fgets(line, sizeof line, pipe))
+        while (pipeStream && std::getline(pipeStream, line) && !line.empty())
         {
             body += line;
         }
 
-        if (std::feof(pipe))
-        {
-            ::pclose(pipe);
-        }
-        else
-        {
-            throw std::runtime_error{ "error getting release information: broken pipe" };
-        }
+        curl.wait();
 
         // note that this is currently necessary because the JSON serializer
         // expects timestamps to use the offset format
