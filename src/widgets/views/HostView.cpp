@@ -17,6 +17,7 @@ HostView::HostView(std::string appName) :
     m_helpHintWidth(100.0f),
     m_hostSettings{ Settings::Register<HostSettings>() },
     m_viewSettings{ Settings::Register<ViewSettings>() },
+    m_releaseInfoTask{ Version::GetReleaseInfo() },
     m_appName{ std::move(appName) }
 {
     /* do nothing */
@@ -257,16 +258,45 @@ void HostView::render()
         {
             ImGui::SameLine(ImGui::GetContentRegionAvail().x - m_helpHintWidth);
 
-            ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.Disabled);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_Button]);
-            ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_WindowBg]);
-
-            if (ImGui::Button("Help/About [F1]") || ImGui::IsKeyPressed(ImGuiKey_F1, false))
+            if (m_releaseInfoTask != std::nullopt)
             {
-                m_helpDialog.emplace();
+                if (auto status = m_releaseInfoTask->wait_for(std::chrono::milliseconds{ 0 }); status == std::future_status::ready)
+                {
+                    try
+                    {
+                        m_releaseInfo.emplace(m_releaseInfoTask->get());
+                    }
+                    catch (...)
+                    {
+                    }
+
+                    m_releaseInfoTask = std::nullopt;
+                }
             }
 
-            ImGui::PopStyleColor(3);
+            const char* label;
+            int colorsPushed = 1;
+
+            if (m_releaseInfo != std::nullopt && m_releaseInfo->tag_name.isValid() && *m_releaseInfo->tag_name > Version::CurrentVersion)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
+                label = "Update Available [F1]";
+            }
+            else
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.Disabled);
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_Button]);
+                ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_WindowBg]);
+                label = "Help/About [F1]";
+                colorsPushed = 3;
+            }
+
+            if (ImGui::Button(label) || ImGui::IsKeyPressed(ImGuiKey_F1, false))
+            {
+                m_helpDialog.emplace(m_releaseInfo == std::nullopt ? nullptr : &*m_releaseInfo);
+            }
+
+            ImGui::PopStyleColor(colorsPushed);
             m_helpHintWidth = ImGui::GetItemRectSize().x;
 
             if (m_helpDialog != std::nullopt && !m_helpDialog->render())

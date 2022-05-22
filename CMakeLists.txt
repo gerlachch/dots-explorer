@@ -87,6 +87,7 @@ add_executable(${TARGET_NAME})
 # properties
 target_dots_model(${TARGET_NAME}
     src/model.dots
+    src/common/Version.dots
 )
 target_sources(${TARGET_NAME}
     PRIVATE
@@ -97,6 +98,7 @@ target_sources(${TARGET_NAME}
         src/widgets/MainWindow.cpp
         src/common/ImGuiExt.cpp
         src/common/Settings.cpp
+        src/common/Version.cpp
         src/models/PropertyModel.cpp
         src/models/PropertyDescriptorModel.cpp
         src/models/PublisherModel.cpp

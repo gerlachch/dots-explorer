@@ -1,4 +1,5 @@
 #include <common/ImGuiExt.h>
+#include <fmt/format.h>
 
 namespace ImGuiExt
 {
@@ -44,5 +45,22 @@ namespace ImGuiExt
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }
+    }
+
+    void Hyperlink(const std::string& uri)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.0f, 0.0f, 0.0f, 0.0f });
+
+        if (ImGui::Button(uri.data()))
+        {
+            #if defined(_WIN32)
+            std::system(fmt::format("cmd /c start {}", uri).data());
+            #elif defined(__linux__)
+            std::system(fmt::format("xdg-open {}", uri).data());
+            #endif
+        }
+
+        ImGui::PopStyleColor(2);
     }
 }

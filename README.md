@@ -24,6 +24,7 @@ The dots-explorer can be used to inspect and manipulate objects of a DOTS enviro
 # Runtime Dependencies
 
 * Official releases require the Vulkan runtime. If not available, the project can also be built to target OpenGL (see below).
+* (Optional) When curl is available, it will be used to fetch release information from the GitHub repository.
 
 # Build Dependencies
 

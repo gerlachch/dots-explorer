@@ -15,4 +15,6 @@ namespace ImGuiExt
     void TextColored(const std::vector<ColoredText>& text, float spacing = -1.0f);
 
     void TooltipLastHoveredItem(std::string_view text);
+
+    void Hyperlink(const std::string& uri);
 }
