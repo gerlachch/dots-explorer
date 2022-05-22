@@ -55,10 +55,11 @@ namespace ImGuiExt
         if (ImGui::Button(uri.data()))
         {
             #if defined(_WIN32)
-            std::system(fmt::format("cmd /c start {}", uri).data());
+            int result = std::system(fmt::format("cmd /c start {}", uri).data());
             #elif defined(__linux__)
-            std::system(fmt::format("xdg-open {}", uri).data());
+            int result = std::system(fmt::format("xdg-open {}", uri).data());
             #endif
+            (void)result;
         }
 
         ImGui::PopStyleColor(2);
