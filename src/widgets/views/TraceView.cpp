@@ -323,7 +323,7 @@ void TraceView::renderEventList()
     std::shared_ptr<TraceItem> discardUntilItem;
     bool discardAll = false;
 
-    if (ImGui::BeginTable("EventTrace", 7, TableFlags, ImGui::GetContentRegionAvail()))
+    if (ImGui::BeginTable("EventTrace", 8, TableFlags, ImGui::GetContentRegionAvail()))
     {
         // render event list headers
         ImGui::TableSetupScrollFreeze(0, 1);
@@ -334,6 +334,7 @@ void TraceView::renderEventList()
         ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_DefaultHide);
         ImGui::TableSetupColumn("Published Instance");
         ImGui::TableSetupColumn("Updated Instance", ImGuiTableColumnFlags_DefaultHide);
+        ImGui::TableSetupColumn("<intentionally-empty> ", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_NoHeaderLabel);
         ImGui::TableHeadersRow();
 
         // render event list
@@ -351,7 +352,7 @@ void TraceView::renderEventList()
                     item.render(hoverCondition);
 
                     // this dummy selectable is currently required for the context menu to work
-                    ImGui::SameLine();
+                    ImGui::TableNextColumn();
                     ImGui::Selectable("", false, ImGuiSelectableFlags_SpanAllColumns);
                 }
 
