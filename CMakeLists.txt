@@ -88,7 +88,7 @@ add_executable(${TARGET_NAME})
 
 # properties
 target_dots_model(${TARGET_NAME}
-    src/model.dots
+    src/common/Settings.dots
     src/common/Version.dots
 )
 target_sources(${TARGET_NAME}
