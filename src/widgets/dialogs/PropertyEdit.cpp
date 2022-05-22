@@ -4,12 +4,14 @@
 #include <fmt/format.h>
 #include <common/Colors.h>
 
-PropertyEdit::PropertyEdit(PropertyModel& model) :
+PropertyEdit::PropertyEdit(PropertyModel& model, std::optional<bool> included/* = std::nullopt*/) :
     m_model{ model },
     m_inputLabel{ fmt::format("##PropertyEdit_{}_Input", static_cast<void*>(this)) },
+    m_excludeLabel{ fmt::format("E##PropertyEdit_{}_Exclude", static_cast<void*>(this)) },
     m_invalidateLabel{ fmt::format("X##PropertyEdit_{}_Invalidate", static_cast<void*>(this)) },
     m_randomizeLabel{ fmt::format("R##PropertyEdit_{}_Randomize", static_cast<void*>(this)) },
-    m_timepointNowLabel{ fmt::format("N##PropertyEdit_{}_TimePointNow", static_cast<void*>(this)) }
+    m_timepointNowLabel{ fmt::format("N##PropertyEdit_{}_TimePointNow", static_cast<void*>(this)) },
+    m_included{ included }
 {
     /* do nothing */
 }
@@ -24,9 +26,9 @@ PropertyModel& PropertyEdit::model()
     return m_model;
 }
 
-std::optional<bool> PropertyEdit::inputParseable() const
+std::optional<bool> PropertyEdit::included() const
 {
-    return m_inputParseable;
+    return m_included;
 }
 
 void PropertyEdit::render()
@@ -50,7 +52,7 @@ void PropertyEdit::render()
         // render input field
         {
             bool valueChanged = model.valueChanged();
-            const auto& [value, color] = model.valueText();
+            auto [value, color] = model.valueText();
 
             ImGui::PushStyleColor(ImGuiCol_Text, color);
             ImGui::PushItemWidth(ImGui::GetIO().DisplaySize.x * 0.25f);
@@ -68,13 +70,13 @@ void PropertyEdit::render()
                     {
                         boolProperty.constructOrAssign(true);
                         model.fetch();
-                        m_inputParseable = true;
+                        m_included = true;
                     }
                     if (ImGui::Selectable(Items[1], itemIndex == 1))
                     {
                         boolProperty.constructOrAssign(false);
                         model.fetch();
-                        m_inputParseable = true;
+                        m_included = true;
                     }
                     ImGui::PopStyleColor();
 
@@ -97,7 +99,7 @@ void PropertyEdit::render()
                         {
                             property.constructOrAssign(enumerator);
                             model.fetch();
-                            m_inputParseable = true;
+                            m_included = true;
                         }
                     }
                     ImGui::PopStyleColor();
@@ -115,7 +117,7 @@ void PropertyEdit::render()
 
                 if (ImGui::InputText(m_inputLabel.data(), m_inputBuffer.data(), m_inputBuffer.size(), ImGuiInputTextFlags_AutoSelectAll))
                 {
-                    m_inputParseable = model.fromString(m_inputBuffer.data());
+                    m_included = model.fromString(m_inputBuffer.data());
                 }
             }
 
@@ -123,17 +125,33 @@ void PropertyEdit::render()
             ImGui::PopStyleColor();
         }
 
+        // render 'Exclude' button
+        {
+            ImGui::BeginDisabled(property.descriptor().isKey() || m_included == std::nullopt);
+            ImGui::SameLine();
+
+            if (ImGui::Button(m_excludeLabel.data()))
+            {
+                m_included = std::nullopt;
+            }
+
+            ImGuiExt::TooltipLastHoveredItem("Exclude property from publish");
+            ImGui::EndDisabled();
+        }
+
         // render 'Invalidate' button
         {
+            ImGui::BeginDisabled(property.descriptor().isKey() || !property.isValid());
             ImGui::SameLine();
 
             if (ImGui::Button(m_invalidateLabel.data()))
             {
                 model.invalidate();
-                m_inputParseable = true;
+                m_included = true;
             }
 
             ImGuiExt::TooltipLastHoveredItem("Invalidate property");
+            ImGui::EndDisabled();
         }
 
         // render 'Randomize' button
@@ -143,7 +161,7 @@ void PropertyEdit::render()
             if (ImGui::Button(m_randomizeLabel.data()))
             {
                 model.randomize();
-                m_inputParseable = true;
+                m_included = true;
             }
 
             ImGuiExt::TooltipLastHoveredItem("Randomize property");
@@ -170,34 +188,13 @@ void PropertyEdit::render()
                     }
 
                     model.fetch();
-                    m_inputParseable = true;
+                    m_included = true;
                 }
                 ImGuiExt::TooltipLastHoveredItem("Set to 'now' (i.e. the current time)");
             }
             else
             {
                 ImGui::Dummy(randomizeButtonSize);
-            }
-        }
-
-        // render input indicator
-        {
-            ImGui::SameLine();
-
-            if (m_inputParseable != std::nullopt)
-            {
-                if (*m_inputParseable)
-                {
-                    ImGui::TextColored(ColorThemeActive.Success, "Ok   ");
-                }
-                else
-                {
-                    ImGui::TextColored(ColorThemeActive.Error, "Error");
-                }
-            }
-            else
-            {
-                ImGui::TextUnformatted("     ");
             }
         }
     }

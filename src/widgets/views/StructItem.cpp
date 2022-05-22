@@ -5,16 +5,17 @@
 #include <common/ImGuiExt.h>
 #include <DotsClient.dots.h>
 
-StructItem::StructItem(const StructDescriptorModel& structDescriptorModel, const dots::type::Struct& instance) :
+StructItem::StructItem(const StructDescriptorModel& structDescriptorModel, const PublisherModel& publisherModel, const dots::type::Struct& instance) :
     m_isSelected(false),
     m_isHovered(false),
-    m_structModel{ structDescriptorModel, instance }
+    m_metadataModel{ publisherModel },
+    m_structRefModel{ structDescriptorModel, instance }
 {
-    m_propertyModels.reserve(m_structModel.propertyModels().size());
+    m_propertyModels.reserve(m_structRefModel.propertyModels().size());
 
-    if (m_structModel.propertyModels().size() <= IMGUI_TABLE_MAX_COLUMNS)
+    if (m_structRefModel.propertyModels().size() <= IMGUI_TABLE_MAX_COLUMNS)
     {
-        for (PropertyModel& propertyModel : m_structModel.propertyModels())
+        for (PropertyModel& propertyModel : m_structRefModel.propertyModels())
         {
             const dots::type::PropertyPath& propertyPath = propertyModel.descriptorModel().propertyPath();
 
@@ -28,7 +29,7 @@ StructItem::StructItem(const StructDescriptorModel& structDescriptorModel, const
     }
     else
     {
-        for (PropertyModel& propertyModel : m_structModel.propertyModels())
+        for (PropertyModel& propertyModel : m_structRefModel.propertyModels())
         {
             if (propertyModel.descriptorModel().propertyPath().elements().size() == 1)
             {
@@ -58,14 +59,14 @@ MetadataModel& StructItem::metadataModel()
     return m_metadataModel;
 }
 
-const StructModel& StructItem::structModel() const
+const StructRefModel& StructItem::structRefModel() const
 {
-    return m_structModel;
+    return m_structRefModel;
 }
 
-StructModel& StructItem::structModel()
+StructRefModel& StructItem::structRefModel()
 {
-    return m_structModel;
+    return m_structRefModel;
 }
 
 bool StructItem::less(const ImGuiTableSortSpecs& sortSpecs, const StructItem& other) const
@@ -96,29 +97,51 @@ bool StructItem::less(const ImGuiTableSortSpecs& sortSpecs, const StructItem& ot
             {
                 if (sortSpec.SortDirection == ImGuiSortDirection_Ascending)
                 {
-                    return std::less{}(lhs, rhs);
+                    return std::less{}(lhs.first, rhs.first);
                 }
                 else
                 {
-                    return std::greater{}(lhs, rhs);
+                    return std::greater{}(lhs.first, rhs.first);
                 }
             };
 
-            const std::string& metaDataStrThis = m_metadataModel.metadataText()[columnIndex].first;
-            const std::string& metaDataStrOther = other.m_metadataModel.metadataText()[columnIndex].first;
-
-            if (compare(metaDataStrThis, metaDataStrOther))
+            if (columnIndex == 0)
             {
-                return true;
+                if (compare(m_metadataModel.lastOperationText(), other.m_metadataModel.lastOperationText()))
+                {
+                    return true;
+                }
+                else if (compare(other.m_metadataModel.lastOperationText(), m_metadataModel.lastOperationText()))
+                {
+                    return false;
+                }
             }
-            else if (compare(metaDataStrOther, metaDataStrThis))
+            else if (columnIndex == 1)
             {
-                return false;
+                if (compare(m_metadataModel.lastPublishedText(), other.m_metadataModel.lastPublishedText()))
+                {
+                    return true;
+                }
+                else if (compare(other.m_metadataModel.lastPublishedText(), m_metadataModel.lastPublishedText()))
+                {
+                    return false;
+                }
+            }
+            else/* if (columnIndex == 2)*/
+            {
+                if (compare(m_metadataModel.lastPublishedByText(), other.m_metadataModel.lastPublishedByText()))
+                {
+                    return true;
+                }
+                else if (compare(other.m_metadataModel.lastPublishedByText(), m_metadataModel.lastPublishedByText()))
+                {
+                    return false;
+                }
             }
         }
     }
 
-    return &structModel().instance() < &other.structModel().instance();
+    return &structRefModel().instance() < &other.structRefModel().instance();
 }
 
 bool StructItem::isSelected() const

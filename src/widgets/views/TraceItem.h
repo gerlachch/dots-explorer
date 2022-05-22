@@ -1,12 +1,13 @@
 #pragma once
 #include <dots/dots.h>
-#include <models/EventModel.h>
+#include <models/MetadataModel.h>
+#include <models/StructRefModel.h>
 
 struct ImGuiTableSortSpecs;
 
 struct TraceItem
 {
-    TraceItem(size_t index, const StructDescriptorModel& structDescriptorModel, const dots::Event<>& event);
+    TraceItem(size_t index, const StructDescriptorModel& structDescriptorModel, const PublisherModel& publisherModel, const dots::Event<>& event);
     TraceItem(const TraceItem& other) = delete;
     TraceItem(TraceItem&& other) = default;
     ~TraceItem() = default;
@@ -16,8 +17,10 @@ struct TraceItem
 
     const char* widgetId() const;
 
-    const EventModel& eventModel() const ;
-    EventModel& eventModel();
+    size_t index() const;
+    const MetadataModel& metadataModel() const;
+    const StructRefModel& publishedInstanceModel() const;
+    const StructRefModel& updatedInstanceModel() const;
 
     bool isSelected() const;
     bool isHovered() const;
@@ -31,5 +34,11 @@ private:
     mutable std::string m_widgetId;
     bool m_isSelected;
     bool m_isHovered;
-    EventModel m_eventModel;
+    size_t m_index;
+    ImGuiExt::ColoredText m_indexText;
+    dots::type::AnyStruct m_publishedInstance;
+    dots::type::AnyStruct m_updatedInstance;
+    MetadataModel m_metadataModel;
+    StructRefModel m_publishedInstanceModel;
+    StructRefModel m_updatedInstanceModel;
 };

@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <dots/dots.h>
-#include <models/StructModel.h>
+#include <models/StructRefModel.h>
 #include <widgets/dialogs/PropertyEdit.h>
 
 struct StructEdit
@@ -21,7 +21,8 @@ private:
     inline static uint64_t M_id;
 
     std::string m_popupId;
+    bool m_remove;
     dots::type::AnyStruct m_instance;
-    StructModel m_structModel;
+    StructRefModel m_structRefModel;
     std::vector<PropertyEdit> m_propertyEdits;
 };

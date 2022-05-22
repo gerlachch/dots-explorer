@@ -24,10 +24,12 @@ The dots-explorer can be used to inspect and manipulate objects of a DOTS enviro
 # Runtime Dependencies
 
 * Official releases require the Vulkan runtime. If not available, the project can also be built to target OpenGL (see below).
+* (Optional) When curl is available, it will be used to fetch release information from the GitHub repository.
 
 # Build Dependencies
 
 * All dependencies of [dots-cpp](https://github.com/pnxs/dots-cpp#dependencies) (but not dots-cpp itself!).
+* Boost Filesystem (required by Boost Process).
 * Either the Vulkan or OpenGL SDK (with the former being preferred when available).
 * C++ compiler supporting at least C++17 (such as GCC 9 or MSVC 19.14).
 
@@ -43,6 +45,7 @@ sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-focal.list https://packages.
 sudo apt-get update -yq && \
 sudo apt-get install -yq \
     vulkan-sdk \
+    libboost-filesystem-dev=1.71.0.0ubuntu2 \
     xorg-dev
 ```
 

@@ -1,6 +1,5 @@
 #include <widgets/views/CacheView.h>
 #include <string_view>
-#include <regex>
 #include <imgui.h>
 #include <widgets/views/StructList.h>
 #include <common/Settings.h>
@@ -8,7 +7,6 @@
 #include <EnumDescriptorData.dots.h>
 
 CacheView::CacheView() :
-    m_typeFilterBuffer(256, '\0'),
     m_typesChanged(false),
     m_filterSettingsInitialized(false),
     m_filterSettings{ Settings::Register<FilterSettings>() }
@@ -22,7 +20,7 @@ void CacheView::update(const dots::type::StructDescriptor<>& descriptor)
 {
     if (!descriptor.substructOnly())
     {
-        StructList& structList = *m_cacheList.emplace_back(std::make_shared<StructList>(descriptor));
+        StructList& structList = *m_cacheList.emplace_back(std::make_shared<StructList>(descriptor, m_publisherModel));
         m_typesChanged = true;
 
         m_subscriptions.emplace_back(dots::subscribe(descriptor, [this, &structList](const dots::Event<>& event)
@@ -57,9 +55,7 @@ void CacheView::initFilterSettings()
 {
     if (m_filterSettings.regexFilter.isValid())
     {
-        const std::string& regexFilter = m_filterSettings.regexFilter;
-        m_typeFilterBuffer.assign(std::max(regexFilter.size(), m_typeFilterBuffer.size()), '\0');
-        std::copy(regexFilter.begin(), regexFilter.end(), m_typeFilterBuffer.begin());
+        m_filterEdit = std::string_view{ *m_filterSettings.regexFilter };
     }
     else
     {
@@ -83,6 +79,57 @@ void CacheView::initFilterSettings()
     }
 }
 
+bool CacheView::applyFilter(const StructList& structList)
+{
+    std::string_view typeFilter = m_filterEdit.text().first;
+    const dots::type::StructDescriptor<>& descriptor = structList.container().descriptor();
+
+    if (descriptor.internal() && !*m_filterSettings.showInternal)
+    {
+        return false;
+    }
+    else if (!descriptor.cached() && !*m_filterSettings.showUncached)
+    {
+        return false;
+    }
+    else if (descriptor.cached() && structList.container().empty() && !*m_filterSettings.showEmpty)
+    {
+        return false;
+    }
+    else
+    {
+        return typeFilter.empty() || (m_regex != std::nullopt && std::regex_search(descriptor.name(), *m_regex));
+    }
+}
+
+void CacheView::applyFilters()
+{
+    std::string_view typeFilter = m_filterEdit.text().first;
+    m_filterSettings.regexFilter = typeFilter;
+
+    std::regex_constants::syntax_option_type regexFlags = std::regex_constants::ECMAScript;
+
+    if (!m_filterSettings.matchCase)
+    {
+        regexFlags |= std::regex_constants::icase;
+    }
+
+    try
+    {
+        std::regex regex{ typeFilter.data(), regexFlags };
+        m_regex.emplace(std::move(regex));
+        m_cacheListFiltered.clear();
+
+        std::copy_if(m_cacheList.begin(), m_cacheList.end(), std::back_inserter(m_cacheListFiltered), [&](const auto& structList)
+        {
+            return applyFilter(*structList);
+        });
+    }
+    catch (...)
+    {
+    }
+}
+
 void CacheView::renderFilterArea()
 {
     bool openFilterSettingsEdit = false;
@@ -102,22 +149,13 @@ void CacheView::renderFilterArea()
 
             ImGui::SameLine();
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f - 19);
-            if (ImGui::InputTextWithHint("##typeFilter", "<none>", m_typeFilterBuffer.data(), m_typeFilterBuffer.size()))
+            if (m_filterEdit.render())
             {
                 m_typesChanged = true;
                 m_filterSettings.selectedFilter.destroy();
             }
             ImGui::PopItemWidth();
-
-            // render filter hint tooltip
-            if (ImGui::IsItemHovered())
-            {
-                ImGui::BeginTooltip();
-                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                ImGui::TextUnformatted("Types can be filtered by specifying substrings or ECMAScript regular expressions.");
-                ImGui::PopTextWrapPos();
-                ImGui::EndTooltip();
-            }
+            ImGuiExt::TooltipLastHoveredItem("Types can be filtered by specifying substrings or ECMAScript regular expressions.");
         }
 
         // render filter list
@@ -166,9 +204,7 @@ void CacheView::renderFilterArea()
                     if (ImGui::Selectable(filter.description->data(), selectedFilter == i) && selectedFilter != i)
                     {
                         selectedFilter = i;
-                        const std::string& regexFilter = filters[selectedFilter].regex;
-                        m_typeFilterBuffer.assign(std::max(regexFilter.size(), m_typeFilterBuffer.size()), '\0');
-                        std::copy(regexFilter.begin(), regexFilter.end(), m_typeFilterBuffer.begin());
+                        m_filterEdit = std::string_view{ *filters[selectedFilter].regex };
                         m_typesChanged = true;
                     }
 
@@ -201,7 +237,7 @@ void CacheView::renderFilterArea()
             ImGui::SameLine();
             constexpr char ClearLabel[] = "Clear";
 
-            if (m_typeFilterBuffer.front() == '\0')
+            if (m_filterEdit.text().first.empty())
             {
                 ImGui::BeginDisabled();
                 ImGui::Button(ClearLabel);
@@ -211,7 +247,7 @@ void CacheView::renderFilterArea()
             {
                 if (ImGui::Button(ClearLabel))
                 {
-                    m_typeFilterBuffer.assign(m_typeFilterBuffer.size(), '\0');
+                    m_filterEdit = {};
                     m_typesChanged = true;
                     m_filterSettings.selectedFilter.destroy();
                 }
@@ -251,46 +287,7 @@ void CacheView::renderFilterArea()
         // apply filters to type list
         if (m_typesChanged)
         {
-            std::string_view typeFilter = m_typeFilterBuffer.data();
-            m_filterSettings.regexFilter = typeFilter;
-
-            std::regex_constants::syntax_option_type regexFlags = std::regex_constants::ECMAScript;
-
-            if (!m_filterSettings.matchCase)
-            {
-                regexFlags |= std::regex_constants::icase;
-            }
-
-            try
-            {
-                std::regex regex{ typeFilter.data(), regexFlags };
-                m_cacheListFiltered.clear();
-
-                std::copy_if(m_cacheList.begin(), m_cacheList.end(), std::back_inserter(m_cacheListFiltered), [&](const auto& structList)
-                {
-                    const dots::type::StructDescriptor<>& descriptor = structList->container().descriptor();
-
-                    if (descriptor.internal() && !*m_filterSettings.showInternal)
-                    {
-                        return false;
-                    }
-                    else if (!descriptor.cached() && !*m_filterSettings.showUncached)
-                    {
-                        return false;
-                    }
-                    else if (descriptor.cached() && structList->container().empty() && !*m_filterSettings.showEmpty)
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        return typeFilter.empty() || std::regex_search(descriptor.name(), regex);
-                    }
-                });
-            }
-            catch (...)
-            {
-            }
+            applyFilters();
         }
 
         // render filtered types hint label

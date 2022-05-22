@@ -2,6 +2,7 @@
 #include <string>
 #include <future>
 #include <dots/dots.h>
+#include <common/Version.h>
 #include <widgets/dialogs/HelpDialog.h>
 #include <widgets/dialogs/HostSettingsEdit.h>
 #include <widgets/views/CacheView.h>
@@ -48,6 +49,8 @@ private:
     float m_helpHintWidth;
     HostSettings& m_hostSettings;
     ViewSettings& m_viewSettings;
+    std::optional<std::future<GitHubReleaseInfo>> m_releaseInfoTask;
+    std::optional<GitHubReleaseInfo> m_releaseInfo;
     std::string m_hostLabel;
     std::string m_appName;
 };

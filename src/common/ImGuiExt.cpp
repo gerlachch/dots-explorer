@@ -1,13 +1,19 @@
 #include <common/ImGuiExt.h>
+#include <fmt/format.h>
 
 namespace ImGuiExt
 {
-    void TextColored(const ColoredText& text)
+    void TextColored(ColoredTextView text)
     {
         const auto& [textStr, textColor] = text;
         ImGui::PushStyleColor(ImGuiCol_Text, textColor);
-        ImGui::TextUnformatted(textStr.data());
+        ImGui::TextUnformatted(textStr.data(), textStr.data() + textStr.size());
         ImGui::PopStyleColor();
+    }
+
+    void TextColored(const ColoredText& text)
+    {
+        TextColored(ColoredTextView{ text.first, text.second });
     }
 
     void TextColored(const std::vector<ColoredText>& text, float spacing/* = -1.0f*/)
@@ -39,5 +45,23 @@ namespace ImGuiExt
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }
+    }
+
+    void Hyperlink(const std::string& uri)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.0f, 0.0f, 0.0f, 0.0f });
+
+        if (ImGui::Button(uri.data()))
+        {
+            #if defined(_WIN32)
+            int result = std::system(fmt::format("cmd /c start {}", uri).data());
+            #elif defined(__linux__)
+            int result = std::system(fmt::format("xdg-open {}", uri).data());
+            #endif
+            (void)result;
+        }
+
+        ImGui::PopStyleColor(2);
     }
 }

@@ -34,7 +34,8 @@ dots::type::ProxyProperty<>& PropertyModel::property()
 
 const std::string& PropertyModel::toString() const
 {
-    return valueText().first;
+    (void)valueText();
+    return m_valueStr;
 }
 
 bool PropertyModel::fromString(const std::string& value)
@@ -66,70 +67,35 @@ void PropertyModel::randomize()
 
 bool PropertyModel::valueChanged() const
 {
-    return m_valueText.first.empty();
+    return m_valueStr.empty();
 }
 
-const ImGuiExt::ColoredText& PropertyModel::valueText() const
+ImGuiExt::ColoredTextView PropertyModel::valueText() const
 {
-    auto& [text, color] = m_valueText;
-
-    if (text.empty())
+    if (m_valueStr.empty())
     {
         dots::type::Type type = descriptorModel().propertyPath().destination().valueDescriptor().type();
 
-        if (m_property.isValid())
-        {
-            switch (type)
-            {
-                case dots::type::Type::boolean:
-                    color = ColorThemeActive.Keyword;
-                    break;
-                case dots::type::Type::string:
-                    color = ColorThemeActive.StringType;
-                    break;
-                case dots::type::Type::Enum:
-                    color = ColorThemeActive.EnumType;
-                    break;
-                case dots::type::Type::int8:
-                case dots::type::Type::uint8:
-                case dots::type::Type::int16:
-                case dots::type::Type::uint16:
-                case dots::type::Type::int32:
-                case dots::type::Type::uint32:
-                case dots::type::Type::int64:
-                case dots::type::Type::uint64:
-                case dots::type::Type::float32:
-                case dots::type::Type::float64:
-                case dots::type::Type::property_set:
-                case dots::type::Type::timepoint:
-                case dots::type::Type::steady_timepoint:
-                case dots::type::Type::duration:
-                case dots::type::Type::uuid:
-                case dots::type::Type::Vector:
-                case dots::type::Type::Struct:
-                default:
-                    color = ColorThemeActive.IntegralType;
-                    break;
-            }
-        }
-        else
-        {
-            color = ColorThemeActive.Disabled;
-        }
-
         if (m_property.isValid() && type == dots::type::Type::string)
         {
-            text += '"';
-            text += dots::to_string(m_property);
-            text += '"';
+            m_valueStr += '"';
+            m_valueStr += dots::to_string(m_property);
+            m_valueStr += '"';
         }
         else
         {
-            text = dots::to_string(m_property);
+            m_valueStr = dots::to_string(m_property);
         }
     }
 
-    return m_valueText;
+    if (m_property.isValid())
+    {
+        return { m_valueStr, descriptorModel().valueColor() };
+    }
+    else
+    {
+        return { m_valueStr, ColorThemeActive.Disabled };
+    }
 }
 
 bool PropertyModel::less(const ImGuiTableColumnSortSpecs& sortSpec, const PropertyModel& other) const
@@ -151,6 +117,5 @@ bool PropertyModel::less(const ImGuiTableColumnSortSpecs& sortSpec, const Proper
 
 void PropertyModel::fetch()
 {
-    auto& [text, color] = m_valueText;
-    text.clear();
+    m_valueStr.clear();
 }

@@ -4,6 +4,7 @@
 #include <vector>
 #include <dots/dots.h>
 #include <models/StructDescriptorModel.h>
+#include <models/PublisherModel.h>
 #include <widgets/views/StructItem.h>
 #include <widgets/dialogs/StructEdit.h>
 
@@ -11,7 +12,7 @@ struct ImGuiTableSortSpecs;
 
 struct StructList
 {
-    StructList(const dots::type::StructDescriptor<>& descriptor);
+    StructList(const dots::type::StructDescriptor<>& descriptor, const PublisherModel& publisherModel);
     StructList(const StructList& other) = delete;
     StructList(StructList&& other) = delete;
     ~StructList() = default;
@@ -31,6 +32,7 @@ struct StructList
 private:
 
     using container_ref_t = std::reference_wrapper<const dots::Container<>>;
+    using publisher_model_ref_t = std::reference_wrapper<const PublisherModel>;
 
     std::optional<StructEdit> m_structEdit;
     std::unordered_map<const dots::type::Struct*, StructItem> m_itemsStorage;
@@ -43,4 +45,5 @@ private:
     std::optional<dots::Container<>> m_containerStorage;
     container_ref_t m_container;
     StructDescriptorModel m_structDescriptorModel;
+    publisher_model_ref_t m_publisherModel;
 };

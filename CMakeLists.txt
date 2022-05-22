@@ -73,7 +73,7 @@ FetchContent_MakeAvailable(dots-cpp fmt glfw)
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG        master
+    GIT_TAG        e346059eef140c5a8611581f3e6c8b8816d6998e
 )
 # Check if population has already been performed
 FetchContent_GetProperties(imgui)
@@ -81,12 +81,15 @@ if (NOT imgui_POPULATED)
   FetchContent_Populate(imgui)
 endif()
 
+find_package(Boost REQUIRED COMPONENTS filesystem)
+
 # target
 add_executable(${TARGET_NAME})
 
 # properties
 target_dots_model(${TARGET_NAME}
-    src/model.dots
+    src/common/Settings.dots
+    src/common/Version.dots
 )
 target_sources(${TARGET_NAME}
     PRIVATE
@@ -97,13 +100,15 @@ target_sources(${TARGET_NAME}
         src/widgets/MainWindow.cpp
         src/common/ImGuiExt.cpp
         src/common/Settings.cpp
-        src/models/EventModel.cpp
+        src/common/Version.cpp
         src/models/PropertyModel.cpp
         src/models/PropertyDescriptorModel.cpp
+        src/models/PublisherModel.cpp
         src/models/MetadataModel.cpp
-        src/models/StructModel.cpp
+        src/models/StructRefModel.cpp
         src/models/StructDescriptorModel.cpp
         src/dots_ext/FileInChannel.cpp
+        src/dots_ext/struct_ops.cpp
         src/widgets/views/TraceView.cpp
         src/widgets/views/TraceItem.cpp
         src/widgets/dialogs/FilterSettingsEdit.cpp
@@ -115,6 +120,8 @@ target_sources(${TARGET_NAME}
         src/widgets/views/StructView.cpp
         src/widgets/views/CacheView.cpp
         src/widgets/dialogs/PropertyEdit.cpp
+        src/widgets/input/RegexEdit.cpp
+        src/widgets/views/EventView.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
         $<$<BOOL:${Vulkan_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp>
         $<$<BOOL:${OpenGL_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp>
@@ -155,6 +162,7 @@ target_link_libraries(${TARGET_NAME}
         glfw
         $<$<BOOL:${Vulkan_FOUND}>:Vulkan::Vulkan>
         $<$<BOOL:${OpenGL_FOUND}>:${OPENGL_LIBRARIES}>
+        Boost::filesystem
 )
 
 # install

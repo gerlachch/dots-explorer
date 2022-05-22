@@ -7,6 +7,7 @@
 #include <widgets/views/TraceItem.h>
 #include <widgets/dialogs/FilterSettingsEdit.h>
 #include <widgets/dialogs/StructEdit.h>
+#include <widgets/input/RegexEdit.h>
 #include <FilterSettings.dots.h>
 
 struct TraceView
@@ -37,8 +38,9 @@ private:
     std::vector<std::shared_ptr<TraceItem>> m_items;
     std::vector<std::shared_ptr<TraceItem>> m_itemsFiltered;
     std::optional<std::regex> m_regex;
+    PublisherModel m_publisherModel;
+    RegexEdit m_filterEdit;
     size_t m_traceIndex;
-    std::string m_eventFilterBuffer;
     bool m_filtersChanged;
     bool m_filterSettingsInitialized;
     FilterSettings& m_filterSettings;

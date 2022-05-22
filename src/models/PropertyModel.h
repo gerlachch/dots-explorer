@@ -23,7 +23,7 @@ struct PropertyModel
     void randomize();
 
     bool valueChanged() const;
-    const ImGuiExt::ColoredText& valueText() const;
+    ImGuiExt::ColoredTextView valueText() const;
 
     bool less(const ImGuiTableColumnSortSpecs& sortSpec, const PropertyModel& other) const;
 
@@ -35,7 +35,7 @@ private:
 
     inline static dots::type::TypeRandomizer<> M_randomizer{ std::random_device{}() };
 
-    mutable ImGuiExt::ColoredText m_valueText;
+    mutable std::string m_valueStr;
     bool m_mutable;
     descriptor_model_ref_t m_descriptorModel;
     dots::type::ProxyProperty<> m_property;

@@ -1,13 +1,12 @@
 #include <widgets/views/TraceView.h>
 #include <imgui.h>
 #include <common/Settings.h>
-#include <widgets/views/StructView.h>
+#include <widgets/views/EventView.h>
 #include <StructDescriptorData.dots.h>
 #include <EnumDescriptorData.dots.h>
 
 TraceView::TraceView() :
     m_traceIndex(0),
-    m_eventFilterBuffer(256, '\0'),
     m_filtersChanged(true),
     m_filterSettingsInitialized(false),
     m_filterSettings{ Settings::Register<FilterSettings>() }
@@ -24,7 +23,7 @@ void TraceView::update(const dots::type::StructDescriptor<>& descriptor)
         m_subscriptions.emplace_back(dots::subscribe(descriptor, [this](const dots::Event<>& event)
         {
             StructDescriptorModel& descriptorModel = m_descriptorModels.try_emplace(&event.descriptor(), event.descriptor()).first->second;
-            auto& item = m_items.emplace_back(std::make_shared<TraceItem>(++m_traceIndex, descriptorModel, event));
+            auto& item = m_items.emplace_back(std::make_shared<TraceItem>(++m_traceIndex, descriptorModel, m_publisherModel, event));
 
             if (applyFilter(*item))
             {
@@ -51,9 +50,7 @@ void TraceView::initFilterSettings()
 {
     if (m_filterSettings.regexFilter.isValid())
     {
-        const std::string& regexFilter = m_filterSettings.regexFilter;
-        m_eventFilterBuffer.assign(std::max(regexFilter.size(), m_eventFilterBuffer.size()), '\0');
-        std::copy(regexFilter.begin(), regexFilter.end(), m_eventFilterBuffer.begin());
+        m_filterEdit = std::string_view{ *m_filterSettings.regexFilter };
     }
     else
     {
@@ -79,8 +76,8 @@ void TraceView::initFilterSettings()
 
 bool TraceView::applyFilter(const TraceItem& item)
 {
-    std::string_view eventFilter = m_eventFilterBuffer.data();
-    const dots::type::StructDescriptor<>& descriptor = item.eventModel().structModel().descriptorModel().descriptor();
+    std::string_view eventFilter = m_filterEdit.text().first;
+    const dots::type::StructDescriptor<>& descriptor = item.publishedInstanceModel().descriptorModel().descriptor();
 
     if (descriptor.internal() && !*m_filterSettings.showInternal)
     {
@@ -98,7 +95,7 @@ bool TraceView::applyFilter(const TraceItem& item)
 
 void TraceView::applyFilters()
 {
-    std::string_view eventFilter = m_eventFilterBuffer.data();
+    std::string_view eventFilter = m_filterEdit.text().first;
     m_filterSettings.regexFilter = eventFilter;
 
     std::regex_constants::syntax_option_type regexFlags = std::regex_constants::ECMAScript;
@@ -143,22 +140,13 @@ void TraceView::renderFilterArea()
 
             ImGui::SameLine();
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f - 19);
-            if (ImGui::InputTextWithHint("##typeFilter", "<none>", m_eventFilterBuffer.data(), m_eventFilterBuffer.size()))
+            if (m_filterEdit.render())
             {
                 m_filtersChanged = true;
                 m_filterSettings.selectedFilter.destroy();
             }
             ImGui::PopItemWidth();
-
-            // render filter hint tooltip
-            if (ImGui::IsItemHovered())
-            {
-                ImGui::BeginTooltip();
-                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                ImGui::TextUnformatted("Types can be filtered by specifying substrings or ECMAScript regular expressions.");
-                ImGui::PopTextWrapPos();
-                ImGui::EndTooltip();
-            }
+            ImGuiExt::TooltipLastHoveredItem("Types can be filtered by specifying substrings or ECMAScript regular expressions.");
         }
 
         // render filter list
@@ -207,9 +195,7 @@ void TraceView::renderFilterArea()
                     if (ImGui::Selectable(filter.description->data(), selectedFilter == i) && selectedFilter != i)
                     {
                         selectedFilter = i;
-                        const std::string& regexFilter = filters[selectedFilter].regex;
-                        m_eventFilterBuffer.assign(std::max(regexFilter.size(), m_eventFilterBuffer.size()), '\0');
-                        std::copy(regexFilter.begin(), regexFilter.end(), m_eventFilterBuffer.begin());
+                        m_filterEdit = std::string_view{ *filters[selectedFilter].regex };
                         m_filtersChanged = true;
                     }
 
@@ -242,7 +228,7 @@ void TraceView::renderFilterArea()
             ImGui::SameLine();
             constexpr char ClearLabel[] = "Clear";
 
-            if (m_eventFilterBuffer.front() == '\0')
+            if (m_filterEdit.text().first.empty())
             {
                 ImGui::BeginDisabled();
                 ImGui::Button(ClearLabel);
@@ -252,7 +238,7 @@ void TraceView::renderFilterArea()
             {
                 if (ImGui::Button(ClearLabel))
                 {
-                    m_eventFilterBuffer.assign(m_eventFilterBuffer.size(), '\0');
+                    m_filterEdit = {};
                     m_filtersChanged = true;
                     m_filterSettings.selectedFilter.destroy();
                 }
@@ -337,7 +323,7 @@ void TraceView::renderEventList()
     std::shared_ptr<TraceItem> discardUntilItem;
     bool discardAll = false;
 
-    if (ImGui::BeginTable("EventTrace", 6, TableFlags, ImGui::GetContentRegionAvail()))
+    if (ImGui::BeginTable("EventTrace", 8, TableFlags, ImGui::GetContentRegionAvail()))
     {
         // render event list headers
         ImGui::TableSetupScrollFreeze(0, 1);
@@ -347,6 +333,8 @@ void TraceView::renderEventList()
         ImGui::TableSetupColumn("Operation");
         ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_DefaultHide);
         ImGui::TableSetupColumn("Published Instance");
+        ImGui::TableSetupColumn("Updated Instance", ImGuiTableColumnFlags_DefaultHide);
+        ImGui::TableSetupColumn("<intentionally-empty> ", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_NoHeaderLabel);
         ImGui::TableHeadersRow();
 
         // render event list
@@ -364,7 +352,7 @@ void TraceView::renderEventList()
                     item.render(hoverCondition);
 
                     // this dummy selectable is currently required for the context menu to work
-                    ImGui::SameLine();
+                    ImGui::TableNextColumn();
                     ImGui::Selectable("", false, ImGuiSelectableFlags_SpanAllColumns);
                 }
 
@@ -372,8 +360,7 @@ void TraceView::renderEventList()
                 if (const TraceItem& item = *m_itemsFiltered[itemIndex]; item.isHovered())
                 {
                     ImGui::BeginTooltip();
-                    StructView structView{ item.eventModel().metadataModel(), item.eventModel().structModel() };
-                    structView.render();
+                    EventView{ item.metadataModel(), item.publishedInstanceModel(), item.updatedInstanceModel() }.render();
                     ImGui::EndTooltip();
 
                     // open instance in struct edit when clicked
@@ -389,7 +376,7 @@ void TraceView::renderEventList()
 
                     if (ImGui::BeginPopupContextItem(item.widgetId()))
                     {
-                        const StructDescriptorModel& descriptorModel = item.eventModel().structModel().descriptorModel();
+                        const StructDescriptorModel& descriptorModel = item.publishedInstanceModel().descriptorModel();
 
                         ImGuiExt::TextColored(descriptorModel.declarationText());
                         ImGui::Separator();
@@ -428,8 +415,8 @@ void TraceView::renderEventList()
     {
         if (editItem != nullptr)
         {
-            const StructModel& structModel = editItem->eventModel().structModel();
-            m_structEdit.emplace(structModel.descriptorModel(), structModel.instance());
+            const StructRefModel& structRefModel = editItem->publishedInstanceModel();
+            m_structEdit.emplace(structRefModel.descriptorModel(), structRefModel.instance());
         }
 
         if (m_structEdit != std::nullopt && !m_structEdit->render())
@@ -444,7 +431,7 @@ void TraceView::renderEventList()
         {
             auto comp = [](const auto& lhs, const auto& rhs)
             {
-                return lhs->eventModel().index() < rhs->eventModel().index();
+                return lhs->index() < rhs->index();
             };
 
             if (auto it = std::lower_bound(m_items.begin(), m_items.end(), discardUntilItem, comp); it != m_items.end())

@@ -13,9 +13,6 @@ struct StructDescriptorModel
     const dots::type::StructDescriptor<>& descriptor() const;
     const std::vector<ImGuiExt::ColoredText>& declarationText() const;
 
-    void fetch();
-    void refresh();
-
 private:
 
     using descriptor_ref_t = std::reference_wrapper<const dots::type::StructDescriptor<>>;

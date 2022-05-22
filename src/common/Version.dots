@@ -1,0 +1,58 @@
+
+struct GitHubUser {
+    1: string login;
+    2: uint64 id;
+    3: string node_id;
+    4: string avatar_url;
+    5: string gravatar_id;
+    6: string url;
+    7: string html_url;
+    8: string followers_url;
+    9: string following_url;
+    10: string gists_url;
+    11: string starred_url;
+    12: string subscriptions_url;
+    13: string organizations_url;
+    14: string repos_url;
+    15: string events_url;
+    16: string received_events_url;
+    17: string type;
+    18: bool site_admin;
+}
+
+struct GitHubAsset {
+    1: string url;
+    2: uint64 id;
+    3: string node_id;
+    4: string name;
+    5: string label;
+    6: GitHubUser uploader;
+    7: string content_type;
+    8: string state;
+    9: uint64 size;
+    10: uint64 download_count;
+    11: timepoint created_at;
+    12: timepoint updated_at;
+    13: string browser_download_url;
+}
+
+struct GitHubReleaseInfo {
+    1: string url;
+    2: string assets_url;
+    3: string upload_url;
+    4: string html_url;
+    5: uint64 id;
+    6: GitHubUser author;
+    7: string node_id;
+    8: string tag_name;
+    9: string target_commitish;
+    10: string name;
+    11: bool draft;
+    12: bool prerelease;
+    13: timepoint created_at;
+    14: timepoint published_at;
+    15: vector<GitHubAsset> assets;
+    16: string tarball_url;
+    17: string zipball_url;
+    18: string body;
+}
