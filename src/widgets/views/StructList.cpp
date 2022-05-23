@@ -136,7 +136,7 @@ bool StructList::renderBegin()
     m_lastUpdateDelta += ImGui::GetIO().DeltaTime;
 
     bool containerOpen = ImGui::TreeNodeEx(container().descriptor().name().data(), ImGuiTreeNodeFlags_SpanFullWidth);
-    bool openStructEdit = false;
+    bool openPublishDialog = false;
     std::optional<dots::type::AnyStruct> editInstance;
 
     // render quick info tooltip for last published struct instance
@@ -159,7 +159,7 @@ bool StructList::renderBegin()
         // open last published instance in struct edit when clicked
         if (ImGui::GetIO().MouseClicked[ImGuiMouseButton_Left])
         {
-            openStructEdit = true;
+            openPublishDialog = true;
             editInstance = m_lastPublishedItem->structRefModel().instance();
         }
     }
@@ -173,7 +173,7 @@ bool StructList::renderBegin()
 
             if (ImGui::MenuItem(m_structDescriptorModel.descriptor().cached() ? "Create/Update" : "Publish"))
             {
-                openStructEdit = true;
+                openPublishDialog = true;
             }
 
             if (m_structDescriptorModel.descriptor().cached())
@@ -192,21 +192,21 @@ bool StructList::renderBegin()
 
     // struct edit
     {
-        if (openStructEdit)
+        if (openPublishDialog)
         {
             if (editInstance == std::nullopt)
             {
-                m_structEdit.emplace(m_structDescriptorModel, container().descriptor());
+                m_publishDialog.emplace(m_structDescriptorModel, container().descriptor());
             }
             else
             {
-                m_structEdit.emplace(m_structDescriptorModel, std::move(*editInstance));
+                m_publishDialog.emplace(m_structDescriptorModel, std::move(*editInstance));
             }
         }
 
-        if (m_structEdit != std::nullopt && !m_structEdit->render())
+        if (m_publishDialog != std::nullopt && !m_publishDialog->render())
         {
-            m_structEdit = std::nullopt;
+            m_publishDialog = std::nullopt;
         }
     }
 
@@ -356,7 +356,7 @@ void StructList::renderEnd()
     {
         if (editInstance != std::nullopt)
         {
-            m_structEdit.emplace(m_structDescriptorModel, std::move(*editInstance));
+            m_publishDialog.emplace(m_structDescriptorModel, std::move(*editInstance));
         }
     }
 

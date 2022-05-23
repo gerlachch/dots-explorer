@@ -408,12 +408,12 @@ void TraceView::renderEventList()
         if (editItem != nullptr)
         {
             const StructRefModel& structRefModel = editItem->publishedInstanceModel();
-            m_structEdit.emplace(structRefModel.descriptorModel(), structRefModel.instance());
+            m_publishDialog.emplace(structRefModel.descriptorModel(), structRefModel.instance());
         }
 
-        if (m_structEdit != std::nullopt && !m_structEdit->render())
+        if (m_publishDialog != std::nullopt && !m_publishDialog->render())
         {
-            m_structEdit = std::nullopt;
+            m_publishDialog = std::nullopt;
         }
     }
 

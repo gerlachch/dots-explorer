@@ -115,7 +115,7 @@ target_sources(${TARGET_NAME}
         src/widgets/views/StructList.cpp
         src/widgets/dialogs/HostSettingsEdit.cpp
         src/widgets/dialogs/HelpDialog.cpp
-        src/widgets/dialogs/StructEdit.cpp
+        src/widgets/dialogs/PublishDialog.cpp
         src/widgets/views/StructItem.cpp
         src/widgets/views/StructView.cpp
         src/widgets/views/CacheView.cpp

@@ -6,7 +6,7 @@
 #include <models/StructDescriptorModel.h>
 #include <models/PublisherModel.h>
 #include <widgets/views/StructItem.h>
-#include <widgets/dialogs/StructEdit.h>
+#include <widgets/dialogs/PublishDialog.h>
 
 struct ImGuiTableSortSpecs;
 
@@ -34,7 +34,7 @@ private:
     using container_ref_t = std::reference_wrapper<const dots::Container<>>;
     using publisher_model_ref_t = std::reference_wrapper<const PublisherModel>;
 
-    std::optional<StructEdit> m_structEdit;
+    std::optional<PublishDialog> m_publishDialog;
     std::unordered_map<const dots::type::Struct*, StructItem> m_itemsStorage;
     std::vector<std::reference_wrapper<StructItem>> m_items;
     std::vector<std::string> m_headers;

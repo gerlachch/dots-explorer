@@ -6,7 +6,7 @@
 #include <dots/dots.h>
 #include <widgets/views/TraceItem.h>
 #include <widgets/dialogs/FilterSettingsEdit.h>
-#include <widgets/dialogs/StructEdit.h>
+#include <widgets/dialogs/PublishDialog.h>
 #include <widgets/input/RegexEdit.h>
 #include <FilterSettings.dots.h>
 
@@ -33,7 +33,7 @@ private:
     void renderEventList();
 
     std::optional<FilterSettingsEdit> m_filterSettingsEdit;
-    std::optional<StructEdit> m_structEdit;
+    std::optional<PublishDialog> m_publishDialog;
     std::unordered_map<const dots::type::StructDescriptor<>*, StructDescriptorModel> m_descriptorModels;
     std::vector<std::shared_ptr<TraceItem>> m_items;
     std::vector<std::shared_ptr<TraceItem>> m_itemsFiltered;
