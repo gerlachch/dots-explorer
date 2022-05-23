@@ -10,7 +10,8 @@ TraceView::TraceView() :
     m_filtersChanged(true),
     m_filterSettingsInitialized(false),
     m_filterSettings{ Settings::Register<FilterSettings>() },
-    m_pageScrollTime(0.0f)
+    m_pageScrollTotalTime(0.0f),
+    m_pageScrollDeltaTime(0.0f)
 {
     m_subscriptions.emplace_back(dots::subscribe<StructDescriptorData>([](auto&){}));
     m_subscriptions.emplace_back(dots::subscribe<EnumDescriptorData>([](auto&){}));
@@ -420,18 +421,21 @@ void TraceView::renderEventList()
             {
                 if (ImGui::IsKeyDown(key))
                 {
-                    float pageScrollTimeMultiplier = 1.0f + std::floor(m_pageScrollTime);
+                    float pageScrollTimeMultiplier = 1.0f + std::floor(m_pageScrollTotalTime / 10.0f);
 
-                    if (ImGui::IsKeyPressed(key))
+                    if (ImGui::IsKeyPressed(key) || (m_pageScrollTotalTime >= ImGui::GetIO().KeyRepeatDelay && m_pageScrollDeltaTime >= 1.0f / 60.0f))
                     {
                         ImGui::SetScrollY(ImGui::GetScrollY() + scrollY * pageScrollTimeMultiplier);
+                        m_pageScrollDeltaTime = 0.0f;
                     }
 
-                    m_pageScrollTime += ImGui::GetIO().DeltaTime;
+                    m_pageScrollTotalTime += ImGui::GetIO().DeltaTime;
+                    m_pageScrollDeltaTime += ImGui::GetIO().DeltaTime;
                 }
                 else if (ImGui::IsKeyReleased(key))
                 {
-                    m_pageScrollTime = 0.0f;
+                    m_pageScrollTotalTime = 0.0f;
+                    m_pageScrollDeltaTime = 0.0f;
                 }
             };
 
