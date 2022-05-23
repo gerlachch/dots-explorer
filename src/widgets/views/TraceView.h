@@ -44,5 +44,6 @@ private:
     bool m_filtersChanged;
     bool m_filterSettingsInitialized;
     FilterSettings& m_filterSettings;
+    float m_pageScrollTime;
     std::vector<dots::Subscription> m_subscriptions;
 };

@@ -9,7 +9,8 @@ TraceView::TraceView() :
     m_traceIndex(0),
     m_filtersChanged(true),
     m_filterSettingsInitialized(false),
-    m_filterSettings{ Settings::Register<FilterSettings>() }
+    m_filterSettings{ Settings::Register<FilterSettings>() },
+    m_pageScrollTime(0.0f)
 {
     m_subscriptions.emplace_back(dots::subscribe<StructDescriptorData>([](auto&){}));
     m_subscriptions.emplace_back(dots::subscribe<EnumDescriptorData>([](auto&){}));
@@ -398,6 +399,49 @@ void TraceView::renderEventList()
         if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
         {
             ImGui::SetScrollHereY(1.0f);
+        }
+
+        // process scroll input
+        {
+            if (ImGui::IsKeyPressed(ImGuiKey_End, false))
+            {
+                // jump to bottom
+                ImGui::SetScrollY(ImGui::GetScrollMaxY());
+                ImGui::SetScrollHereY(1.0f);
+            }
+
+            if (ImGui::IsKeyPressed(ImGuiKey_Home, false))
+            {
+                // jump to top
+                ImGui::SetScrollY(0.0f);
+            }
+
+            auto scroll_if_down = [this](ImGuiKey key, float scrollY)
+            {
+                if (ImGui::IsKeyDown(key))
+                {
+                    float pageScrollTimeMultiplier = 1.0f + std::floor(m_pageScrollTime);
+
+                    if (ImGui::IsKeyPressed(key))
+                    {
+                        ImGui::SetScrollY(ImGui::GetScrollY() + scrollY * pageScrollTimeMultiplier);
+                    }
+
+                    m_pageScrollTime += ImGui::GetIO().DeltaTime;
+                }
+                else if (ImGui::IsKeyReleased(key))
+                {
+                    m_pageScrollTime = 0.0f;
+                }
+            };
+
+            // scroll up and down respectively
+            float singleItemY = ImGui::GetItemRectSize().y;
+            float clippedItemsY = static_cast<float>(std::max(0, clipper.DisplayEnd - clipper.DisplayStart - 1)) * singleItemY;
+            scroll_if_down(ImGuiKey_UpArrow, -singleItemY);
+            scroll_if_down(ImGuiKey_DownArrow, +singleItemY);
+            scroll_if_down(ImGuiKey_PageUp, -clippedItemsY);
+            scroll_if_down(ImGuiKey_PageDown, +clippedItemsY);
         }
 
         ImGui::EndTable();
