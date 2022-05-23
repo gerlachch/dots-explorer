@@ -2,8 +2,8 @@
 #include <vector>
 #include <optional>
 #include <unordered_map>
-#include <regex>
 #include <dots/dots.h>
+#include <common/Regex.h>
 #include <widgets/views/TraceItem.h>
 #include <widgets/dialogs/FilterSettingsEdit.h>
 #include <widgets/dialogs/PublishDialog.h>
@@ -37,7 +37,7 @@ private:
     std::unordered_map<const dots::type::StructDescriptor<>*, StructDescriptorModel> m_descriptorModels;
     std::vector<std::shared_ptr<TraceItem>> m_items;
     std::vector<std::shared_ptr<TraceItem>> m_itemsFiltered;
-    std::optional<std::regex> m_regex;
+    std::optional<Regex> m_regex;
     PublisherModel m_publisherModel;
     RegexEdit m_filterEdit;
     size_t m_traceIndex;

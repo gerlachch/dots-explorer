@@ -91,7 +91,7 @@ bool TraceView::applyFilter(const TraceItem& item)
     }
     else
     {
-        return eventFilter.empty() || (m_regex != std::nullopt && std::regex_search(descriptor.name(), *m_regex));
+        return eventFilter.empty() || (m_regex != std::nullopt && m_regex->search(descriptor.name()));
     }
 }
 
@@ -100,16 +100,9 @@ void TraceView::applyFilters()
     std::string_view eventFilter = m_filterEdit.text().first;
     m_filterSettings.regexFilter = eventFilter;
 
-    std::regex_constants::syntax_option_type regexFlags = std::regex_constants::ECMAScript;
-
-    if (!m_filterSettings.matchCase)
-    {
-        regexFlags |= std::regex_constants::icase;
-    }
-
     try
     {
-        std::regex regex{ eventFilter.data(), regexFlags };
+        Regex regex{ eventFilter.data(), m_filterSettings.matchCase };
         m_regex.emplace(std::move(regex));
         m_itemsFiltered.clear();
 

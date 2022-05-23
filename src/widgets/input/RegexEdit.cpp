@@ -1,7 +1,7 @@
 #include <widgets/input/RegexEdit.h>
-#include <regex>
 #include <imgui.h>
 #include <fmt/format.h>
+#include <common/Regex.h>
 #include <common/Colors.h>
 
 RegexEdit::RegexEdit(std::string_view regex/* = {}*/, std::string hint/* = "<none>"*/) :
@@ -49,7 +49,7 @@ void RegexEdit::fetch(const ImVec4& regularTextColor)
 {
     try
     {
-        std::regex regex{ m_buffer.data() };
+        Regex regex{ m_buffer.data() };
         m_text.first = m_buffer.data();
         m_text.second = regularTextColor;
         m_isValid = true;

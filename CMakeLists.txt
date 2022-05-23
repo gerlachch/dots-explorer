@@ -101,6 +101,7 @@ target_sources(${TARGET_NAME}
         src/common/ImGuiExt.cpp
         src/common/Settings.cpp
         src/common/Version.cpp
+        src/common/Regex.cpp
         src/models/PropertyModel.cpp
         src/models/PropertyDescriptorModel.cpp
         src/models/PublisherModel.cpp

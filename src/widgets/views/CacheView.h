@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 #include <optional>
-#include <regex>
 #include <dots/dots.h>
+#include <common/Regex.h>
 #include <widgets/dialogs/FilterSettingsEdit.h>
 #include <widgets/views/StructList.h>
 #include <widgets/input/RegexEdit.h>
@@ -33,7 +33,7 @@ private:
     std::optional<FilterSettingsEdit> m_filterSettingsEdit;
     std::vector<std::shared_ptr<StructList>> m_cacheList;
     std::vector<std::shared_ptr<StructList>> m_cacheListFiltered;
-    std::optional<std::regex> m_regex;
+    std::optional<Regex> m_regex;
     PublisherModel m_publisherModel;
     RegexEdit m_filterEdit;
     bool m_typesChanged;

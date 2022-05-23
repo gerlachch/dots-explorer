@@ -98,7 +98,7 @@ bool CacheView::applyFilter(const StructList& structList)
     }
     else
     {
-        return typeFilter.empty() || (m_regex != std::nullopt && std::regex_search(descriptor.name(), *m_regex));
+        return typeFilter.empty() || (m_regex != std::nullopt && m_regex->search(descriptor.name()));
     }
 }
 
@@ -107,16 +107,9 @@ void CacheView::applyFilters()
     std::string_view typeFilter = m_filterEdit.text().first;
     m_filterSettings.regexFilter = typeFilter;
 
-    std::regex_constants::syntax_option_type regexFlags = std::regex_constants::ECMAScript;
-
-    if (!m_filterSettings.matchCase)
-    {
-        regexFlags |= std::regex_constants::icase;
-    }
-
     try
     {
-        std::regex regex{ typeFilter.data(), regexFlags };
+        Regex regex{ typeFilter.data(), m_filterSettings.matchCase };
         m_regex.emplace(std::move(regex));
         m_cacheListFiltered.clear();
 
