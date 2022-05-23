@@ -217,14 +217,6 @@ void StructList::renderEnd()
 {
     constexpr ImGuiTableFlags TableFlags = 
         ImGuiTableFlags_Borders        |
-        ImGuiTableFlags_BordersH       |
-        ImGuiTableFlags_BordersOuterH  |
-        ImGuiTableFlags_BordersInnerH  |
-        ImGuiTableFlags_BordersV       |
-        ImGuiTableFlags_BordersOuterV  |
-        ImGuiTableFlags_BordersInnerV  |
-        ImGuiTableFlags_BordersOuter   |
-        ImGuiTableFlags_BordersInner   |
         ImGuiTableFlags_SizingFixedFit |
         ImGuiTableFlags_Resizable      |
         ImGuiTableFlags_Sortable       |

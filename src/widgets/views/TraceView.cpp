@@ -304,14 +304,6 @@ void TraceView::renderEventList()
 {
     constexpr ImGuiTableFlags TableFlags = 
         ImGuiTableFlags_Borders        |
-        ImGuiTableFlags_BordersH       |
-        ImGuiTableFlags_BordersOuterH  |
-        ImGuiTableFlags_BordersInnerH  |
-        ImGuiTableFlags_BordersV       |
-        ImGuiTableFlags_BordersOuterV  |
-        ImGuiTableFlags_BordersInnerV  |
-        ImGuiTableFlags_BordersOuter   |
-        ImGuiTableFlags_BordersInner   |
         ImGuiTableFlags_SizingFixedFit |
         ImGuiTableFlags_ScrollX        |
         ImGuiTableFlags_ScrollY        |
