@@ -68,7 +68,12 @@ FetchContent_Declare(
     GIT_TAG        master
 )
 
-FetchContent_MakeAvailable(dots-cpp fmt glfw)
+FetchContent_Declare(
+    re2
+    GIT_REPOSITORY https://github.com/google/re2.git
+    GIT_TAG        2022-04-01
+)
+FetchContent_MakeAvailable(dots-cpp fmt glfw re2)
 
 FetchContent_Declare(
     imgui
@@ -164,6 +169,7 @@ target_link_libraries(${TARGET_NAME}
         $<$<BOOL:${Vulkan_FOUND}>:Vulkan::Vulkan>
         $<$<BOOL:${OpenGL_FOUND}>:${OPENGL_LIBRARIES}>
         Boost::filesystem
+        re2::re2
 )
 
 # install
