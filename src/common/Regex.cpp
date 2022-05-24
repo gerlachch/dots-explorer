@@ -10,7 +10,7 @@ Regex::Regex(std::string_view regex, bool matchCase/* = true*/) :
     };
 }
 
-bool Regex::search(std::string_view str)
+bool Regex::search(std::string_view str) const
 {
     return RE2::PartialMatch(str, *m_regex);
 }

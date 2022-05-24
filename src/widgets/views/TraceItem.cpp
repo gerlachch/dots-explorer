@@ -57,6 +57,24 @@ bool TraceItem::isHovered() const
     return m_isHovered;
 }
 
+bool TraceItem::isFiltered(const std::optional<Regex>& filter, const FilterSettings& filterSettings) const
+{
+    const dots::type::StructDescriptor<>& descriptor = publishedInstanceModel().descriptorModel().descriptor();
+
+    if (descriptor.internal() && !*filterSettings.showInternal)
+    {
+        return false;
+    }
+    else if (!descriptor.cached() && !*filterSettings.showUncached)
+    {
+        return false;
+    }
+    else
+    {
+        return filterSettings.regexFilter->empty() || (filter != std::nullopt && filter->search(descriptor.name()));
+    }
+}
+
 void TraceItem::render(bool hoverCondition)
 {
     m_isHovered = false;

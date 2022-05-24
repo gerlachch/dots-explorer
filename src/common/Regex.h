@@ -13,7 +13,7 @@ struct Regex
     Regex& operator = (const Regex& rhs) = delete;
     Regex& operator = (Regex&& rhs) = default;
 
-    bool search(std::string_view str);
+    bool search(std::string_view str) const;
 
 private:
 

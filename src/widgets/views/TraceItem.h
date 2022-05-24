@@ -1,7 +1,9 @@
 #pragma once
 #include <dots/dots.h>
+#include <common/Regex.h>
 #include <models/MetadataModel.h>
 #include <models/StructRefModel.h>
+#include <FilterSettings.dots.h>
 
 struct ImGuiTableSortSpecs;
 
@@ -24,6 +26,7 @@ struct TraceItem
 
     bool isSelected() const;
     bool isHovered() const;
+    bool isFiltered(const std::optional<Regex>& filter, const FilterSettings& filterSettings) const;
 
     void render(bool hoverCondition);
 

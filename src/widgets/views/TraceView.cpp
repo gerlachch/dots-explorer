@@ -78,21 +78,7 @@ void TraceView::initFilterSettings()
 
 bool TraceView::applyFilter(const TraceItem& item)
 {
-    std::string_view eventFilter = m_filterEdit.text().first;
-    const dots::type::StructDescriptor<>& descriptor = item.publishedInstanceModel().descriptorModel().descriptor();
-
-    if (descriptor.internal() && !*m_filterSettings.showInternal)
-    {
-        return false;
-    }
-    else if (!descriptor.cached() && !*m_filterSettings.showUncached)
-    {
-        return false;
-    }
-    else
-    {
-        return eventFilter.empty() || (m_regex != std::nullopt && m_regex->search(descriptor.name()));
-    }
+    return item.isFiltered(m_regex, m_filterSettings);
 }
 
 void TraceView::applyFilters()
