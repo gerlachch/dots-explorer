@@ -57,6 +57,32 @@ bool TraceItem::isHovered() const
     return m_isHovered;
 }
 
+void TraceItem::setFilterTargets(const FilterTargets& targets)
+{
+    m_filterText.clear();
+
+    if (*targets.type)
+    {
+        m_filterText += fmt::format(" {}", m_publishedInstanceModel.descriptorModel().declarationText()[1].first);
+    }
+
+    if (*targets.publisher)
+    {
+        m_filterText += fmt::format(" {}", m_metadataModel.lastPublishedByText().first);
+    }
+
+    if (*targets.instance)
+    {
+        for (const PropertyModel& propertyModel : m_updatedInstanceModel.propertyModels())
+        {
+            if (propertyModel.property().isValid())
+            {
+                m_filterText += fmt::format(" {}:{}", propertyModel.descriptorModel().propertyPath().destination().name(), propertyModel.valueText().first);
+            }
+        }
+    }
+}
+
 bool TraceItem::isFiltered(const std::optional<Regex>& filter, const FilterSettings& filterSettings) const
 {
     const dots::type::StructDescriptor<>& descriptor = publishedInstanceModel().descriptorModel().descriptor();
@@ -71,7 +97,22 @@ bool TraceItem::isFiltered(const std::optional<Regex>& filter, const FilterSetti
     }
     else
     {
-        return filterSettings.regexFilter->empty() || (filter != std::nullopt && filter->search(descriptor.name()));
+        if (filterSettings.regexFilter->empty())
+        {
+            return true;
+        }
+        else if (filter == std::nullopt)
+        {
+            return false;
+        }
+        else if (filter->search(m_filterText))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }
 

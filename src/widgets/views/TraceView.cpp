@@ -1,5 +1,6 @@
 #include <widgets/views/TraceView.h>
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <common/Settings.h>
 #include <widgets/views/EventView.h>
 #include <StructDescriptorData.dots.h>
@@ -26,8 +27,9 @@ void TraceView::update(const dots::type::StructDescriptor<>& descriptor)
         {
             StructDescriptorModel& descriptorModel = m_descriptorModels.try_emplace(&event.descriptor(), event.descriptor()).first->second;
             auto& item = m_items.emplace_back(std::make_shared<TraceItem>(++m_traceIndex, descriptorModel, m_publisherModel, event));
+            item->setFilterTargets(m_filterSettings.targets);
 
-            if (applyFilter(*item))
+            if (item->isFiltered(m_regex, m_filterSettings))
             {
                 m_itemsFiltered.emplace_back(item);
             }
@@ -64,6 +66,11 @@ void TraceView::initFilterSettings()
     m_filterSettings.showEmpty.constructOrValue();
     m_filterSettings.matchCase.constructOrValue();
 
+    m_filterSettings.targets.constructOrValue();
+    m_filterSettings.targets->type.constructOrValue(true);
+    m_filterSettings.targets->publisher.constructOrValue(true);
+    m_filterSettings.targets->instance.constructOrValue(true);
+
     // ensure filters are valid
     {
         dots::vector_t<Filter>& filters = m_filterSettings.filters.constructOrValue();
@@ -74,11 +81,6 @@ void TraceView::initFilterSettings()
             selectedFilter.destroy();
         }
     }
-}
-
-bool TraceView::applyFilter(const TraceItem& item)
-{
-    return item.isFiltered(m_regex, m_filterSettings);
 }
 
 void TraceView::applyFilters()
@@ -94,7 +96,7 @@ void TraceView::applyFilters()
 
         std::copy_if(m_items.begin(), m_items.end(), std::back_inserter(m_itemsFiltered), [&](const auto& item)
         {
-            return applyFilter(*item);
+            return item->isFiltered(m_regex, m_filterSettings);
         });
     }
     catch (...)
@@ -137,7 +139,7 @@ void TraceView::renderFilterArea()
 
             ImGui::SameLine(0, 0);
 
-            if (ImGui::BeginCombo("##Filters", "", ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft))
+            if (ImGui::BeginCombo("##Filters", "", ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge))
             {
                 if (ImGui::Selectable("<New>"))
                 {
@@ -169,6 +171,35 @@ void TraceView::renderFilterArea()
 
                 ImGui::Separator();
 
+                // render filter rules
+                {
+                    ImGui::TextUnformatted("Filter by:");
+                    ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
+
+                    if (ImGui::MenuItem("Type", nullptr, &*m_filterSettings.targets->type))
+                    {
+                        for (const auto& item : m_items){ item->setFilterTargets(m_filterSettings.targets); }
+                        m_filtersChanged = true;
+                    }
+
+                    if (ImGui::MenuItem("Publisher", nullptr, &*m_filterSettings.targets->publisher))
+                    {
+                        for (const auto& item : m_items){ item->setFilterTargets(m_filterSettings.targets); }
+                        m_filtersChanged = true;
+                    }
+
+                    if (ImGui::MenuItem("Instance", nullptr, &*m_filterSettings.targets->instance))
+                    {
+                        for (const auto& item : m_items){ item->setFilterTargets(m_filterSettings.targets); }
+                        m_filtersChanged = true;
+                    }
+
+                    ImGui::PopItemFlag();
+                }
+
+                ImGui::Separator();
+
+                ImGui::TextUnformatted("Filters:");
                 uint32_t i = 0;
 
                 for (Filter& filter : filters)

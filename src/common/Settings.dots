@@ -24,6 +24,12 @@ struct Filter [substruct_only] {
     2: string description;
 }
 
+struct FilterTargets [substruct_only] {
+    1: bool type;
+    2: bool publisher;
+    3: bool instance;
+}
+
 struct FilterSettings {
     1: string regexFilter;
     2: bool showInternal;
@@ -32,4 +38,5 @@ struct FilterSettings {
     5: bool matchCase;
     6: vector<Filter> filters;
     7: uint32 selectedFilter;
+    8: FilterTargets targets;
 }

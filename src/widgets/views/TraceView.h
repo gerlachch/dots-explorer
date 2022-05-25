@@ -26,7 +26,6 @@ struct TraceView
 private:
 
     void initFilterSettings();
-    bool applyFilter(const TraceItem& item);
     void applyFilters();
 
     void renderFilterArea();
