@@ -2,6 +2,8 @@
 #include <cassert>
 #include <common/Colors.h>
 
+static dots::serialization::StringSerializer StringSerializer;
+
 PropertyModel::PropertyModel(const PropertyDescriptorModel& descriptorModel, dots::type::Struct& instance) :
     m_mutable(true),
     m_descriptorModel{ descriptorModel },
@@ -76,15 +78,18 @@ ImGuiExt::ColoredTextView PropertyModel::valueText() const
     {
         dots::type::Type type = descriptorModel().propertyPath().destination().valueDescriptor().type();
 
+        StringSerializer.output().clear();
+        StringSerializer.serialize(m_property);
+
         if (m_property.isValid() && type == dots::type::Type::string)
         {
             m_valueStr += '"';
-            m_valueStr += dots::to_string(m_property);
+            m_valueStr += StringSerializer.output();
             m_valueStr += '"';
         }
         else
         {
-            m_valueStr = dots::to_string(m_property);
+            m_valueStr = StringSerializer.output();
         }
     }
 
