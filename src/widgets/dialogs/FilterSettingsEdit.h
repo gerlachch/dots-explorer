@@ -1,6 +1,6 @@
 #pragma once
 #include <dots/dots.h>
-#include <widgets/input/RegexEdit.h>
+#include <widgets/input/FilterExpressionEdit.h>
 #include <FilterSettings.dots.h>
 
 struct FilterSettingsEdit
@@ -20,7 +20,7 @@ private:
     inline static uint64_t M_id;
 
     std::string m_popupId;
-    RegexEdit m_regexEdit;
+    FilterExpressionEdit m_filterExpressionEdit;
     std::string m_descriptionBuffer;
     const char* m_headerText;
     FilterSettings& m_settings;

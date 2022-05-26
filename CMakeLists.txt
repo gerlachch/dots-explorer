@@ -106,7 +106,7 @@ target_sources(${TARGET_NAME}
         src/common/ImGuiExt.cpp
         src/common/Settings.cpp
         src/common/Version.cpp
-        src/common/Regex.cpp
+        src/common/FilterMatcher.cpp
         src/models/PropertyModel.cpp
         src/models/PropertyDescriptorModel.cpp
         src/models/PublisherModel.cpp
@@ -126,7 +126,7 @@ target_sources(${TARGET_NAME}
         src/widgets/views/StructView.cpp
         src/widgets/views/CacheView.cpp
         src/widgets/dialogs/PropertyEdit.cpp
-        src/widgets/input/RegexEdit.cpp
+        src/widgets/input/FilterExpressionEdit.cpp
         src/widgets/views/EventView.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
         $<$<BOOL:${Vulkan_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp>

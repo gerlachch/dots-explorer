@@ -2,10 +2,10 @@
 #include <vector>
 #include <optional>
 #include <dots/dots.h>
-#include <common/Regex.h>
+#include <common/FilterMatcher.h>
 #include <widgets/dialogs/FilterSettingsEdit.h>
 #include <widgets/views/StructList.h>
-#include <widgets/input/RegexEdit.h>
+#include <widgets/input/FilterExpressionEdit.h>
 #include <FilterSettings.dots.h>
 
 struct CacheView
@@ -33,9 +33,9 @@ private:
     std::optional<FilterSettingsEdit> m_filterSettingsEdit;
     std::vector<std::shared_ptr<StructList>> m_cacheList;
     std::vector<std::shared_ptr<StructList>> m_cacheListFiltered;
-    std::optional<Regex> m_regex;
+    std::optional<FilterMatcher> m_filterMatcher;
     PublisherModel m_publisherModel;
-    RegexEdit m_filterEdit;
+    FilterExpressionEdit m_filterExpressionEdit;
     bool m_typesChanged;
     bool m_filterSettingsInitialized;
     FilterSettings& m_filterSettings;

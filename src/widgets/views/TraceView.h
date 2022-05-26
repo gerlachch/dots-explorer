@@ -3,11 +3,11 @@
 #include <optional>
 #include <unordered_map>
 #include <dots/dots.h>
-#include <common/Regex.h>
+#include <common/FilterMatcher.h>
 #include <widgets/views/TraceItem.h>
 #include <widgets/dialogs/FilterSettingsEdit.h>
 #include <widgets/dialogs/PublishDialog.h>
-#include <widgets/input/RegexEdit.h>
+#include <widgets/input/FilterExpressionEdit.h>
 #include <FilterSettings.dots.h>
 
 struct TraceView
@@ -36,9 +36,9 @@ private:
     std::unordered_map<const dots::type::StructDescriptor<>*, StructDescriptorModel> m_descriptorModels;
     std::vector<std::shared_ptr<TraceItem>> m_items;
     std::vector<std::shared_ptr<TraceItem>> m_itemsFiltered;
-    std::optional<Regex> m_regex;
+    std::optional<FilterMatcher> m_filterMatcher;
     PublisherModel m_publisherModel;
-    RegexEdit m_filterEdit;
+    FilterExpressionEdit m_filterExpressionEdit;
     size_t m_traceIndex;
     bool m_filtersChanged;
     bool m_filterSettingsInitialized;

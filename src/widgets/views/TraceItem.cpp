@@ -83,21 +83,21 @@ void TraceItem::setFilterTargets(const FilterTargets& targets)
     }
 }
 
-bool TraceItem::isFiltered(const std::optional<Regex>& filter, const FilterSettings& filterSettings) const
+bool TraceItem::isFiltered(const std::optional<FilterMatcher>& filter, const FilterSettings& filterSettings) const
 {
     const dots::type::StructDescriptor<>& descriptor = publishedInstanceModel().descriptorModel().descriptor();
 
-    if (descriptor.internal() && !*filterSettings.showInternal)
+    if (descriptor.internal() && !*filterSettings.types->internal)
     {
         return false;
     }
-    else if (!descriptor.cached() && !*filterSettings.showUncached)
+    else if (!descriptor.cached() && !*filterSettings.types->uncached)
     {
         return false;
     }
     else
     {
-        if (filterSettings.regexFilter->empty())
+        if (filterSettings.activeFilter->expression->empty())
         {
             return true;
         }
@@ -105,7 +105,7 @@ bool TraceItem::isFiltered(const std::optional<Regex>& filter, const FilterSetti
         {
             return false;
         }
-        else if (filter->search(m_filterText))
+        else if (filter->match(m_filterText))
         {
             return true;
         }

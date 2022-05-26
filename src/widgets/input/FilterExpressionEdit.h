@@ -1,9 +1,9 @@
 #pragma once
 #include <common/ImGuiExt.h>
 
-struct RegexEdit
+struct FilterExpressionEdit
 {
-    RegexEdit(std::string_view regex = {}, std::string hint = "<none>");
+    FilterExpressionEdit(std::string_view expression = {}, std::string hint = "<none>");
 
     const ImGuiExt::ColoredText& text() const;
     bool isValid() const;

@@ -29,7 +29,7 @@ void TraceView::update(const dots::type::StructDescriptor<>& descriptor)
             auto& item = m_items.emplace_back(std::make_shared<TraceItem>(++m_traceIndex, descriptorModel, m_publisherModel, event));
             item->setFilterTargets(m_filterSettings.targets);
 
-            if (item->isFiltered(m_regex, m_filterSettings))
+            if (item->isFiltered(m_filterMatcher, m_filterSettings))
             {
                 m_itemsFiltered.emplace_back(item);
             }
@@ -52,18 +52,21 @@ void TraceView::render()
 
 void TraceView::initFilterSettings()
 {
-    if (m_filterSettings.regexFilter.isValid())
+    if (m_filterSettings.activeFilter.isValid())
     {
-        m_filterEdit = std::string_view{ *m_filterSettings.regexFilter };
+        m_filterExpressionEdit = std::string_view{ *m_filterSettings.activeFilter->expression };
     }
     else
     {
-        m_filterSettings.regexFilter.construct();
+        m_filterSettings.activeFilter.constructOrValue();
+        m_filterSettings.activeFilter->expression.constructOrValue();
+        m_filterSettings.activeFilter->description.constructOrValue();
     }
 
-    m_filterSettings.showInternal.constructOrValue();
-    m_filterSettings.showUncached.constructOrValue();
-    m_filterSettings.showEmpty.constructOrValue();
+    m_filterSettings.types.constructOrValue();
+    m_filterSettings.types->internal.constructOrValue();
+    m_filterSettings.types->uncached.constructOrValue();
+    m_filterSettings.types->empty.constructOrValue();
     m_filterSettings.matchCase.constructOrValue();
 
     m_filterSettings.targets.constructOrValue();
@@ -73,7 +76,7 @@ void TraceView::initFilterSettings()
 
     // ensure filters are valid
     {
-        dots::vector_t<Filter>& filters = m_filterSettings.filters.constructOrValue();
+        dots::vector_t<Filter>& filters = m_filterSettings.storedFilters.constructOrValue();
         filters.erase(std::remove_if(filters.begin(), filters.end(), [](const Filter& filter){ return !filter._hasProperties(filter._properties()); }), filters.end());
 
         if (auto& selectedFilter = m_filterSettings.selectedFilter; selectedFilter.isValid() && *selectedFilter >= filters.size())
@@ -85,18 +88,18 @@ void TraceView::initFilterSettings()
 
 void TraceView::applyFilters()
 {
-    std::string_view eventFilter = m_filterEdit.text().first;
-    m_filterSettings.regexFilter = eventFilter;
+    std::string_view filterExpression = m_filterExpressionEdit.text().first;
+    m_filterSettings.activeFilter->expression = filterExpression;
 
     try
     {
-        Regex regex{ eventFilter.data(), m_filterSettings.matchCase };
-        m_regex.emplace(std::move(regex));
+        FilterMatcher filterMatcher{ filterExpression.data(), m_filterSettings.matchCase };
+        m_filterMatcher.emplace(std::move(filterMatcher));
         m_itemsFiltered.clear();
 
         std::copy_if(m_items.begin(), m_items.end(), std::back_inserter(m_itemsFiltered), [&](const auto& item)
         {
-            return item->isFiltered(m_regex, m_filterSettings);
+            return item->isFiltered(m_filterMatcher, m_filterSettings);
         });
     }
     catch (...)
@@ -123,7 +126,7 @@ void TraceView::renderFilterArea()
 
             ImGui::SameLine();
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f - 19);
-            if (m_filterEdit.render())
+            if (m_filterExpressionEdit.render())
             {
                 m_filtersChanged = true;
                 m_filterSettings.selectedFilter.destroy();
@@ -134,7 +137,7 @@ void TraceView::renderFilterArea()
 
         // render filter list
         {
-            dots::vector_t<Filter>& filters = m_filterSettings.filters;
+            dots::vector_t<Filter>& filters = m_filterSettings.storedFilters;
             auto& selectedFilter = m_filterSettings.selectedFilter;
 
             ImGui::SameLine(0, 0);
@@ -173,7 +176,7 @@ void TraceView::renderFilterArea()
 
                 // render filter rules
                 {
-                    ImGui::TextUnformatted("Filter by:");
+                    ImGui::TextUnformatted("Filter By:");
                     ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
 
                     if (ImGui::MenuItem("Type", nullptr, &*m_filterSettings.targets->type))
@@ -207,7 +210,7 @@ void TraceView::renderFilterArea()
                     if (ImGui::Selectable(filter.description->data(), selectedFilter == i) && selectedFilter != i)
                     {
                         selectedFilter = i;
-                        m_filterEdit = std::string_view{ *filters[selectedFilter].regex };
+                        m_filterExpressionEdit = std::string_view{ *filters[selectedFilter].expression };
                         m_filtersChanged = true;
                     }
 
@@ -240,7 +243,7 @@ void TraceView::renderFilterArea()
             ImGui::SameLine();
             constexpr char ClearLabel[] = "Clear";
 
-            if (m_filterEdit.text().first.empty())
+            if (m_filterExpressionEdit.text().first.empty())
             {
                 ImGui::BeginDisabled();
                 ImGui::Button(ClearLabel);
@@ -250,7 +253,7 @@ void TraceView::renderFilterArea()
             {
                 if (ImGui::Button(ClearLabel))
                 {
-                    m_filterEdit = {};
+                    m_filterExpressionEdit = {};
                     m_filtersChanged = true;
                     m_filterSettings.selectedFilter.destroy();
                 }
@@ -261,7 +264,7 @@ void TraceView::renderFilterArea()
         {
             ImGui::SameLine();
 
-            if (ImGui::Checkbox("Internal", &*m_filterSettings.showInternal))
+            if (ImGui::Checkbox("Internal", &*m_filterSettings.types->internal))
             {
                 m_filtersChanged = true;
             }
@@ -271,7 +274,7 @@ void TraceView::renderFilterArea()
         {
             ImGui::SameLine();
 
-            if (ImGui::Checkbox("Uncached", &*m_filterSettings.showUncached))
+            if (ImGui::Checkbox("Uncached", &*m_filterSettings.types->uncached))
             {
                 m_filtersChanged = true;
             }

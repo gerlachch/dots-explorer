@@ -27,7 +27,7 @@ void CacheView::update(const dots::type::StructDescriptor<>& descriptor)
         {
             structList.update(event);
 
-            if (!m_filterSettings.showEmpty == true &&
+            if (!m_filterSettings.types->empty == true &&
                 ((event.isCreate() && structList.container().size() == 1) || 
                 (event.isRemove() && structList.container().empty())))
             {
@@ -53,23 +53,26 @@ void CacheView::render()
 
 void CacheView::initFilterSettings()
 {
-    if (m_filterSettings.regexFilter.isValid())
+    if (m_filterSettings.activeFilter.isValid() && m_filterSettings.activeFilter->expression.isValid())
     {
-        m_filterEdit = std::string_view{ *m_filterSettings.regexFilter };
+        m_filterExpressionEdit = std::string_view{ *m_filterSettings.activeFilter->expression };
     }
     else
     {
-        m_filterSettings.regexFilter.construct();
+        m_filterSettings.activeFilter.constructOrValue();
+        m_filterSettings.activeFilter->expression.constructOrValue();
+        m_filterSettings.activeFilter->description.constructOrValue();
     }
 
-    m_filterSettings.showInternal.constructOrValue();
-    m_filterSettings.showUncached.constructOrValue();
-    m_filterSettings.showEmpty.constructOrValue();
+    m_filterSettings.types.constructOrValue();
+    m_filterSettings.types->internal.constructOrValue();
+    m_filterSettings.types->uncached.constructOrValue();
+    m_filterSettings.types->empty.constructOrValue();
     m_filterSettings.matchCase.constructOrValue();
 
     // ensure filters are valid
     {
-        dots::vector_t<Filter>& filters = m_filterSettings.filters.constructOrValue();
+        dots::vector_t<Filter>& filters = m_filterSettings.storedFilters.constructOrValue();
         filters.erase(std::remove_if(filters.begin(), filters.end(), [](const Filter& filter){ return !filter._hasProperties(filter._properties()); }), filters.end());
 
         if (auto& selectedFilter = m_filterSettings.selectedFilter; selectedFilter.isValid() && *selectedFilter >= filters.size())
@@ -81,36 +84,36 @@ void CacheView::initFilterSettings()
 
 bool CacheView::applyFilter(const StructList& structList)
 {
-    std::string_view typeFilter = m_filterEdit.text().first;
+    std::string_view typeFilter = m_filterExpressionEdit.text().first;
     const dots::type::StructDescriptor<>& descriptor = structList.container().descriptor();
 
-    if (descriptor.internal() && !*m_filterSettings.showInternal)
+    if (descriptor.internal() && !*m_filterSettings.types->internal)
     {
         return false;
     }
-    else if (!descriptor.cached() && !*m_filterSettings.showUncached)
+    else if (!descriptor.cached() && !*m_filterSettings.types->uncached)
     {
         return false;
     }
-    else if (descriptor.cached() && structList.container().empty() && !*m_filterSettings.showEmpty)
+    else if (descriptor.cached() && structList.container().empty() && !*m_filterSettings.types->empty)
     {
         return false;
     }
     else
     {
-        return typeFilter.empty() || (m_regex != std::nullopt && m_regex->search(descriptor.name()));
+        return typeFilter.empty() || (m_filterMatcher != std::nullopt && m_filterMatcher->match(descriptor.name()));
     }
 }
 
 void CacheView::applyFilters()
 {
-    std::string_view typeFilter = m_filterEdit.text().first;
-    m_filterSettings.regexFilter = typeFilter;
+    std::string_view filterExpression = m_filterExpressionEdit.text().first;
+    m_filterSettings.activeFilter->expression = filterExpression;
 
     try
     {
-        Regex regex{ typeFilter.data(), m_filterSettings.matchCase };
-        m_regex.emplace(std::move(regex));
+        FilterMatcher filterMatcher{ filterExpression.data(), m_filterSettings.matchCase };
+        m_filterMatcher.emplace(std::move(filterMatcher));
         m_cacheListFiltered.clear();
 
         std::copy_if(m_cacheList.begin(), m_cacheList.end(), std::back_inserter(m_cacheListFiltered), [&](const auto& structList)
@@ -142,7 +145,7 @@ void CacheView::renderFilterArea()
 
             ImGui::SameLine();
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f - 19);
-            if (m_filterEdit.render())
+            if (m_filterExpressionEdit.render())
             {
                 m_typesChanged = true;
                 m_filterSettings.selectedFilter.destroy();
@@ -153,7 +156,7 @@ void CacheView::renderFilterArea()
 
         // render filter list
         {
-            dots::vector_t<Filter>& filters = m_filterSettings.filters;
+            dots::vector_t<Filter>& filters = m_filterSettings.storedFilters;
             auto& selectedFilter = m_filterSettings.selectedFilter;
 
             ImGui::SameLine(0, 0);
@@ -190,6 +193,7 @@ void CacheView::renderFilterArea()
 
                 ImGui::Separator();
 
+                ImGui::TextUnformatted("Filters:");
                 uint32_t i = 0;
 
                 for (Filter& filter : filters)
@@ -197,7 +201,7 @@ void CacheView::renderFilterArea()
                     if (ImGui::Selectable(filter.description->data(), selectedFilter == i) && selectedFilter != i)
                     {
                         selectedFilter = i;
-                        m_filterEdit = std::string_view{ *filters[selectedFilter].regex };
+                        m_filterExpressionEdit = std::string_view{ *filters[selectedFilter].expression };
                         m_typesChanged = true;
                     }
 
@@ -230,7 +234,7 @@ void CacheView::renderFilterArea()
             ImGui::SameLine();
             constexpr char ClearLabel[] = "Clear";
 
-            if (m_filterEdit.text().first.empty())
+            if (m_filterExpressionEdit.text().first.empty())
             {
                 ImGui::BeginDisabled();
                 ImGui::Button(ClearLabel);
@@ -240,7 +244,7 @@ void CacheView::renderFilterArea()
             {
                 if (ImGui::Button(ClearLabel))
                 {
-                    m_filterEdit = {};
+                    m_filterExpressionEdit = {};
                     m_typesChanged = true;
                     m_filterSettings.selectedFilter.destroy();
                 }
@@ -251,7 +255,7 @@ void CacheView::renderFilterArea()
         {
             ImGui::SameLine();
 
-            if (ImGui::Checkbox("Internal", &*m_filterSettings.showInternal))
+            if (ImGui::Checkbox("Internal", &*m_filterSettings.types->internal))
             {
                 m_typesChanged = true;
             }
@@ -261,7 +265,7 @@ void CacheView::renderFilterArea()
         {
             ImGui::SameLine();
 
-            if (ImGui::Checkbox("Uncached", &*m_filterSettings.showUncached))
+            if (ImGui::Checkbox("Uncached", &*m_filterSettings.types->uncached))
             {
                 m_typesChanged = true;
             }
@@ -271,7 +275,7 @@ void CacheView::renderFilterArea()
         {
             ImGui::SameLine();
 
-            if (ImGui::Checkbox("Empty", &*m_filterSettings.showEmpty))
+            if (ImGui::Checkbox("Empty", &*m_filterSettings.types->empty))
             {
                 m_typesChanged = true;
             }

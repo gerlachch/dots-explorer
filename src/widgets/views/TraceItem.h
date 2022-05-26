@@ -1,6 +1,6 @@
 #pragma once
 #include <dots/dots.h>
-#include <common/Regex.h>
+#include <common/FilterMatcher.h>
 #include <models/MetadataModel.h>
 #include <models/StructRefModel.h>
 #include <FilterSettings.dots.h>
@@ -28,7 +28,7 @@ struct TraceItem
     bool isHovered() const;
 
     void setFilterTargets(const FilterTargets& targets);
-    bool isFiltered(const std::optional<Regex>& filter, const FilterSettings& filterSettings) const;
+    bool isFiltered(const std::optional<FilterMatcher>& filter, const FilterSettings& filterSettings) const;
 
     void render(bool hoverCondition);
 
