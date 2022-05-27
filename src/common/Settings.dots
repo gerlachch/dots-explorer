@@ -22,6 +22,7 @@ struct ViewSettings {
 struct Filter [substruct_only] {
     1: string description;
     2: string expression;
+    3: bool matchCase;
 }
 
 struct FilterTargets [substruct_only] {
@@ -42,5 +43,4 @@ struct FilterSettings {
     3: uint32 selectedFilter;
     4: FilterTargets targets;
     5: FilterTypes types;
-    6: bool matchCase;
 }

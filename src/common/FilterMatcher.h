@@ -2,10 +2,11 @@
 #include <string_view>
 #include <memory>
 #include <re2/re2.h>
+#include <Filter.dots.h>
 
 struct FilterMatcher
 {
-    FilterMatcher(std::string_view expression, bool matchCase = true);
+    FilterMatcher(const Filter& filter);
     FilterMatcher(const FilterMatcher& other) = delete;
     FilterMatcher(FilterMatcher&& other) = default;
     ~FilterMatcher() = default;

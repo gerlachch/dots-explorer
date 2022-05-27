@@ -1,8 +1,8 @@
 #include <common/FilterMatcher.h>
 #include <fmt/format.h>
 
-FilterMatcher::FilterMatcher(std::string_view expression, bool matchCase/* = true*/) :
-    m_regex{ std::make_unique<re2::RE2>(fmt::format("{}{}", matchCase ? "" : "(?i)", expression), RE2::Options{ RE2::Quiet })}
+FilterMatcher::FilterMatcher(const Filter& filter) :
+    m_regex{ std::make_unique<re2::RE2>(fmt::format("{}{}", filter.matchCase == true ? "" : "(?i)", *filter.expression), RE2::Options{ RE2::Quiet })}
 {
     if (!m_regex->ok())
     {

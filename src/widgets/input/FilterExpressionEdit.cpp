@@ -41,7 +41,7 @@ void FilterExpressionEdit::fetch(const ImVec4& regularTextColor)
 {
     try
     {
-        FilterMatcher filterMatcher{ *m_filter->expression, false };
+        FilterMatcher filterMatcher{ *m_filter };
         m_filter->expression = m_buffer.data();
         m_inputColor = regularTextColor;
         m_isValid = true;

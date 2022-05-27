@@ -55,13 +55,13 @@ void TraceView::initFilterSettings()
     m_filterSettings.activeFilter.constructOrValue();
     m_filterSettings.activeFilter->expression.constructOrValue();
     m_filterSettings.activeFilter->description.constructOrValue();
+    m_filterSettings.activeFilter->matchCase.constructOrValue();
     m_filterExpressionEdit.emplace(m_filterSettings.activeFilter);
 
     m_filterSettings.types.constructOrValue();
     m_filterSettings.types->internal.constructOrValue();
     m_filterSettings.types->uncached.constructOrValue();
     m_filterSettings.types->empty.constructOrValue();
-    m_filterSettings.matchCase.constructOrValue();
 
     m_filterSettings.targets.constructOrValue();
     m_filterSettings.targets->type.constructOrValue(true);
@@ -84,7 +84,7 @@ void TraceView::applyFilters()
 {
     try
     {
-        FilterMatcher filterMatcher{ *m_filterSettings.activeFilter->expression, m_filterSettings.matchCase };
+        FilterMatcher filterMatcher{ m_filterSettings.activeFilter };
         m_filterMatcher.emplace(std::move(filterMatcher));
         m_itemsFiltered.clear();
 
@@ -217,11 +217,11 @@ void TraceView::renderFilterArea()
         {
             ImGui::SameLine();
 
-            ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[*m_filterSettings.matchCase ? ImGuiCol_ButtonActive : ImGuiCol_Button]);
+            ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[*m_filterSettings.activeFilter->matchCase ? ImGuiCol_ButtonActive : ImGuiCol_Button]);
 
             if (ImGui::Button("Aa"))
             {
-                m_filterSettings.matchCase = !*m_filterSettings.matchCase;
+                m_filterSettings.activeFilter->matchCase = !*m_filterSettings.activeFilter->matchCase;
                 m_filtersChanged = true;
             }
 
