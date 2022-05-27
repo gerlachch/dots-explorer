@@ -3,6 +3,7 @@
 #include <imgui.h>
 #include <widgets/views/StructList.h>
 #include <common/Settings.h>
+#include <dots_ext/struct_ops.h>
 #include <StructDescriptorData.dots.h>
 #include <EnumDescriptorData.dots.h>
 
@@ -53,16 +54,10 @@ void CacheView::render()
 
 void CacheView::initFilterSettings()
 {
-    m_filterSettings.activeFilter.constructOrValue();
-    m_filterSettings.activeFilter->expression.constructOrValue();
-    m_filterSettings.activeFilter->description.constructOrValue();
-    m_filterSettings.activeFilter->matchCase.constructOrValue();
+    default_init(m_filterSettings.activeFilter);
     m_filterExpressionEdit.emplace(m_filterSettings.activeFilter);
 
-    m_filterSettings.types.constructOrValue();
-    m_filterSettings.types->internal.constructOrValue();
-    m_filterSettings.types->uncached.constructOrValue();
-    m_filterSettings.types->empty.constructOrValue();
+    default_init(m_filterSettings.types);
 
     // ensure filters are valid
     {

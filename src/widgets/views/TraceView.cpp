@@ -2,6 +2,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <common/Settings.h>
+#include <dots_ext/struct_ops.h>
 #include <widgets/views/EventView.h>
 #include <StructDescriptorData.dots.h>
 #include <EnumDescriptorData.dots.h>
@@ -52,16 +53,10 @@ void TraceView::render()
 
 void TraceView::initFilterSettings()
 {
-    m_filterSettings.activeFilter.constructOrValue();
-    m_filterSettings.activeFilter->expression.constructOrValue();
-    m_filterSettings.activeFilter->description.constructOrValue();
-    m_filterSettings.activeFilter->matchCase.constructOrValue();
+    default_init(m_filterSettings.activeFilter);
     m_filterExpressionEdit.emplace(m_filterSettings.activeFilter);
 
-    m_filterSettings.types.constructOrValue();
-    m_filterSettings.types->internal.constructOrValue();
-    m_filterSettings.types->uncached.constructOrValue();
-    m_filterSettings.types->empty.constructOrValue();
+    default_init(m_filterSettings.types);
 
     m_filterSettings.targets.constructOrValue();
     m_filterSettings.targets->type.constructOrValue(true);
