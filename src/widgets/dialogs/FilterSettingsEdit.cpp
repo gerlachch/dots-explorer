@@ -57,21 +57,8 @@ bool FilterSettingsEdit::render()
                 ImGui::PopItemWidth();
                 ImGuiExt::TooltipLastHoveredItem("Types can be filtered by specifying substrings or ECMAScript regular expressions.");
 
-                // render 'Match case' button
-                {
-                    ImGui::SameLine();
-
-                    ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[*m_filter.matchCase ? ImGuiCol_ButtonActive : ImGuiCol_Button]);
-
-                    if (ImGui::Button("Aa"))
-                    {
-                        m_filter.matchCase = !*m_filter.matchCase;
-                    }
-
-                    ImGui::PopStyleColor();
-
-                    ImGuiExt::TooltipLastHoveredItem("Match case");
-                }
+                ImGui::SameLine();
+                ImGuiExt::ToggleButton("Aa", m_filter.matchCase, "Match case");
 
                 ImGui::TableNextRow();
 

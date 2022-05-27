@@ -217,17 +217,10 @@ void TraceView::renderFilterArea()
         {
             ImGui::SameLine();
 
-            ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[*m_filterSettings.activeFilter->matchCase ? ImGuiCol_ButtonActive : ImGuiCol_Button]);
-
-            if (ImGui::Button("Aa"))
+            if (ImGuiExt::ToggleButton("Aa", m_filterSettings.activeFilter->matchCase, "Match case"))
             {
-                m_filterSettings.activeFilter->matchCase = !*m_filterSettings.activeFilter->matchCase;
                 m_filtersChanged = true;
             }
-
-            ImGui::PopStyleColor();
-
-            ImGuiExt::TooltipLastHoveredItem("Match case");
         }
 
         // render 'Clear' button

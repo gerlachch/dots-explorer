@@ -64,4 +64,24 @@ namespace ImGuiExt
 
         ImGui::PopStyleColor(2);
     }
+
+    bool ToggleButton(std::string_view label, bool& b, std::string_view tooltip/* = {}*/)
+    {
+        bool pressed = false;
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[b ? ImGuiCol_ButtonActive : ImGuiCol_Button]);
+        if (ImGui::Button(label.data()))
+        {
+            b = !b;
+            pressed = true;
+        }
+        ImGui::PopStyleColor();
+
+        if (!tooltip.empty())
+        {
+            TooltipLastHoveredItem(tooltip);
+        }
+
+        return pressed;
+    }
 }
