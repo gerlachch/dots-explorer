@@ -53,16 +53,10 @@ void CacheView::render()
 
 void CacheView::initFilterSettings()
 {
-    if (m_filterSettings.activeFilter.isValid() && m_filterSettings.activeFilter->expression.isValid())
-    {
-        m_filterExpressionEdit = std::string_view{ *m_filterSettings.activeFilter->expression };
-    }
-    else
-    {
-        m_filterSettings.activeFilter.constructOrValue();
-        m_filterSettings.activeFilter->expression.constructOrValue();
-        m_filterSettings.activeFilter->description.constructOrValue();
-    }
+    m_filterSettings.activeFilter.constructOrValue();
+    m_filterSettings.activeFilter->expression.constructOrValue();
+    m_filterSettings.activeFilter->description.constructOrValue();
+    m_filterExpressionEdit.emplace(m_filterSettings.activeFilter);
 
     m_filterSettings.types.constructOrValue();
     m_filterSettings.types->internal.constructOrValue();
@@ -84,7 +78,6 @@ void CacheView::initFilterSettings()
 
 bool CacheView::applyFilter(const StructList& structList)
 {
-    std::string_view typeFilter = m_filterExpressionEdit.text().first;
     const dots::type::StructDescriptor<>& descriptor = structList.container().descriptor();
 
     if (descriptor.internal() && !*m_filterSettings.types->internal)
@@ -101,18 +94,15 @@ bool CacheView::applyFilter(const StructList& structList)
     }
     else
     {
-        return typeFilter.empty() || (m_filterMatcher != std::nullopt && m_filterMatcher->match(descriptor.name()));
+        return m_filterSettings.activeFilter->expression->empty() || (m_filterMatcher != std::nullopt && m_filterMatcher->match(descriptor.name()));
     }
 }
 
 void CacheView::applyFilters()
 {
-    std::string_view filterExpression = m_filterExpressionEdit.text().first;
-    m_filterSettings.activeFilter->expression = filterExpression;
-
     try
     {
-        FilterMatcher filterMatcher{ filterExpression.data(), m_filterSettings.matchCase };
+        FilterMatcher filterMatcher{ *m_filterSettings.activeFilter->expression, m_filterSettings.matchCase };
         m_filterMatcher.emplace(std::move(filterMatcher));
         m_cacheListFiltered.clear();
 
@@ -145,7 +135,7 @@ void CacheView::renderFilterArea()
 
             ImGui::SameLine();
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f - 19);
-            if (m_filterExpressionEdit.render())
+            if (m_filterExpressionEdit->render())
             {
                 m_typesChanged = true;
                 m_filterSettings.selectedFilter.destroy();
@@ -201,7 +191,8 @@ void CacheView::renderFilterArea()
                     if (ImGui::Selectable(filter.description->data(), selectedFilter == i) && selectedFilter != i)
                     {
                         selectedFilter = i;
-                        m_filterExpressionEdit = std::string_view{ *filters[selectedFilter].expression };
+                        m_filterSettings.activeFilter = filters[selectedFilter];
+                        m_filterExpressionEdit = FilterExpressionEdit{ m_filterSettings.activeFilter };
                         m_typesChanged = true;
                     }
 
@@ -234,7 +225,7 @@ void CacheView::renderFilterArea()
             ImGui::SameLine();
             constexpr char ClearLabel[] = "Clear";
 
-            if (m_filterExpressionEdit.text().first.empty())
+            if (m_filterSettings.activeFilter->expression->empty())
             {
                 ImGui::BeginDisabled();
                 ImGui::Button(ClearLabel);
@@ -244,7 +235,8 @@ void CacheView::renderFilterArea()
             {
                 if (ImGui::Button(ClearLabel))
                 {
-                    m_filterExpressionEdit = {};
+                    m_filterSettings.activeFilter->expression->clear();
+                    m_filterExpressionEdit = FilterExpressionEdit{ m_filterSettings.activeFilter };
                     m_typesChanged = true;
                     m_filterSettings.selectedFilter.destroy();
                 }

@@ -30,12 +30,12 @@ private:
     void renderFilterArea();
     void renderCacheList();
 
+    std::optional<FilterExpressionEdit> m_filterExpressionEdit;
     std::optional<FilterSettingsEdit> m_filterSettingsEdit;
     std::vector<std::shared_ptr<StructList>> m_cacheList;
     std::vector<std::shared_ptr<StructList>> m_cacheListFiltered;
     std::optional<FilterMatcher> m_filterMatcher;
     PublisherModel m_publisherModel;
-    FilterExpressionEdit m_filterExpressionEdit;
     bool m_typesChanged;
     bool m_filterSettingsInitialized;
     FilterSettings& m_filterSettings;

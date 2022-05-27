@@ -52,16 +52,10 @@ void TraceView::render()
 
 void TraceView::initFilterSettings()
 {
-    if (m_filterSettings.activeFilter.isValid())
-    {
-        m_filterExpressionEdit = std::string_view{ *m_filterSettings.activeFilter->expression };
-    }
-    else
-    {
-        m_filterSettings.activeFilter.constructOrValue();
-        m_filterSettings.activeFilter->expression.constructOrValue();
-        m_filterSettings.activeFilter->description.constructOrValue();
-    }
+    m_filterSettings.activeFilter.constructOrValue();
+    m_filterSettings.activeFilter->expression.constructOrValue();
+    m_filterSettings.activeFilter->description.constructOrValue();
+    m_filterExpressionEdit.emplace(m_filterSettings.activeFilter);
 
     m_filterSettings.types.constructOrValue();
     m_filterSettings.types->internal.constructOrValue();
@@ -88,12 +82,9 @@ void TraceView::initFilterSettings()
 
 void TraceView::applyFilters()
 {
-    std::string_view filterExpression = m_filterExpressionEdit.text().first;
-    m_filterSettings.activeFilter->expression = filterExpression;
-
     try
     {
-        FilterMatcher filterMatcher{ filterExpression.data(), m_filterSettings.matchCase };
+        FilterMatcher filterMatcher{ *m_filterSettings.activeFilter->expression, m_filterSettings.matchCase };
         m_filterMatcher.emplace(std::move(filterMatcher));
         m_itemsFiltered.clear();
 
@@ -126,7 +117,7 @@ void TraceView::renderFilterArea()
 
             ImGui::SameLine();
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f - 19);
-            if (m_filterExpressionEdit.render())
+            if (m_filterExpressionEdit->render())
             {
                 m_filtersChanged = true;
                 m_filterSettings.selectedFilter.destroy();
@@ -210,7 +201,8 @@ void TraceView::renderFilterArea()
                     if (ImGui::Selectable(filter.description->data(), selectedFilter == i) && selectedFilter != i)
                     {
                         selectedFilter = i;
-                        m_filterExpressionEdit = std::string_view{ *filters[selectedFilter].expression };
+                        m_filterSettings.activeFilter = filters[selectedFilter];
+                        m_filterExpressionEdit = FilterExpressionEdit{ m_filterSettings.activeFilter };
                         m_filtersChanged = true;
                     }
 
@@ -243,7 +235,7 @@ void TraceView::renderFilterArea()
             ImGui::SameLine();
             constexpr char ClearLabel[] = "Clear";
 
-            if (m_filterExpressionEdit.text().first.empty())
+            if (m_filterSettings.activeFilter->expression->empty())
             {
                 ImGui::BeginDisabled();
                 ImGui::Button(ClearLabel);
@@ -253,7 +245,8 @@ void TraceView::renderFilterArea()
             {
                 if (ImGui::Button(ClearLabel))
                 {
-                    m_filterExpressionEdit = {};
+                    m_filterSettings.activeFilter->expression->clear();
+                    m_filterExpressionEdit = FilterExpressionEdit{ m_filterSettings.activeFilter };
                     m_filtersChanged = true;
                     m_filterSettings.selectedFilter.destroy();
                 }

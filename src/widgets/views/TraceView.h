@@ -31,6 +31,7 @@ private:
     void renderFilterArea();
     void renderEventList();
 
+    std::optional<FilterExpressionEdit> m_filterExpressionEdit;
     std::optional<FilterSettingsEdit> m_filterSettingsEdit;
     std::optional<PublishDialog> m_publishDialog;
     std::unordered_map<const dots::type::StructDescriptor<>*, StructDescriptorModel> m_descriptorModels;
@@ -38,7 +39,6 @@ private:
     std::vector<std::shared_ptr<TraceItem>> m_itemsFiltered;
     std::optional<FilterMatcher> m_filterMatcher;
     PublisherModel m_publisherModel;
-    FilterExpressionEdit m_filterExpressionEdit;
     size_t m_traceIndex;
     bool m_filtersChanged;
     bool m_filterSettingsInitialized;
