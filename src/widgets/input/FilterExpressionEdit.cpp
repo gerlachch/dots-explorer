@@ -27,12 +27,15 @@ bool FilterExpressionEdit::render()
     ImVec4 regularTextColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
 
     ImGui::PushStyleColor(ImGuiCol_Text, m_inputColor);
+
     if (ImGui::InputTextWithHint(m_label.data(), m_hint.data(), m_buffer.data(), m_buffer.size()))
     {
         fetch(regularTextColor);
         filterChanged = m_isValid;
     }
+
     ImGui::PopStyleColor();
+    ImGuiExt::TooltipLastHoveredItem("Types can be filtered by specifying substrings or ECMAScript regular expressions.");
 
     return filterChanged;
 }

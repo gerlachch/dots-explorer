@@ -55,7 +55,6 @@ bool FilterSettingsEdit::render()
                 ImGui::AlignTextToFramePadding();
                 m_filterExpressionEdit->render();
                 ImGui::PopItemWidth();
-                ImGuiExt::TooltipLastHoveredItem("Types can be filtered by specifying substrings or ECMAScript regular expressions.");
 
                 ImGui::SameLine();
                 ImGuiExt::ToggleButton("Aa", m_filter.matchCase, "Match case");

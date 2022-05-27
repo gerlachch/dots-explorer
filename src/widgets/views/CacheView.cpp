@@ -141,7 +141,6 @@ void CacheView::renderFilterArea()
                 m_filterSettings.selectedFilter.destroy();
             }
             ImGui::PopItemWidth();
-            ImGuiExt::TooltipLastHoveredItem("Types can be filtered by specifying substrings or ECMAScript regular expressions.");
         }
 
         // render filter list
