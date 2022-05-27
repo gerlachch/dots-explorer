@@ -205,11 +205,7 @@ void CacheView::renderFilterArea()
         // render 'Match case' button
         {
             ImGui::SameLine();
-
-            if (ImGuiExt::ToggleButton("Aa", m_filterSettings.activeFilter->matchCase, "Match case"))
-            {
-                m_typesChanged = true;
-            }
+            m_typesChanged |= ImGuiExt::ToggleButton("Aa", m_filterSettings.activeFilter->matchCase, "Match case");
         }
 
         // render 'Clear' button
@@ -235,34 +231,16 @@ void CacheView::renderFilterArea()
             }
         }
 
-        // render 'Internal' filter option checkbox
+        // render type filter option checkboxes
         {
             ImGui::SameLine();
-
-            if (ImGui::Checkbox("Internal", &*m_filterSettings.types->internal))
-            {
-                m_typesChanged = true;
-            }
-        }
-
-        // render 'Uncached' filter option checkbox
-        {
+            m_typesChanged |= ImGui::Checkbox("Internal", &*m_filterSettings.types->internal);
+            
             ImGui::SameLine();
-
-            if (ImGui::Checkbox("Uncached", &*m_filterSettings.types->uncached))
-            {
-                m_typesChanged = true;
-            }
-        }
-
-        // render 'Empty' filter option checkbox
-        {
+            m_typesChanged |= ImGui::Checkbox("Uncached", &*m_filterSettings.types->uncached);
+            
             ImGui::SameLine();
-
-            if (ImGui::Checkbox("Empty", &*m_filterSettings.types->empty))
-            {
-                m_typesChanged = true;
-            }
+            m_typesChanged |= ImGui::Checkbox("Empty", &*m_filterSettings.types->empty);
         }
 
         // apply filters to type list

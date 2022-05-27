@@ -215,11 +215,7 @@ void TraceView::renderFilterArea()
         // render 'Match case' button
         {
             ImGui::SameLine();
-
-            if (ImGuiExt::ToggleButton("Aa", m_filterSettings.activeFilter->matchCase, "Match case"))
-            {
-                m_filtersChanged = true;
-            }
+            m_filtersChanged |= ImGuiExt::ToggleButton("Aa", m_filterSettings.activeFilter->matchCase, "Match case");
         }
 
         // render 'Clear' button
@@ -245,24 +241,13 @@ void TraceView::renderFilterArea()
             }
         }
 
-        // render 'Internal' filter option checkbox
+        // render type filter option checkboxes
         {
             ImGui::SameLine();
-
-            if (ImGui::Checkbox("Internal", &*m_filterSettings.types->internal))
-            {
-                m_filtersChanged = true;
-            }
-        }
-
-        // render 'Uncached' filter option checkbox
-        {
+            m_filtersChanged |= ImGui::Checkbox("Internal", &*m_filterSettings.types->internal);
+            
             ImGui::SameLine();
-
-            if (ImGui::Checkbox("Uncached", &*m_filterSettings.types->uncached))
-            {
-                m_filtersChanged = true;
-            }
+            m_filtersChanged |= ImGui::Checkbox("Uncached", &*m_filterSettings.types->uncached);
         }
 
         // apply filters to event list
