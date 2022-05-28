@@ -66,9 +66,19 @@ void TraceItem::setFilterTargets(const FilterTargets& targets)
         m_filterText += fmt::format(" {}", m_publishedInstanceModel.descriptorModel().declarationText()[1].first);
     }
 
-    if (*targets.publisher)
+    if (*targets.publishedAt)
+    {
+        m_filterText += fmt::format(" {}", m_metadataModel.lastPublishedText().first);
+    }
+
+    if (*targets.publishedBy)
     {
         m_filterText += fmt::format(" {}", m_metadataModel.lastPublishedByText().first);
+    }
+
+    if (*targets.operation)
+    {
+        m_filterText += fmt::format(" {}", m_metadataModel.lastOperationText().first);
     }
 
     if (*targets.instance)

@@ -59,8 +59,10 @@ void TraceView::initFilterSettings()
     default_init(m_filterSettings.types);
 
     m_filterSettings.targets.constructOrValue();
+    m_filterSettings.targets->publishedAt.constructOrValue(true);
+    m_filterSettings.targets->publishedBy.constructOrValue(true);
+    m_filterSettings.targets->operation.constructOrValue(true);
     m_filterSettings.targets->type.constructOrValue(true);
-    m_filterSettings.targets->publisher.constructOrValue(true);
     m_filterSettings.targets->instance.constructOrValue(true);
 
     // ensure filters are valid
@@ -164,13 +166,25 @@ void TraceView::renderFilterArea()
                     ImGui::TextUnformatted("Filter By:");
                     ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
 
-                    if (ImGui::MenuItem("Type", nullptr, &*m_filterSettings.targets->type))
+                    if (ImGui::MenuItem("Published At", nullptr, &*m_filterSettings.targets->publishedAt))
                     {
                         for (const auto& item : m_items){ item->setFilterTargets(m_filterSettings.targets); }
                         m_filtersChanged = true;
                     }
 
-                    if (ImGui::MenuItem("Publisher", nullptr, &*m_filterSettings.targets->publisher))
+                    if (ImGui::MenuItem("Published By", nullptr, &*m_filterSettings.targets->publishedBy))
+                    {
+                        for (const auto& item : m_items){ item->setFilterTargets(m_filterSettings.targets); }
+                        m_filtersChanged = true;
+                    }
+
+                    if (ImGui::MenuItem("Operation", nullptr, &*m_filterSettings.targets->operation))
+                    {
+                        for (const auto& item : m_items){ item->setFilterTargets(m_filterSettings.targets); }
+                        m_filtersChanged = true;
+                    }
+
+                    if (ImGui::MenuItem("Type", nullptr, &*m_filterSettings.targets->type))
                     {
                         for (const auto& item : m_items){ item->setFilterTargets(m_filterSettings.targets); }
                         m_filtersChanged = true;
