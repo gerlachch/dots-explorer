@@ -23,6 +23,7 @@ struct Filter [substruct_only] {
     1: string description;
     2: string expression;
     3: bool matchCase;
+    4: bool regex;
 }
 
 struct FilterTargets [substruct_only] {

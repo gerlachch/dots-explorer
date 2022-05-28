@@ -35,7 +35,28 @@ bool FilterExpressionEdit::render()
     }
 
     ImGui::PopStyleColor();
-    ImGuiExt::TooltipLastHoveredItem("Types can be filtered by specifying substrings or ECMAScript regular expressions.");
+
+    if (m_filter->regex)
+    {
+        ImGuiExt::TooltipLastHoveredItem(
+            "Filters can be specified by using any re2 flavor regular expression.\n"
+            "\n"
+            "Examples:\n"
+            "  foo       Show \"foo\" items.\n"
+            "  foo|bar   Show \"foo\" and \"bar\" items."
+        );
+    }
+    else
+    {
+        ImGuiExt::TooltipLastHoveredItem(
+            "Filters can be specified by using the quick filter syntax.\n"
+            "\n"
+            "Examples:\n"
+            "  foo           Show \"foo\" items.\n"
+            "  !bar          Hide \"bar\" items.\n"
+            "  foo|!bar|baz  Hide \"bar\" and show \"foo\" and \"baz\" items."
+        );
+    }
 
     return filterChanged;
 }
@@ -44,7 +65,9 @@ void FilterExpressionEdit::fetch(const ImVec4& regularTextColor)
 {
     try
     {
-        FilterMatcher filterMatcher{ *m_filter };
+        Filter filter{ *m_filter };
+        filter.expression = m_buffer.data();
+        FilterMatcher filterMatcher{ filter };
         m_filter->expression = m_buffer.data();
         m_inputColor = regularTextColor;
         m_isValid = true;

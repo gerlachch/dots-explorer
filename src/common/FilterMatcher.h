@@ -1,5 +1,6 @@
 #pragma once
 #include <string_view>
+#include <vector>
 #include <memory>
 #include <re2/re2.h>
 #include <Filter.dots.h>
@@ -18,5 +19,10 @@ struct FilterMatcher
 
 private:
 
+    using quick_filter_part_t = std::pair<std::string, bool>;
+    using quick_filter_t = std::vector<quick_filter_part_t>;
+
+    bool m_quickFilterDefault;
     std::unique_ptr<RE2> m_regex;
+    quick_filter_t m_quickFilter;
 };

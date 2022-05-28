@@ -81,6 +81,9 @@ void TraceItem::setFilterTargets(const FilterTargets& targets)
             }
         }
     }
+
+    m_filterTextLower.clear();
+    std::transform(m_filterText.begin(), m_filterText.end(), std::back_inserter(m_filterTextLower), std::tolower);
 }
 
 bool TraceItem::isFiltered(const std::optional<FilterMatcher>& filter, const FilterSettings& filterSettings) const
@@ -105,13 +108,9 @@ bool TraceItem::isFiltered(const std::optional<FilterMatcher>& filter, const Fil
         {
             return false;
         }
-        else if (filter->match(m_filterText))
-        {
-            return true;
-        }
         else
         {
-            return false;
+            return filter->match(filterSettings.activeFilter->matchCase ? m_filterText : m_filterTextLower);
         }
     }
 }

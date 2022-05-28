@@ -38,6 +38,7 @@ private:
 
     mutable std::string m_widgetId;
     std::string m_filterText;
+    std::string m_filterTextLower;
     bool m_isSelected;
     bool m_isHovered;
     size_t m_index;

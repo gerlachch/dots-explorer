@@ -48,7 +48,7 @@ bool FilterSettingsEdit::render()
                 ImGui::TableNextRow();
 
                 ImGui::TableNextColumn();
-                ImGui::TextUnformatted("Regex");
+                ImGui::TextUnformatted("Expression");
 
                 ImGui::TableNextColumn();
                 ImGui::PushItemWidth(ImGui::GetIO().DisplaySize.x * 0.35f);
@@ -58,6 +58,12 @@ bool FilterSettingsEdit::render()
 
                 ImGui::SameLine();
                 ImGuiExt::ToggleButton("Aa", m_filter.matchCase, "Match case");
+
+                ImGui::SameLine();
+                if (ImGuiExt::ToggleButton("Re", m_filter.regex, "Interpret expression as a regular expression instead of a quick filter."))
+                {
+                    m_filterExpressionEdit.emplace(m_filter, "");
+                }
 
                 ImGui::TableNextRow();
 

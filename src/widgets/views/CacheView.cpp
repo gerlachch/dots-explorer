@@ -197,10 +197,17 @@ void CacheView::renderFilterArea()
             }
         }
 
-        // render 'Match case' button
+        // render filter expression options
         {
             ImGui::SameLine();
             m_typesChanged |= ImGuiExt::ToggleButton("Aa", m_filterSettings.activeFilter->matchCase, "Match case");
+
+            ImGui::SameLine();
+            if (ImGuiExt::ToggleButton("Re", m_filterSettings.activeFilter->regex, "Interpret expression as a regular expression instead of a quick filter."))
+            {
+                m_filterExpressionEdit = FilterExpressionEdit{ m_filterSettings.activeFilter };
+                m_typesChanged = true;
+            }
         }
 
         // render 'Clear' button
