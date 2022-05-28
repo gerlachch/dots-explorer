@@ -147,12 +147,6 @@ void TraceItem::render(bool hoverCondition)
         m_isHovered |= hoverCondition && ImGui::IsItemHovered();
     }
 
-    if (ImGui::TableNextColumn())
-    {
-        ImGuiExt::TextColored(m_publishedInstanceModel.descriptorModel().declarationText()[1]);
-        m_isHovered |= hoverCondition && ImGui::IsItemHovered();
-    }
-
     auto render_instance = [this, &hoverCondition](const StructRefModel& structRefModel)
     {
         ImGuiExt::TextColored(structRefModel.descriptorModel().declarationText()[1]);
