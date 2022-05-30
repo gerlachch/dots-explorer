@@ -9,7 +9,7 @@ FilterMatcher::FilterMatcher(const Filter& filter) :
 
     if (!filter.matchCase)
     {
-        std::transform(expression.begin(), expression.end(), expression.begin(), std::tolower);
+        std::transform(expression.begin(), expression.end(), expression.begin(), [](unsigned char c){ return std::tolower(c); });
     }
 
     if (filter.regex)
