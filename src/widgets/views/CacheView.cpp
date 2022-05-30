@@ -66,28 +66,6 @@ void CacheView::initFilterSettings()
     }
 }
 
-bool CacheView::applyFilter(const StructList& structList)
-{
-    const dots::type::StructDescriptor<>& descriptor = structList.container().descriptor();
-
-    if (descriptor.internal() && !*m_filterSettings.types->internal)
-    {
-        return false;
-    }
-    else if (!descriptor.cached() && !*m_filterSettings.types->uncached)
-    {
-        return false;
-    }
-    else if (descriptor.cached() && structList.container().empty() && !*m_filterSettings.types->empty)
-    {
-        return false;
-    }
-    else
-    {
-        return m_filterSettings.activeFilter->expression->empty() || (m_filterMatcher != std::nullopt && m_filterMatcher->match(descriptor.name()));
-    }
-}
-
 void CacheView::applyFilters()
 {
     try
@@ -98,7 +76,7 @@ void CacheView::applyFilters()
 
         std::copy_if(m_cacheList.begin(), m_cacheList.end(), std::back_inserter(m_cacheListFiltered), [&](const auto& structList)
         {
-            return applyFilter(*structList);
+            return structList->isFiltered(m_filterMatcher, m_filterSettings);
         });
     }
     catch (...)

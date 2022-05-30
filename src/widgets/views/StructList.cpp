@@ -16,6 +16,8 @@ StructList::StructList(const dots::type::StructDescriptor<>& descriptor, const P
     m_structDescriptorModel{ descriptor },
     m_publisherModel{ publisherModel }
 {
+    std::transform(descriptor.name().begin(), descriptor.name().end(), std::back_inserter(m_typeNameLower), std::tolower);
+
     const auto& propertyPaths = descriptor.propertyPaths();
 
     if (propertyPaths.size() <= IMGUI_TABLE_MAX_COLUMNS)
@@ -93,6 +95,39 @@ bool StructList::less(const ImGuiTableSortSpecs& sortSpecs, const StructList& ot
     }
 
     return false;
+}
+
+bool StructList::isFiltered(const std::optional<FilterMatcher>& filter, const FilterSettings& filterSettings) const
+{
+    const dots::type::StructDescriptor<>& descriptor = container().descriptor();
+
+    if (descriptor.internal() && !*filterSettings.types->internal)
+    {
+        return false;
+    }
+    else if (!descriptor.cached() && !*filterSettings.types->uncached)
+    {
+        return false;
+    }
+    else if (descriptor.cached() && container().empty() && !*filterSettings.types->empty)
+    {
+        return false;
+    }
+    else
+    {
+        if (filterSettings.activeFilter->expression->empty())
+        {
+            return true;
+        }
+        else if (filter == std::nullopt)
+        {
+            return false;
+        }
+        else
+        {
+            return filter->match(filterSettings.activeFilter->matchCase ? descriptor.name() : m_typeNameLower);
+        }
+    }
 }
 
 void StructList::update(const dots::Event<>& event)

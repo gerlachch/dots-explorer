@@ -26,7 +26,6 @@ private:
     static constexpr uint32_t NoFilterSelected = std::numeric_limits<uint32_t>::max();
 
     void initFilterSettings();
-    bool applyFilter(const StructList& structList);
     void applyFilters();
 
     void renderFilterArea();
