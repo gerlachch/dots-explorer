@@ -68,6 +68,7 @@ bool HelpDialog::render()
                 render_row("ALT           :", "Show quick view tooltip when hovering over certain items.");
                 render_row("ALT+Left-Click:", "Open edit dialog when hovering over certain items.");
                 render_row("CTRL          :", "Unlock certain actions (e.g. to remove objects or discard events).");
+                render_row("Left/Right    :", "Move trace view left or right (accelerates when being held).");
                 render_row("Up/Down       :", "Move trace view up or down one item (accelerates when being held).");
                 render_row("PgUp/PgDown   :", "Move trace view up or down one page (accelerates when being held).");
                 render_row("Home/End      :", "Move to beginning or end of trace view respectively.");

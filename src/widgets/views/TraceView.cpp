@@ -13,7 +13,9 @@ TraceView::TraceView() :
     m_filterSettingsInitialized(false),
     m_filterSettings{ Settings::Register<FilterSettings>() },
     m_pageScrollTotalTime(0.0f),
-    m_pageScrollDeltaTime(0.0f)
+    m_pageScrollDeltaTime(0.0f),
+    m_sidewaysScrollTotalTime(0.0f),
+    m_sidewaysScrollDeltaTime(0.0f)
 {
     m_subscriptions.emplace_back(dots::subscribe<StructDescriptorData>([](auto&){}));
     m_subscriptions.emplace_back(dots::subscribe<EnumDescriptorData>([](auto&){}));
@@ -415,7 +417,8 @@ void TraceView::renderEventList()
                 ImGui::SetScrollY(0.0f);
             }
 
-            auto scroll_if_down = [this](ImGuiKey key, float scrollY)
+            // scroll up and down respectively
+            auto scroll_y_if_down = [this](ImGuiKey key, float scrollY)
             {
                 if (ImGui::IsKeyDown(key))
                 {
@@ -436,14 +439,40 @@ void TraceView::renderEventList()
                     m_pageScrollDeltaTime = 0.0f;
                 }
             };
-
-            // scroll up and down respectively
+            
             float singleItemY = ImGui::GetItemRectSize().y;
             float clippedItemsY = static_cast<float>(std::max(0, clipper.DisplayEnd - clipper.DisplayStart - 1)) * singleItemY;
-            scroll_if_down(ImGuiKey_UpArrow, -singleItemY);
-            scroll_if_down(ImGuiKey_DownArrow, +singleItemY);
-            scroll_if_down(ImGuiKey_PageUp, -clippedItemsY);
-            scroll_if_down(ImGuiKey_PageDown, +clippedItemsY);
+            scroll_y_if_down(ImGuiKey_UpArrow, -singleItemY);
+            scroll_y_if_down(ImGuiKey_DownArrow, +singleItemY);
+            scroll_y_if_down(ImGuiKey_PageUp, -clippedItemsY);
+            scroll_y_if_down(ImGuiKey_PageDown, +clippedItemsY);
+
+            // scroll left and right respectively
+            auto scroll_x_if_down = [this](ImGuiKey key, float scrollX)
+            {
+                if (ImGui::IsKeyDown(key))
+                {
+                    float scrollXScrollTimeMultiplier = 1.0f + std::floor(m_sidewaysScrollTotalTime / 10.0f);
+
+                    if (ImGui::IsKeyPressed(key) || (m_sidewaysScrollTotalTime >= ImGui::GetIO().KeyRepeatDelay && m_sidewaysScrollDeltaTime >= 1.0f / 60.0f))
+                    {
+                        ImGui::SetScrollX(ImGui::GetScrollX() + scrollX * scrollXScrollTimeMultiplier);
+                        m_sidewaysScrollDeltaTime = 0.0f;
+                    }
+
+                    m_sidewaysScrollTotalTime += ImGui::GetIO().DeltaTime;
+                    m_sidewaysScrollDeltaTime += ImGui::GetIO().DeltaTime;
+                }
+                else if (ImGui::IsKeyReleased(key))
+                {
+                    m_sidewaysScrollTotalTime = 0.0f;
+                    m_sidewaysScrollDeltaTime = 0.0f;
+                }
+            };
+
+            float stepSizeX = singleItemY;
+            scroll_x_if_down(ImGuiKey_LeftArrow, -stepSizeX);
+            scroll_x_if_down(ImGuiKey_RightArrow, +stepSizeX);
         }
 
         ImGui::EndTable();

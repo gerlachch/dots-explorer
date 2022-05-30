@@ -45,5 +45,7 @@ private:
     FilterSettings& m_filterSettings;
     float m_pageScrollTotalTime;
     float m_pageScrollDeltaTime;
+    float m_sidewaysScrollTotalTime;
+    float m_sidewaysScrollDeltaTime;
     std::vector<dots::Subscription> m_subscriptions;
 };
