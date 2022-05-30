@@ -2,6 +2,7 @@
 #include <vector>
 #include <optional>
 #include <unordered_map>
+#include <limits>
 #include <dots/dots.h>
 #include <common/FilterMatcher.h>
 #include <widgets/views/TraceItem.h>
@@ -24,6 +25,8 @@ struct TraceView
     void render();
 
 private:
+
+    static constexpr uint32_t NoFilterSelected = std::numeric_limits<uint32_t>::max();
 
     void initFilterSettings();
     void applyFilters();

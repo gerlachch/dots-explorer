@@ -3,7 +3,6 @@
 #include <imgui.h>
 #include <widgets/views/StructList.h>
 #include <common/Settings.h>
-#include <dots_ext/struct_ops.h>
 #include <StructDescriptorData.dots.h>
 #include <EnumDescriptorData.dots.h>
 
@@ -54,19 +53,15 @@ void CacheView::render()
 
 void CacheView::initFilterSettings()
 {
-    default_init(m_filterSettings.activeFilter);
     m_filterExpressionEdit.emplace(m_filterSettings.activeFilter);
-
-    default_init(m_filterSettings.types);
 
     // ensure filters are valid
     {
-        dots::vector_t<Filter>& filters = m_filterSettings.storedFilters.constructOrValue();
-        filters.erase(std::remove_if(filters.begin(), filters.end(), [](const Filter& filter){ return !filter._hasProperties(filter._properties()); }), filters.end());
+        dots::vector_t<Filter>& filters = m_filterSettings.storedFilters;
 
-        if (auto& selectedFilter = m_filterSettings.selectedFilter; selectedFilter.isValid() && *selectedFilter >= filters.size())
+        if (auto& selectedFilter = m_filterSettings.selectedFilter; *selectedFilter >= filters.size())
         {
-            selectedFilter.destroy();
+            selectedFilter = NoFilterSelected;
         }
     }
 }
@@ -133,7 +128,7 @@ void CacheView::renderFilterArea()
             if (m_filterExpressionEdit->render())
             {
                 m_typesChanged = true;
-                m_filterSettings.selectedFilter.destroy();
+                m_filterSettings.selectedFilter = NoFilterSelected;
             }
             ImGui::PopItemWidth();
         }
@@ -152,7 +147,7 @@ void CacheView::renderFilterArea()
                     openFilterSettingsEdit = true;
                 }
 
-                if (selectedFilter.isValid())
+                if (selectedFilter == NoFilterSelected)
                 {
                     if (ImGui::Selectable("<Edit>"))
                     {
@@ -170,7 +165,7 @@ void CacheView::renderFilterArea()
                         }
                         else
                         {
-                            selectedFilter.destroy();
+                            selectedFilter = NoFilterSelected;
                         }
                     }
                 }
@@ -228,7 +223,7 @@ void CacheView::renderFilterArea()
                     m_filterSettings.activeFilter->expression->clear();
                     m_filterExpressionEdit = FilterExpressionEdit{ m_filterSettings.activeFilter };
                     m_typesChanged = true;
-                    m_filterSettings.selectedFilter.destroy();
+                    m_filterSettings.selectedFilter = NoFilterSelected;
                 }
             }
         }

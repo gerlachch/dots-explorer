@@ -2,7 +2,6 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <common/Settings.h>
-#include <dots_ext/struct_ops.h>
 #include <widgets/views/EventView.h>
 #include <StructDescriptorData.dots.h>
 #include <EnumDescriptorData.dots.h>
@@ -55,26 +54,25 @@ void TraceView::render()
 
 void TraceView::initFilterSettings()
 {
-    default_init(m_filterSettings.activeFilter);
     m_filterExpressionEdit.emplace(m_filterSettings.activeFilter);
 
-    default_init(m_filterSettings.types);
-
-    m_filterSettings.targets.constructOrValue();
-    m_filterSettings.targets->publishedAt.constructOrValue(true);
-    m_filterSettings.targets->publishedBy.constructOrValue(true);
-    m_filterSettings.targets->operation.constructOrValue(true);
-    m_filterSettings.targets->type.constructOrValue(true);
-    m_filterSettings.targets->instance.constructOrValue(true);
+    if (!m_filterSettings.targets->initialized)
+    {
+        m_filterSettings.targets->initialized = true;
+        m_filterSettings.targets->publishedAt = true;
+        m_filterSettings.targets->publishedBy = true;
+        m_filterSettings.targets->operation = true;
+        m_filterSettings.targets->type = true;
+        m_filterSettings.targets->instance = true;
+    }
 
     // ensure filters are valid
     {
-        dots::vector_t<Filter>& filters = m_filterSettings.storedFilters.constructOrValue();
-        filters.erase(std::remove_if(filters.begin(), filters.end(), [](const Filter& filter){ return !filter._hasProperties(filter._properties()); }), filters.end());
+        dots::vector_t<Filter>& filters = m_filterSettings.storedFilters;
 
-        if (auto& selectedFilter = m_filterSettings.selectedFilter; selectedFilter.isValid() && *selectedFilter >= filters.size())
+        if (auto& selectedFilter = m_filterSettings.selectedFilter; *selectedFilter >= filters.size())
         {
-            selectedFilter.destroy();
+            selectedFilter = NoFilterSelected;
         }
     }
 }
@@ -119,7 +117,7 @@ void TraceView::renderFilterArea()
             if (m_filterExpressionEdit->render())
             {
                 m_filtersChanged = true;
-                m_filterSettings.selectedFilter.destroy();
+                m_filterSettings.selectedFilter = NoFilterSelected;
             }
             ImGui::PopItemWidth();
         }
@@ -138,7 +136,7 @@ void TraceView::renderFilterArea()
                     openFilterSettingsEdit = true;
                 }
 
-                if (selectedFilter.isValid())
+                if (selectedFilter == NoFilterSelected)
                 {
                     if (ImGui::Selectable("<Edit>"))
                     {
@@ -156,7 +154,7 @@ void TraceView::renderFilterArea()
                         }
                         else
                         {
-                            selectedFilter.destroy();
+                            selectedFilter = NoFilterSelected;
                         }
                     }
                 }
@@ -254,7 +252,7 @@ void TraceView::renderFilterArea()
                     m_filterSettings.activeFilter->expression->clear();
                     m_filterExpressionEdit = FilterExpressionEdit{ m_filterSettings.activeFilter };
                     m_filtersChanged = true;
-                    m_filterSettings.selectedFilter.destroy();
+                    m_filterSettings.selectedFilter = NoFilterSelected;
                 }
             }
         }

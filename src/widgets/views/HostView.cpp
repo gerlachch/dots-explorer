@@ -44,22 +44,19 @@ void HostView::render()
             ImGui::TextUnformatted("Host  ");
         }
 
-        dots::vector_t<Host>& hosts = m_hostSettings.hosts.constructOrValue();
+        dots::vector_t<Host>& hosts = m_hostSettings.hosts;
 
         // ensure hosts are valid
         {
-            if (hosts.empty() || !std::all_of(hosts.begin(), hosts.end(), [](const Host& host){ return host._hasProperties(host._properties()); }))
+            if (hosts.empty())
             {
-                hosts.clear();
                 hosts.emplace_back(Host::endpoint_i{ "tcp://127.0.0.1:11234" }, Host::description_i{ "localhost (default)" });
             }
 
-            if (!m_hostSettings.selectedHost.isValid() || *m_hostSettings.selectedHost >= hosts.size())
+            if (*m_hostSettings.selectedHost >= hosts.size())
             {
                 m_hostSettings.selectedHost = 0;
             }
-
-            m_hostSettings.autoConnect.constructOrValue();
         }
 
         // check dropped files
@@ -209,7 +206,7 @@ void HostView::render()
             ImGui::TextColored(stateColor, "%s", stateStr);
         }
 
-        View& selectedView = m_viewSettings.selectedView.constructOrValue(View::Cache);
+        View& selectedView = m_viewSettings.selectedView;
 
         // process view select key
         if (ImGui::IsKeyPressed(ImGuiKey_Tab, false) && !ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId))

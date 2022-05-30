@@ -27,11 +27,12 @@ struct Filter [substruct_only] {
 }
 
 struct FilterTargets [substruct_only] {
-    1: bool publishedAt;
-    2: bool publishedBy;
-    3: bool operation;
-    4: bool type;
-    5: bool instance;
+    1: bool initialized;
+    2: bool publishedAt;
+    3: bool publishedBy;
+    4: bool operation;
+    5: bool type;
+    6: bool instance;
 }
 
 struct FilterTypes [substruct_only] {
