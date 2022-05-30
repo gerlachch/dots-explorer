@@ -17,4 +17,6 @@ namespace ImGuiExt
     void TooltipLastHoveredItem(std::string_view text);
 
     void Hyperlink(const std::string& uri);
+
+    bool ToggleButton(std::string_view label, bool& b, std::string_view tooltip = {});
 }

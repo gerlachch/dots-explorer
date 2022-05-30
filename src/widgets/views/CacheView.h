@@ -1,11 +1,11 @@
 #pragma once
 #include <vector>
 #include <optional>
-#include <regex>
 #include <dots/dots.h>
+#include <common/FilterMatcher.h>
 #include <widgets/dialogs/FilterSettingsEdit.h>
 #include <widgets/views/StructList.h>
-#include <widgets/input/RegexEdit.h>
+#include <widgets/input/FilterExpressionEdit.h>
 #include <FilterSettings.dots.h>
 
 struct CacheView
@@ -23,19 +23,20 @@ struct CacheView
 
 private:
 
+    static constexpr uint32_t NoFilterSelected = std::numeric_limits<uint32_t>::max();
+
     void initFilterSettings();
-    bool applyFilter(const StructList& structList);
     void applyFilters();
 
     void renderFilterArea();
     void renderCacheList();
 
+    std::optional<FilterExpressionEdit> m_filterExpressionEdit;
     std::optional<FilterSettingsEdit> m_filterSettingsEdit;
     std::vector<std::shared_ptr<StructList>> m_cacheList;
     std::vector<std::shared_ptr<StructList>> m_cacheListFiltered;
-    std::optional<std::regex> m_regex;
+    std::optional<FilterMatcher> m_filterMatcher;
     PublisherModel m_publisherModel;
-    RegexEdit m_filterEdit;
     bool m_typesChanged;
     bool m_filterSettingsInitialized;
     FilterSettings& m_filterSettings;

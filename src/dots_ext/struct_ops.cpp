@@ -41,4 +41,18 @@ namespace dots::type
         return instance;
     }
 
+    Struct& default_init(Struct& instance)
+    {
+        for (auto& property : instance)
+        {
+            property.constructOrValue();
+
+            if (property.descriptor().valueDescriptor().type() == Type::Struct)
+            {
+                default_init(property->to<Struct>());
+            }
+        }
+
+        return instance;
+    }
 }

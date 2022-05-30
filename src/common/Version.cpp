@@ -1,5 +1,4 @@
 #include <common/Version.h>
-#include <regex>
 #include <boost/process.hpp>
 #ifdef _WIN32
 #include <boost/process/windows.hpp>
@@ -54,7 +53,21 @@ std::future<GitHubReleaseInfo> Version::GetReleaseInfo(std::string_view release/
 
         // note that this is currently necessary because the JSON serializer
         // expects timestamps to use the offset format
-        body = std::regex_replace(body, std::regex{ "Z\"" }, "+00:00\"");
+        auto replace_all = [](std::string& str, std::string_view subStr, std::string_view replaceStr)
+        {
+            for(size_t pos = 0;; pos += replaceStr.length())
+            {
+                if (pos = str.find(subStr, pos); pos == std::string::npos)
+                {
+                    return;
+                }
+
+                str.erase(pos, subStr.length());
+                str.insert(pos, replaceStr);
+            }
+        };
+
+        replace_all(body, "Z\"", "+00:00\"");
 
         return GitHubJsonSerializer::Deserialize<GitHubReleaseInfo>(body);
     });

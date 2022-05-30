@@ -1,5 +1,6 @@
 #include <widgets/views/TraceView.h>
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <common/Settings.h>
 #include <widgets/views/EventView.h>
 #include <StructDescriptorData.dots.h>
@@ -9,7 +10,11 @@ TraceView::TraceView() :
     m_traceIndex(0),
     m_filtersChanged(true),
     m_filterSettingsInitialized(false),
-    m_filterSettings{ Settings::Register<FilterSettings>() }
+    m_filterSettings{ Settings::Register<FilterSettings>() },
+    m_pageScrollTotalTime(0.0f),
+    m_pageScrollDeltaTime(0.0f),
+    m_sidewaysScrollTotalTime(0.0f),
+    m_sidewaysScrollDeltaTime(0.0f)
 {
     m_subscriptions.emplace_back(dots::subscribe<StructDescriptorData>([](auto&){}));
     m_subscriptions.emplace_back(dots::subscribe<EnumDescriptorData>([](auto&){}));
@@ -24,8 +29,9 @@ void TraceView::update(const dots::type::StructDescriptor<>& descriptor)
         {
             StructDescriptorModel& descriptorModel = m_descriptorModels.try_emplace(&event.descriptor(), event.descriptor()).first->second;
             auto& item = m_items.emplace_back(std::make_shared<TraceItem>(++m_traceIndex, descriptorModel, m_publisherModel, event));
+            item->setFilterTargets(m_filterSettings.targets);
 
-            if (applyFilter(*item))
+            if (item->isFiltered(m_filterMatcher, m_filterSettings))
             {
                 m_itemsFiltered.emplace_back(item);
             }
@@ -48,72 +54,40 @@ void TraceView::render()
 
 void TraceView::initFilterSettings()
 {
-    if (m_filterSettings.regexFilter.isValid())
-    {
-        m_filterEdit = std::string_view{ *m_filterSettings.regexFilter };
-    }
-    else
-    {
-        m_filterSettings.regexFilter.construct();
-    }
+    m_filterExpressionEdit.emplace(m_filterSettings.activeFilter);
 
-    m_filterSettings.showInternal.constructOrValue();
-    m_filterSettings.showUncached.constructOrValue();
-    m_filterSettings.showEmpty.constructOrValue();
-    m_filterSettings.matchCase.constructOrValue();
+    if (!m_filterSettings.targets->initialized)
+    {
+        m_filterSettings.targets->initialized = true;
+        m_filterSettings.targets->publishedAt = true;
+        m_filterSettings.targets->publishedBy = true;
+        m_filterSettings.targets->operation = true;
+        m_filterSettings.targets->type = true;
+        m_filterSettings.targets->instance = true;
+    }
 
     // ensure filters are valid
     {
-        dots::vector_t<Filter>& filters = m_filterSettings.filters.constructOrValue();
-        filters.erase(std::remove_if(filters.begin(), filters.end(), [](const Filter& filter){ return !filter._hasProperties(filter._properties()); }), filters.end());
+        dots::vector_t<Filter>& filters = m_filterSettings.storedFilters;
 
-        if (auto& selectedFilter = m_filterSettings.selectedFilter; selectedFilter.isValid() && *selectedFilter >= filters.size())
+        if (auto& selectedFilter = m_filterSettings.selectedFilter; *selectedFilter >= filters.size())
         {
-            selectedFilter.destroy();
+            selectedFilter = NoFilterSelected;
         }
-    }
-}
-
-bool TraceView::applyFilter(const TraceItem& item)
-{
-    std::string_view eventFilter = m_filterEdit.text().first;
-    const dots::type::StructDescriptor<>& descriptor = item.publishedInstanceModel().descriptorModel().descriptor();
-
-    if (descriptor.internal() && !*m_filterSettings.showInternal)
-    {
-        return false;
-    }
-    else if (!descriptor.cached() && !*m_filterSettings.showUncached)
-    {
-        return false;
-    }
-    else
-    {
-        return eventFilter.empty() || (m_regex != std::nullopt && std::regex_search(descriptor.name(), *m_regex));
     }
 }
 
 void TraceView::applyFilters()
 {
-    std::string_view eventFilter = m_filterEdit.text().first;
-    m_filterSettings.regexFilter = eventFilter;
-
-    std::regex_constants::syntax_option_type regexFlags = std::regex_constants::ECMAScript;
-
-    if (!m_filterSettings.matchCase)
-    {
-        regexFlags |= std::regex_constants::icase;
-    }
-
     try
     {
-        std::regex regex{ eventFilter.data(), regexFlags };
-        m_regex.emplace(std::move(regex));
+        FilterMatcher filterMatcher{ m_filterSettings.activeFilter };
+        m_filterMatcher.emplace(std::move(filterMatcher));
         m_itemsFiltered.clear();
 
         std::copy_if(m_items.begin(), m_items.end(), std::back_inserter(m_itemsFiltered), [&](const auto& item)
         {
-            return applyFilter(*item);
+            return item->isFiltered(m_filterMatcher, m_filterSettings);
         });
     }
     catch (...)
@@ -140,30 +114,29 @@ void TraceView::renderFilterArea()
 
             ImGui::SameLine();
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f - 19);
-            if (m_filterEdit.render())
+            if (m_filterExpressionEdit->render())
             {
                 m_filtersChanged = true;
-                m_filterSettings.selectedFilter.destroy();
+                m_filterSettings.selectedFilter = NoFilterSelected;
             }
             ImGui::PopItemWidth();
-            ImGuiExt::TooltipLastHoveredItem("Types can be filtered by specifying substrings or ECMAScript regular expressions.");
         }
 
         // render filter list
         {
-            dots::vector_t<Filter>& filters = m_filterSettings.filters;
+            dots::vector_t<Filter>& filters = m_filterSettings.storedFilters;
             auto& selectedFilter = m_filterSettings.selectedFilter;
 
             ImGui::SameLine(0, 0);
 
-            if (ImGui::BeginCombo("##Filters", "", ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft))
+            if (ImGui::BeginCombo("##Filters", "", ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge))
             {
                 if (ImGui::Selectable("<New>"))
                 {
                     openFilterSettingsEdit = true;
                 }
 
-                if (selectedFilter.isValid())
+                if (selectedFilter == NoFilterSelected)
                 {
                     if (ImGui::Selectable("<Edit>"))
                     {
@@ -181,13 +154,54 @@ void TraceView::renderFilterArea()
                         }
                         else
                         {
-                            selectedFilter.destroy();
+                            selectedFilter = NoFilterSelected;
                         }
                     }
                 }
 
                 ImGui::Separator();
 
+                // render filter rules
+                {
+                    ImGui::TextUnformatted("Filter By:");
+                    ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
+
+                    if (ImGui::MenuItem("Published At", nullptr, &*m_filterSettings.targets->publishedAt))
+                    {
+                        for (const auto& item : m_items){ item->setFilterTargets(m_filterSettings.targets); }
+                        m_filtersChanged = true;
+                    }
+
+                    if (ImGui::MenuItem("Published By", nullptr, &*m_filterSettings.targets->publishedBy))
+                    {
+                        for (const auto& item : m_items){ item->setFilterTargets(m_filterSettings.targets); }
+                        m_filtersChanged = true;
+                    }
+
+                    if (ImGui::MenuItem("Operation", nullptr, &*m_filterSettings.targets->operation))
+                    {
+                        for (const auto& item : m_items){ item->setFilterTargets(m_filterSettings.targets); }
+                        m_filtersChanged = true;
+                    }
+
+                    if (ImGui::MenuItem("Type", nullptr, &*m_filterSettings.targets->type))
+                    {
+                        for (const auto& item : m_items){ item->setFilterTargets(m_filterSettings.targets); }
+                        m_filtersChanged = true;
+                    }
+
+                    if (ImGui::MenuItem("Instance", nullptr, &*m_filterSettings.targets->instance))
+                    {
+                        for (const auto& item : m_items){ item->setFilterTargets(m_filterSettings.targets); }
+                        m_filtersChanged = true;
+                    }
+
+                    ImGui::PopItemFlag();
+                }
+
+                ImGui::Separator();
+
+                ImGui::TextUnformatted("Filters:");
                 uint32_t i = 0;
 
                 for (Filter& filter : filters)
@@ -195,7 +209,8 @@ void TraceView::renderFilterArea()
                     if (ImGui::Selectable(filter.description->data(), selectedFilter == i) && selectedFilter != i)
                     {
                         selectedFilter = i;
-                        m_filterEdit = std::string_view{ *filters[selectedFilter].regex };
+                        m_filterSettings.activeFilter = filters[selectedFilter];
+                        m_filterExpressionEdit = FilterExpressionEdit{ m_filterSettings.activeFilter };
                         m_filtersChanged = true;
                     }
 
@@ -206,21 +221,17 @@ void TraceView::renderFilterArea()
             }
         }
 
-        // render 'Match case' button
+        // render filter expression options
         {
             ImGui::SameLine();
+            m_filtersChanged |= ImGuiExt::ToggleButton("Aa", m_filterSettings.activeFilter->matchCase, "Match case");
 
-            ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[*m_filterSettings.matchCase ? ImGuiCol_ButtonActive : ImGuiCol_Button]);
-
-            if (ImGui::Button("Aa"))
+            ImGui::SameLine();
+            if (ImGuiExt::ToggleButton("Re", m_filterSettings.activeFilter->regex, "Interpret expression as a regular expression instead of a quick filter."))
             {
-                m_filterSettings.matchCase = !*m_filterSettings.matchCase;
+                m_filterExpressionEdit = FilterExpressionEdit{ m_filterSettings.activeFilter };
                 m_filtersChanged = true;
             }
-
-            ImGui::PopStyleColor();
-
-            ImGuiExt::TooltipLastHoveredItem("Match case");
         }
 
         // render 'Clear' button
@@ -228,7 +239,7 @@ void TraceView::renderFilterArea()
             ImGui::SameLine();
             constexpr char ClearLabel[] = "Clear";
 
-            if (m_filterEdit.text().first.empty())
+            if (m_filterSettings.activeFilter->expression->empty())
             {
                 ImGui::BeginDisabled();
                 ImGui::Button(ClearLabel);
@@ -238,31 +249,21 @@ void TraceView::renderFilterArea()
             {
                 if (ImGui::Button(ClearLabel))
                 {
-                    m_filterEdit = {};
+                    m_filterSettings.activeFilter->expression->clear();
+                    m_filterExpressionEdit = FilterExpressionEdit{ m_filterSettings.activeFilter };
                     m_filtersChanged = true;
-                    m_filterSettings.selectedFilter.destroy();
+                    m_filterSettings.selectedFilter = NoFilterSelected;
                 }
             }
         }
 
-        // render 'Internal' filter option checkbox
+        // render type filter option checkboxes
         {
             ImGui::SameLine();
-
-            if (ImGui::Checkbox("Internal", &*m_filterSettings.showInternal))
-            {
-                m_filtersChanged = true;
-            }
-        }
-
-        // render 'Uncached' filter option checkbox
-        {
+            m_filtersChanged |= ImGui::Checkbox("Internal", &*m_filterSettings.types->internal);
+            
             ImGui::SameLine();
-
-            if (ImGui::Checkbox("Uncached", &*m_filterSettings.showUncached))
-            {
-                m_filtersChanged = true;
-            }
+            m_filtersChanged |= ImGui::Checkbox("Uncached", &*m_filterSettings.types->uncached);
         }
 
         // apply filters to event list
@@ -304,14 +305,6 @@ void TraceView::renderEventList()
 {
     constexpr ImGuiTableFlags TableFlags = 
         ImGuiTableFlags_Borders        |
-        ImGuiTableFlags_BordersH       |
-        ImGuiTableFlags_BordersOuterH  |
-        ImGuiTableFlags_BordersInnerH  |
-        ImGuiTableFlags_BordersV       |
-        ImGuiTableFlags_BordersOuterV  |
-        ImGuiTableFlags_BordersInnerV  |
-        ImGuiTableFlags_BordersOuter   |
-        ImGuiTableFlags_BordersInner   |
         ImGuiTableFlags_SizingFixedFit |
         ImGuiTableFlags_ScrollX        |
         ImGuiTableFlags_ScrollY        |
@@ -323,7 +316,7 @@ void TraceView::renderEventList()
     std::shared_ptr<TraceItem> discardUntilItem;
     bool discardAll = false;
 
-    if (ImGui::BeginTable("EventTrace", 8, TableFlags, ImGui::GetContentRegionAvail()))
+    if (ImGui::BeginTable("EventTrace", 7, TableFlags, ImGui::GetContentRegionAvail()))
     {
         // render event list headers
         ImGui::TableSetupScrollFreeze(0, 1);
@@ -331,7 +324,6 @@ void TraceView::renderEventList()
         ImGui::TableSetupColumn("Published At");
         ImGui::TableSetupColumn("Published By");
         ImGui::TableSetupColumn("Operation");
-        ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_DefaultHide);
         ImGui::TableSetupColumn("Published Instance");
         ImGui::TableSetupColumn("Updated Instance", ImGuiTableColumnFlags_DefaultHide);
         ImGui::TableSetupColumn("<intentionally-empty> ", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_NoHeaderLabel);
@@ -408,6 +400,79 @@ void TraceView::renderEventList()
             ImGui::SetScrollHereY(1.0f);
         }
 
+        // process scroll input
+        {
+            if (ImGui::IsKeyPressed(ImGuiKey_End, false))
+            {
+                // jump to bottom
+                ImGui::SetScrollY(ImGui::GetScrollMaxY());
+                ImGui::SetScrollHereY(1.0f);
+            }
+
+            if (ImGui::IsKeyPressed(ImGuiKey_Home, false))
+            {
+                // jump to top
+                ImGui::SetScrollY(0.0f);
+            }
+
+            // scroll up and down respectively
+            auto scroll_y_if_down = [this](ImGuiKey key, float scrollY)
+            {
+                if (ImGui::IsKeyDown(key))
+                {
+                    float pageScrollTimeMultiplier = 1.0f + std::floor(m_pageScrollTotalTime / 10.0f);
+
+                    if (ImGui::IsKeyPressed(key) || (m_pageScrollTotalTime >= ImGui::GetIO().KeyRepeatDelay && m_pageScrollDeltaTime >= 1.0f / 60.0f))
+                    {
+                        ImGui::SetScrollY(ImGui::GetScrollY() + scrollY * pageScrollTimeMultiplier);
+                        m_pageScrollDeltaTime = 0.0f;
+                    }
+
+                    m_pageScrollTotalTime += ImGui::GetIO().DeltaTime;
+                    m_pageScrollDeltaTime += ImGui::GetIO().DeltaTime;
+                }
+                else if (ImGui::IsKeyReleased(key))
+                {
+                    m_pageScrollTotalTime = 0.0f;
+                    m_pageScrollDeltaTime = 0.0f;
+                }
+            };
+            
+            float singleItemY = ImGui::GetItemRectSize().y;
+            float clippedItemsY = static_cast<float>(std::max(0, clipper.DisplayEnd - clipper.DisplayStart - 1)) * singleItemY;
+            scroll_y_if_down(ImGuiKey_UpArrow, -singleItemY);
+            scroll_y_if_down(ImGuiKey_DownArrow, +singleItemY);
+            scroll_y_if_down(ImGuiKey_PageUp, -clippedItemsY);
+            scroll_y_if_down(ImGuiKey_PageDown, +clippedItemsY);
+
+            // scroll left and right respectively
+            auto scroll_x_if_down = [this](ImGuiKey key, float scrollX)
+            {
+                if (ImGui::IsKeyDown(key))
+                {
+                    float scrollXScrollTimeMultiplier = 1.0f + std::floor(m_sidewaysScrollTotalTime / 10.0f);
+
+                    if (ImGui::IsKeyPressed(key) || (m_sidewaysScrollTotalTime >= ImGui::GetIO().KeyRepeatDelay && m_sidewaysScrollDeltaTime >= 1.0f / 60.0f))
+                    {
+                        ImGui::SetScrollX(ImGui::GetScrollX() + scrollX * scrollXScrollTimeMultiplier);
+                        m_sidewaysScrollDeltaTime = 0.0f;
+                    }
+
+                    m_sidewaysScrollTotalTime += ImGui::GetIO().DeltaTime;
+                    m_sidewaysScrollDeltaTime += ImGui::GetIO().DeltaTime;
+                }
+                else if (ImGui::IsKeyReleased(key))
+                {
+                    m_sidewaysScrollTotalTime = 0.0f;
+                    m_sidewaysScrollDeltaTime = 0.0f;
+                }
+            };
+
+            float stepSizeX = singleItemY;
+            scroll_x_if_down(ImGuiKey_LeftArrow, -stepSizeX);
+            scroll_x_if_down(ImGuiKey_RightArrow, +stepSizeX);
+        }
+
         ImGui::EndTable();
     }
 
@@ -416,12 +481,12 @@ void TraceView::renderEventList()
         if (editItem != nullptr)
         {
             const StructRefModel& structRefModel = editItem->publishedInstanceModel();
-            m_structEdit.emplace(structRefModel.descriptorModel(), structRefModel.instance());
+            m_publishDialog.emplace(structRefModel.descriptorModel(), structRefModel.instance());
         }
 
-        if (m_structEdit != std::nullopt && !m_structEdit->render())
+        if (m_publishDialog != std::nullopt && !m_publishDialog->render())
         {
-            m_structEdit = std::nullopt;
+            m_publishDialog = std::nullopt;
         }
     }
 

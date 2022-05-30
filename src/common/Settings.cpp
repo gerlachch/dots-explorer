@@ -2,6 +2,7 @@
 #include <imgui_internal.h>
 #include <dots/serialization/StringSerializer.h>
 #include <dots/tools/string_tools.h>
+#include <dots_ext/struct_ops.h>
 
 void Settings::Init()
 {
@@ -51,6 +52,7 @@ void Settings::ReadLineHandler(ImGuiContext*/* ctx*/, ImGuiSettingsHandler*/* ha
         if (auto it = M_settingsMap.find(std::string{ name }); it != M_settingsMap.end())
         {
             dots::from_string(std::string{ value }, *it->second);
+            default_init(*it->second);
         }
     }
     catch (...)

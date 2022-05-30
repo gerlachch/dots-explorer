@@ -68,7 +68,12 @@ FetchContent_Declare(
     GIT_TAG        master
 )
 
-FetchContent_MakeAvailable(dots-cpp fmt glfw)
+FetchContent_Declare(
+    re2
+    GIT_REPOSITORY https://github.com/google/re2.git
+    GIT_TAG        2022-04-01
+)
+FetchContent_MakeAvailable(dots-cpp fmt glfw re2)
 
 FetchContent_Declare(
     imgui
@@ -101,6 +106,7 @@ target_sources(${TARGET_NAME}
         src/common/ImGuiExt.cpp
         src/common/Settings.cpp
         src/common/Version.cpp
+        src/common/FilterMatcher.cpp
         src/models/PropertyModel.cpp
         src/models/PropertyDescriptorModel.cpp
         src/models/PublisherModel.cpp
@@ -115,12 +121,12 @@ target_sources(${TARGET_NAME}
         src/widgets/views/StructList.cpp
         src/widgets/dialogs/HostSettingsEdit.cpp
         src/widgets/dialogs/HelpDialog.cpp
-        src/widgets/dialogs/StructEdit.cpp
+        src/widgets/dialogs/PublishDialog.cpp
         src/widgets/views/StructItem.cpp
         src/widgets/views/StructView.cpp
         src/widgets/views/CacheView.cpp
         src/widgets/dialogs/PropertyEdit.cpp
-        src/widgets/input/RegexEdit.cpp
+        src/widgets/input/FilterExpressionEdit.cpp
         src/widgets/views/EventView.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
         $<$<BOOL:${Vulkan_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp>
@@ -163,6 +169,7 @@ target_link_libraries(${TARGET_NAME}
         $<$<BOOL:${Vulkan_FOUND}>:Vulkan::Vulkan>
         $<$<BOOL:${OpenGL_FOUND}>:${OPENGL_LIBRARIES}>
         Boost::filesystem
+        re2::re2
 )
 
 # install

@@ -3,24 +3,29 @@
 #include <imgui.h>
 #include <fmt/format.h>
 
-FilterSettingsEdit::FilterSettingsEdit(FilterSettings& settings, Filter* editFilter/* = nullptr*/) :
+FilterSettingsEdit::FilterSettingsEdit(FilterSettings& settings, Filter* existingFilter/* = nullptr*/) :
     m_popupId{ fmt::format("FilterSettingsEdit-{}_Popup", ++M_id) },
-    m_regexEdit{ {}, {} },
     m_descriptionBuffer(256, '\0'),
     m_settings(settings),
-    m_editFilter(editFilter)
+    m_existingFilter(existingFilter)
 {
-    if (m_editFilter == nullptr)
+    if (m_existingFilter == nullptr)
     {
         m_headerText = "Add Filter";
+
+        for (auto& property : m_filter)
+        {
+            property.constructOrValue();
+        }
     }
     else
     {
         m_headerText = "Edit Filter";
-        m_regexEdit = std::string_view{ *m_editFilter->regex };
-        std::copy(m_editFilter->description->begin(), m_editFilter->description->end(), m_descriptionBuffer.begin());
+        m_filter = *m_existingFilter;
+        std::copy(m_existingFilter->description->begin(), m_existingFilter->description->end(), m_descriptionBuffer.begin());
     }
 
+    m_filterExpressionEdit.emplace(m_filter, "");
     ImGui::OpenPopup(m_popupId.data());
 }
 
@@ -43,14 +48,22 @@ bool FilterSettingsEdit::render()
                 ImGui::TableNextRow();
 
                 ImGui::TableNextColumn();
-                ImGui::TextUnformatted("Regex");
+                ImGui::TextUnformatted("Expression");
 
                 ImGui::TableNextColumn();
                 ImGui::PushItemWidth(ImGui::GetIO().DisplaySize.x * 0.35f);
                 ImGui::AlignTextToFramePadding();
-                m_regexEdit.render();
+                m_filterExpressionEdit->render();
                 ImGui::PopItemWidth();
-                ImGuiExt::TooltipLastHoveredItem("Types can be filtered by specifying substrings or ECMAScript regular expressions.");
+
+                ImGui::SameLine();
+                ImGuiExt::ToggleButton("Aa", m_filter.matchCase, "Match case");
+
+                ImGui::SameLine();
+                if (ImGuiExt::ToggleButton("Re", m_filter.regex, "Interpret expression as a regular expression instead of a quick filter."))
+                {
+                    m_filterExpressionEdit.emplace(m_filter, "");
+                }
 
                 ImGui::TableNextRow();
 
@@ -69,26 +82,23 @@ bool FilterSettingsEdit::render()
 
         // buttons
         {
-            bool hasRegex = m_regexEdit.isValid();
+            bool hasValidExpression = m_filterExpressionEdit->isValid();
             bool hasDescription = m_descriptionBuffer.front() != '\0';
             const char* label = "Save";
 
-            if (hasRegex && hasDescription)
+            if (hasValidExpression && hasDescription)
             {
                 if (ImGui::Button(label))
                 {
-                    Filter filter{
-                        Filter::regex_i{ m_regexEdit.text().first },
-                        Filter::description_i{ m_descriptionBuffer.data() }
-                    };
+                    m_filter.description = m_descriptionBuffer.data();
 
-                    if (m_editFilter == nullptr)
+                    if (m_existingFilter == nullptr)
                     {
-                        m_settings.filters->emplace_back(std::move(filter));
+                        m_settings.storedFilters->emplace_back(std::move(m_filter));
                     }
                     else
                     {
-                        *m_editFilter = filter;
+                        *m_existingFilter = m_filter;
                     }
 
                     ImGui::CloseCurrentPopup();

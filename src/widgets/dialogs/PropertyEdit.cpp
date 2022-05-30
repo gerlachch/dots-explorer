@@ -112,7 +112,15 @@ void PropertyEdit::render()
                 if (valueChanged)
                 {
                     m_inputBuffer.assign(std::max(value.size(), size_t{ 256 }), '\0');
-                    std::copy(value.begin(), value.end(), m_inputBuffer.begin());
+
+                    if (type == dots::type::Type::string)
+                    {
+                        std::copy(value.begin() + 1, value.end() - 1, m_inputBuffer.begin());
+                    }
+                    else
+                    {
+                        std::copy(value.begin(), value.end(), m_inputBuffer.begin());
+                    }
                 }
 
                 if (ImGui::InputText(m_inputLabel.data(), m_inputBuffer.data(), m_inputBuffer.size(), ImGuiInputTextFlags_AutoSelectAll))

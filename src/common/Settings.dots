@@ -20,16 +20,31 @@ struct ViewSettings {
 }
 
 struct Filter [substruct_only] {
-    1: string regex;
-    2: string description;
+    1: string description;
+    2: string expression;
+    3: bool matchCase;
+    4: bool regex;
+}
+
+struct FilterTargets [substruct_only] {
+    1: bool initialized;
+    2: bool publishedAt;
+    3: bool publishedBy;
+    4: bool operation;
+    5: bool type;
+    6: bool instance;
+}
+
+struct FilterTypes [substruct_only] {
+    1: bool internal;
+    2: bool uncached;
+    3: bool empty;
 }
 
 struct FilterSettings {
-    1: string regexFilter;
-    2: bool showInternal;
-    3: bool showUncached;
-    4: bool showEmpty;
-    5: bool matchCase;
-    6: vector<Filter> filters;
-    7: uint32 selectedFilter;
+    1: Filter activeFilter;
+    2: vector<Filter> storedFilters;
+    3: uint32 selectedFilter;
+    4: FilterTargets targets;
+    5: FilterTypes types;
 }

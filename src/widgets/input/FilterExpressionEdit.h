@@ -1,13 +1,12 @@
 #pragma once
 #include <common/ImGuiExt.h>
+#include <Filter.dots.h>
 
-struct RegexEdit
+struct FilterExpressionEdit
 {
-    RegexEdit(std::string_view regex = {}, std::string hint = "<none>");
+    FilterExpressionEdit(Filter& filter, std::string hint = "<none>");
 
-    const ImGuiExt::ColoredText& text() const;
     bool isValid() const;
-
     bool render();
 
 private:
@@ -16,9 +15,10 @@ private:
 
     void fetch(const ImVec4& regularTextColor);
 
-    ImGuiExt::ColoredText m_text;
+    ImVec4 m_inputColor;
     std::string m_label;
     bool m_isValid;
     std::string m_buffer;
+    Filter* m_filter;
     std::string m_hint;
 };

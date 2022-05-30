@@ -5,7 +5,7 @@
 
 struct Version
 {
-    static constexpr std::string_view CurrentVersion = "v0.8.0";
+    static constexpr std::string_view CurrentVersion = "v0.9.0";
 
     static std::future<GitHubReleaseInfo> GetReleaseInfo(std::string_view release = "latest");
 };

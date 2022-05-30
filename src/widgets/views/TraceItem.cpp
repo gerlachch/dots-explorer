@@ -57,6 +57,74 @@ bool TraceItem::isHovered() const
     return m_isHovered;
 }
 
+void TraceItem::setFilterTargets(const FilterTargets& targets)
+{
+    m_filterText.clear();
+
+    if (*targets.type)
+    {
+        m_filterText += fmt::format(" {}", m_publishedInstanceModel.descriptorModel().declarationText()[1].first);
+    }
+
+    if (*targets.publishedAt)
+    {
+        m_filterText += fmt::format(" {}", m_metadataModel.lastPublishedText().first);
+    }
+
+    if (*targets.publishedBy)
+    {
+        m_filterText += fmt::format(" {}", m_metadataModel.lastPublishedByText().first);
+    }
+
+    if (*targets.operation)
+    {
+        m_filterText += fmt::format(" {}", m_metadataModel.lastOperationText().first);
+    }
+
+    if (*targets.instance)
+    {
+        for (const PropertyModel& propertyModel : m_updatedInstanceModel.propertyModels())
+        {
+            if (propertyModel.property().isValid())
+            {
+                m_filterText += fmt::format(" {}:{}", propertyModel.descriptorModel().propertyPath().destination().name(), propertyModel.valueText().first);
+            }
+        }
+    }
+
+    m_filterTextLower.clear();
+    std::transform(m_filterText.begin(), m_filterText.end(), std::back_inserter(m_filterTextLower), std::tolower);
+}
+
+bool TraceItem::isFiltered(const std::optional<FilterMatcher>& filter, const FilterSettings& filterSettings) const
+{
+    const dots::type::StructDescriptor<>& descriptor = publishedInstanceModel().descriptorModel().descriptor();
+
+    if (descriptor.internal() && !*filterSettings.types->internal)
+    {
+        return false;
+    }
+    else if (!descriptor.cached() && !*filterSettings.types->uncached)
+    {
+        return false;
+    }
+    else
+    {
+        if (filterSettings.activeFilter->expression->empty())
+        {
+            return true;
+        }
+        else if (filter == std::nullopt)
+        {
+            return false;
+        }
+        else
+        {
+            return filter->match(filterSettings.activeFilter->matchCase ? m_filterText : m_filterTextLower);
+        }
+    }
+}
+
 void TraceItem::render(bool hoverCondition)
 {
     m_isHovered = false;
@@ -86,12 +154,6 @@ void TraceItem::render(bool hoverCondition)
     if (ImGui::TableNextColumn())
     {
         ImGuiExt::TextColored(m_metadataModel.lastOperationText());
-        m_isHovered |= hoverCondition && ImGui::IsItemHovered();
-    }
-
-    if (ImGui::TableNextColumn())
-    {
-        ImGuiExt::TextColored(m_publishedInstanceModel.descriptorModel().declarationText()[1]);
         m_isHovered |= hoverCondition && ImGui::IsItemHovered();
     }
 

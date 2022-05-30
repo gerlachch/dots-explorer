@@ -1,11 +1,11 @@
-#include <widgets/dialogs/StructEdit.h>
+#include <widgets/dialogs/PublishDialog.h>
 #include <algorithm>
 #include <imgui.h>
 #include <fmt/format.h>
 #include <common/Colors.h>
 
-StructEdit::StructEdit(const StructDescriptorModel& structDescriptorModel, dots::type::AnyStruct instance) :
-    m_popupId{ fmt::format("StructEdit-{}_Popup", ++M_id) },
+PublishDialog::PublishDialog(const StructDescriptorModel& structDescriptorModel, dots::type::AnyStruct instance) :
+    m_popupId{ fmt::format("PublishDialog-{}_Popup", ++M_id) },
     m_remove(false),
     m_instance{ std::move(instance) },
     m_structRefModel{ structDescriptorModel, m_instance }
@@ -27,7 +27,7 @@ StructEdit::StructEdit(const StructDescriptorModel& structDescriptorModel, dots:
     ImGui::OpenPopup(m_popupId.data());
 }
 
-bool StructEdit::render()
+bool PublishDialog::render()
 {
     ImGui::SetNextWindowPos(ImVec2{ ImGui::GetWindowWidth() / 2, ImGui::GetWindowHeight() / 2 }, 0, ImVec2{ 0.5f, 0.5f });
 
@@ -46,7 +46,7 @@ bool StructEdit::render()
             : nullptr
         ;
 
-        if (ImGui::BeginTable("StructEditTable", 2))
+        if (ImGui::BeginTable("PublishDialogTable", 2))
         {
             for (PropertyEdit& propertyEdit : m_propertyEdits)
             {
