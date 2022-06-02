@@ -16,7 +16,7 @@ StructList::StructList(const dots::type::StructDescriptor<>& descriptor, const P
     m_structDescriptorModel{ descriptor },
     m_publisherModel{ publisherModel }
 {
-    std::transform(descriptor.name().begin(), descriptor.name().end(), std::back_inserter(m_typeNameLower), std::tolower);
+    std::transform(descriptor.name().begin(), descriptor.name().end(), std::back_inserter(m_typeNameLower), [](unsigned char c){ return std::tolower(c); });
 
     const auto& propertyPaths = descriptor.propertyPaths();
 

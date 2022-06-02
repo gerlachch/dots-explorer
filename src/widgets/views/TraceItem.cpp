@@ -93,7 +93,7 @@ void TraceItem::setFilterTargets(const FilterTargets& targets)
     }
 
     m_filterTextLower.clear();
-    std::transform(m_filterText.begin(), m_filterText.end(), std::back_inserter(m_filterTextLower), std::tolower);
+    std::transform(m_filterText.begin(), m_filterText.end(), std::back_inserter(m_filterTextLower), [](unsigned char c){ return std::tolower(c); });
 }
 
 bool TraceItem::isFiltered(const std::optional<FilterMatcher>& filter, const FilterSettings& filterSettings) const
