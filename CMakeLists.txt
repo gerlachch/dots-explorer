@@ -6,7 +6,7 @@ set(TARGET_NAME dots-explorer)
 include(FetchContent)
 
 # CMake options
-option(DOTS_EXPLORER_USE_VULKAN_BACKEND "Use Vulkan backend instead of OpenGL" ON)
+option(DOTS_EXPLORER_USE_VULKAN_BACKEND "Use Vulkan backend instead of OpenGL/DirectX 11" ON)
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     # use default build type if none was specified
     set(DEFAULT_BUILD_TYPE "Release")
@@ -42,9 +42,18 @@ if (DOTS_EXPLORER_USE_VULKAN_BACKEND)
     message("Using Vulkan backend.")
     find_package(Vulkan REQUIRED)
 else()
-    message("Using OpenGL backend.")
-    find_package(OpenGL REQUIRED)
-    set(DOTS_EXPLORER_USE_OPENGL_BACKEND TRUE)
+    if (WIN32)
+        message("Using DirectX 11 backend.")
+        find_library(DX11_LIBRARY d3d11.lib)
+        if (${DX11_LIBRARY} MATCHES DX11_LIBRARY-NOTFOUND)
+            message(FATAL_ERROR "Could not find DirectX 11 library.")
+        endif()
+        set(DOTS_EXPLORER_USE_DX11_BACKEND TRUE)
+    else()
+        message("Using OpenGL backend.")
+        find_package(OpenGL REQUIRED)
+        set(DOTS_EXPLORER_USE_OPENGL_BACKEND TRUE)
+    endif()
 endif()
 
 option(DOTS_BUILD_EXAMPLES "Build the examples" OFF)
@@ -105,6 +114,7 @@ target_sources(${TARGET_NAME}
         src/main.cpp
         $<$<BOOL:${DOTS_EXPLORER_USE_VULKAN_BACKEND}>:src/backends/GlfwVulkanBackend.cpp>
         $<$<BOOL:${DOTS_EXPLORER_USE_OPENGL_BACKEND}>:src/backends/GlfwOpenGl3Backend.cpp>
+        $<$<BOOL:${DOTS_EXPLORER_USE_DX11_BACKEND}>:src/backends/Win32DX11Backend.cpp>
         src/widgets/views/HostView.cpp
         src/widgets/MainWindow.cpp
         src/common/ImGuiExt.cpp
@@ -135,6 +145,8 @@ target_sources(${TARGET_NAME}
         $<$<OR:$<BOOL:${DOTS_EXPLORER_USE_OPENGL_BACKEND}>,$<BOOL:${DOTS_EXPLORER_USE_VULKAN_BACKEND}>>:${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp>
         $<$<BOOL:${DOTS_EXPLORER_USE_VULKAN_BACKEND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp>
         $<$<BOOL:${DOTS_EXPLORER_USE_OPENGL_BACKEND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp>
+        $<$<BOOL:${DOTS_EXPLORER_USE_DX11_BACKEND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_dx11.cpp>
+        $<$<BOOL:${DOTS_EXPLORER_USE_DX11_BACKEND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp>
         ${imgui_SOURCE_DIR}/imgui.cpp
         ${imgui_SOURCE_DIR}/imgui_draw.cpp
         ${imgui_SOURCE_DIR}/imgui_demo.cpp
@@ -174,6 +186,7 @@ target_link_libraries(${TARGET_NAME}
         "$<$<BOOL:${DOTS_EXPLORER_USE_OPENGL_BACKEND}>:${OPENGL_LIBRARIES}>"
         Boost::filesystem
         re2::re2
+        $<$<BOOL:${DOTS_EXPLORER_USE_DX11_BACKEND}>:d3d11>
 )
 
 # install
