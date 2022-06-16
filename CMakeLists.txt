@@ -6,7 +6,7 @@ set(TARGET_NAME dots-explorer)
 include(FetchContent)
 
 # CMake options
-option(DOTS_EXPLORER_USE_VULKAN_BACKEND "Use Vulkan backend instead of OpenGL/DirectX 11" ON)
+option(DOTS_EXPLORER_USE_VULKAN_BACKEND "Use Vulkan backend instead of OpenGL/DirectX 11" OFF)
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     # use default build type if none was specified
     set(DEFAULT_BUILD_TYPE "Release")
