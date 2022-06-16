@@ -6,6 +6,7 @@ set(TARGET_NAME dots-explorer)
 include(FetchContent)
 
 # CMake options
+option(DOTS_EXPLORER_USE_VULKAN_BACKEND "Use Vulkan backend instead of OpenGL" ON)
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     # use default build type if none was specified
     set(DEFAULT_BUILD_TYPE "Release")
@@ -37,10 +38,13 @@ if (MSVC)
 endif()
 
 # dependencies
-find_package(Vulkan)
-if (NOT Vulkan_FOUND)
-    message("Vulkan SDK not found. Attempting to fall back to OpenGL instead.")
+if (DOTS_EXPLORER_USE_VULKAN_BACKEND)
+    message("Using Vulkan backend.")
+    find_package(Vulkan REQUIRED)
+else()
+    message("Using OpenGL backend.")
     find_package(OpenGL REQUIRED)
+    set(DOTS_EXPLORER_USE_OPENGL_BACKEND TRUE)
 endif()
 
 option(DOTS_BUILD_EXAMPLES "Build the examples" OFF)
@@ -99,8 +103,8 @@ target_dots_model(${TARGET_NAME}
 target_sources(${TARGET_NAME}
     PRIVATE
         src/main.cpp
-        $<$<BOOL:${Vulkan_FOUND}>:src/backends/GlfwVulkanBackend.cpp>
-        $<$<BOOL:${OpenGL_FOUND}>:src/backends/GlfwOpenGl3Backend.cpp>
+        $<$<BOOL:${DOTS_EXPLORER_USE_VULKAN_BACKEND}>:src/backends/GlfwVulkanBackend.cpp>
+        $<$<BOOL:${DOTS_EXPLORER_USE_OPENGL_BACKEND}>:src/backends/GlfwOpenGl3Backend.cpp>
         src/widgets/views/HostView.cpp
         src/widgets/MainWindow.cpp
         src/common/ImGuiExt.cpp
@@ -128,9 +132,9 @@ target_sources(${TARGET_NAME}
         src/widgets/dialogs/PropertyEdit.cpp
         src/widgets/input/FilterExpressionEdit.cpp
         src/widgets/views/EventView.cpp
-        ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
-        $<$<BOOL:${Vulkan_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp>
-        $<$<BOOL:${OpenGL_FOUND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp>
+        $<$<OR:$<BOOL:${DOTS_EXPLORER_USE_OPENGL_BACKEND}>,$<BOOL:${DOTS_EXPLORER_USE_VULKAN_BACKEND}>>:${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp>
+        $<$<BOOL:${DOTS_EXPLORER_USE_VULKAN_BACKEND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp>
+        $<$<BOOL:${DOTS_EXPLORER_USE_OPENGL_BACKEND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp>
         ${imgui_SOURCE_DIR}/imgui.cpp
         ${imgui_SOURCE_DIR}/imgui_draw.cpp
         ${imgui_SOURCE_DIR}/imgui_demo.cpp
@@ -166,8 +170,8 @@ target_link_libraries(${TARGET_NAME}
         DOTS::DOTS
         fmt::fmt
         glfw
-        $<$<BOOL:${Vulkan_FOUND}>:Vulkan::Vulkan>
-        $<$<BOOL:${OpenGL_FOUND}>:${OPENGL_LIBRARIES}>
+        $<$<BOOL:${DOTS_EXPLORER_USE_VULKAN_BACKEND}>:Vulkan::Vulkan>
+        "$<$<BOOL:${DOTS_EXPLORER_USE_OPENGL_BACKEND}>:${OPENGL_LIBRARIES}>"
         Boost::filesystem
         re2::re2
 )
