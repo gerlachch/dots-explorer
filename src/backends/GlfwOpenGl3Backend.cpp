@@ -1,4 +1,4 @@
-#include <backends/GlfwBackend.h>
+#include <backends/Backend.h>
 #include <common/System.h>
 #include <stdexcept>
 
@@ -30,7 +30,7 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
-GlfwBackend::GlfwBackend(int width, int height, std::string_view title)
+Backend::Backend(int width, int height, std::string_view title)
 {
     if (M_initialized.test_and_set())
     {
@@ -129,7 +129,7 @@ GlfwBackend::GlfwBackend(int width, int height, std::string_view title)
     });
 }
 
-GlfwBackend::~GlfwBackend()
+Backend::~Backend()
 {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -141,7 +141,7 @@ GlfwBackend::~GlfwBackend()
     M_initialized.clear();
 }
 
-void GlfwBackend::run(std::function<void()> renderHandler)
+void Backend::run(std::function<void()> renderHandler)
 {
     // Our state
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);

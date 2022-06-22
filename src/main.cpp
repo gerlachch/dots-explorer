@@ -5,7 +5,7 @@
 #include <optional>
 #include <filesystem>
 #include <fmt/format.h>
-#include <backends/GlfwBackend.h>
+#include <backends/Backend.h>
 #include <widgets/MainWindow.h>
 #include <common/Settings.h>
 
@@ -67,7 +67,7 @@ auto init_app_data() -> std::pair<std::string, std::string>
 
 int main()
 {
-    std::optional<GlfwBackend> backend{ std::in_place, 1600, 900, AppName };
+    std::optional<Backend> backend{ std::in_place, 1600, 900, AppName };
 
     auto [appConfigPath, appLogPath] = init_app_data();
     ImGui::GetIO().IniFilename = appConfigPath.data();

@@ -357,19 +357,19 @@ void StructList::renderEnd()
                             return item.isSelected();
                         });
 
-                        if (selection.empty() && ImGui::MenuItem(m_structDescriptorModel.descriptor().cached() ? "View/Update" : "View/Publish"))
+                        if (selection.size() <= 1 && ImGui::MenuItem(m_structDescriptorModel.descriptor().cached() ? "View/Update" : "View/Publish"))
                         {
                             editInstance = item.structRefModel().instance();
                         }
 
                         if (m_structDescriptorModel.descriptor().cached())
                         {
-                            if (selection.empty() && ImGui::MenuItem("Remove [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
+                            if (selection.size() <= 1 && ImGui::MenuItem("Remove [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
                             {
                                 dots::remove(item.structRefModel().instance());
                             }
 
-                            if (!selection.empty() && ImGui::MenuItem("Remove Selection [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
+                            if (selection.size() >= 2 && ImGui::MenuItem("Remove Selection [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
                             {
                                 for (const StructItem& selected : selection)
                                 {
