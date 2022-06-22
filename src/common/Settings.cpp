@@ -25,6 +25,8 @@ void Settings::Clear()
 dots::type::Struct& Settings::Register(const dots::type::StructDescriptor<>& descriptor)
 {
     auto [it, emplaced] = M_settingsMap.try_emplace(descriptor.name(), descriptor);
+    default_init(*it->second);
+
     return it->second;
 }
 
@@ -52,7 +54,6 @@ void Settings::ReadLineHandler(ImGuiContext*/* ctx*/, ImGuiSettingsHandler*/* ha
         if (auto it = M_settingsMap.find(std::string{ name }); it != M_settingsMap.end())
         {
             dots::from_string(std::string{ value }, *it->second);
-            default_init(*it->second);
         }
     }
     catch (...)
