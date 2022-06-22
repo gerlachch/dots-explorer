@@ -23,21 +23,21 @@ The dots-explorer can be used to inspect and manipulate objects of a DOTS enviro
 
 # Runtime Dependencies
 
-* Official releases require the Vulkan runtime. If not available, the project can also be built to target OpenGL (see below).
+* Official releases require DirectX 11 on Windows and the OpenGL runtime on Linux, both of which should already be installed by default on most systems. Alternatively, the project can also target Vulkan (see below).
 * (Optional) When curl is available, it will be used to fetch release information from the GitHub repository.
 
 # Build Dependencies
 
 * All dependencies of [dots-cpp](https://github.com/pnxs/dots-cpp#dependencies) (but not dots-cpp itself!).
 * Boost Filesystem (required by Boost Process).
-* Either the Vulkan or OpenGL SDK (with the former being preferred when available).
+* Windows SDK (Windows builds), OpenGL SDK (Linux builds) or the Vulkan SDK (when targeting Vulkan).
 * C++ compiler supporting at least C++17 (such as GCC 9 or MSVC 19.14).
 
 # Build and Run
 
 This is how the dots-explorer can be built and run based on the example of Ubuntu 20.04. Note that the following steps presume that the environment already fulfills the requirements for [dots-cpp](https://github.com/pnxs/dots-cpp#build-and-run).
 
-Install build dependencies including Vulkan SDK (see [here](https://vulkan.lunarg.com/sdk/home#linux)):
+Install build dependencies (includes the optional [Vulkan SDK](https://vulkan.lunarg.com/sdk/home#linux)):
 
 ```sh
 wget -qO - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add - && \
@@ -55,10 +55,16 @@ Clone repository including submodules:
 git clone --recurse-submodules https://github.com/gerlachch/dots-explorer.git && cd dots-explorer
 ```
 
-Build:
+Build (OpenGL):
 
 ```sh
 cmake -G Ninja -B ./build/ && cmake --build ./build/
+```
+
+Build (Vulkan):
+
+```sh
+cmake -G Ninja -B ./build/ -DDOTS_EXPLORER_USE_VULKAN_BACKEND=ON && cmake --build ./build/
 ```
 
 Run:
