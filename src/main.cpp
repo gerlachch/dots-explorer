@@ -73,6 +73,8 @@ int main()
     ImGui::GetIO().IniFilename = appConfigPath.data();
     ImGui::GetIO().LogFilename = appLogPath.data();
 
+    dots::type::chrono::experimental::set_time_zone_override();
+
     Settings::Init();
     MainWindow mainWindow{ AppName };
 
