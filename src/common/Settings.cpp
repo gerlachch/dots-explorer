@@ -22,7 +22,7 @@ void Settings::Clear()
     M_settingsMap.clear();
 }
 
-dots::type::Struct& Settings::Register(const dots::type::StructDescriptor<>& descriptor)
+dots::type::Struct& Settings::Register(const dots::type::StructDescriptor& descriptor)
 {
     auto [it, emplaced] = M_settingsMap.try_emplace(descriptor.name(), descriptor);
     default_init(*it->second);

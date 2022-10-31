@@ -14,7 +14,7 @@ struct ImGuiTableSortSpecs;
 
 struct StructList
 {
-    StructList(const dots::type::StructDescriptor<>& descriptor, const PublisherModel& publisherModel);
+    StructList(const dots::type::StructDescriptor& descriptor, const PublisherModel& publisherModel);
     StructList(const StructList& other) = delete;
     StructList(StructList&& other) = delete;
     ~StructList() = default;

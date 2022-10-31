@@ -54,7 +54,7 @@ namespace dots::io::details
                             DescriptorConverter{ m_fileRegistry }(*enumDescriptorData);
                         }
 
-                        header.attributes.constructOrValue(instance->_validProperties());
+                        header.attributes.valueOrEmplace(instance->_validProperties());
                         m_fileConnection->transmit(header, instance);
 
                     }

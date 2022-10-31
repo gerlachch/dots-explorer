@@ -10,7 +10,7 @@ PublishDialog::PublishDialog(const StructDescriptorModel& structDescriptorModel,
     m_instance{ std::move(instance) },
     m_structRefModel{ structDescriptorModel, m_instance }
 {
-    const dots::type::StructDescriptor<>& structDescriptor = structDescriptorModel.descriptor();
+    const dots::type::StructDescriptor& structDescriptor = structDescriptorModel.descriptor();
 
     for (PropertyModel& propertyModel : m_structRefModel.propertyModels())
     {
@@ -40,7 +40,7 @@ bool PublishDialog::render()
         }
 
         // properties
-        const dots::type::StructDescriptor<>& structDescriptor = m_instance->_descriptor();
+        const dots::type::StructDescriptor& structDescriptor = m_instance->_descriptor();
         auto* existingInstance = m_instance->_hasProperties(structDescriptor.keyProperties())
             ? dots::container(structDescriptor).find(m_instance)
             : nullptr
@@ -116,7 +116,7 @@ bool PublishDialog::render()
                     {
                         const dots::type::ProxyProperty existingProperty{ const_cast<dots::type::Struct&>(*existingInstance), propertyPath };
 
-                        if (property.equal(existingProperty))
+                        if (property == existingProperty)
                         {
                             render_indicator(ColorThemeActive.Update);
 

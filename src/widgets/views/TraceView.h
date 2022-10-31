@@ -21,7 +21,7 @@ struct TraceView
     TraceView& operator = (const TraceView& rhs) = delete;
     TraceView& operator = (TraceView&& rhs) = delete;
 
-    void update(const dots::type::StructDescriptor<>& descriptor);
+    void update(const dots::type::StructDescriptor& descriptor);
     void render();
 
 private:
@@ -37,7 +37,7 @@ private:
     std::optional<FilterExpressionEdit> m_filterExpressionEdit;
     std::optional<FilterSettingsEdit> m_filterSettingsEdit;
     std::optional<PublishDialog> m_publishDialog;
-    std::unordered_map<const dots::type::StructDescriptor<>*, StructDescriptorModel> m_descriptorModels;
+    std::unordered_map<const dots::type::StructDescriptor*, StructDescriptorModel> m_descriptorModels;
     std::vector<std::shared_ptr<TraceItem>> m_items;
     std::vector<std::shared_ptr<TraceItem>> m_itemsFiltered;
     std::optional<FilterMatcher> m_filterMatcher;

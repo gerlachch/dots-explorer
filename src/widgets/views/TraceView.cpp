@@ -18,10 +18,10 @@ TraceView::TraceView() :
 {
     m_subscriptions.emplace_back(dots::subscribe<StructDescriptorData>([](auto&){}));
     m_subscriptions.emplace_back(dots::subscribe<EnumDescriptorData>([](auto&){}));
-    m_subscriptions.emplace_back(dots::subscribe<dots::type::StructDescriptor<>>({ &TraceView::update, this }));
+    m_subscriptions.emplace_back(dots::subscribe<dots::type::StructDescriptor>({ &TraceView::update, this }));
 }
 
-void TraceView::update(const dots::type::StructDescriptor<>& descriptor)
+void TraceView::update(const dots::type::StructDescriptor& descriptor)
 {
     if (!descriptor.substructOnly())
     {
@@ -29,7 +29,7 @@ void TraceView::update(const dots::type::StructDescriptor<>& descriptor)
         {
             StructDescriptorModel& descriptorModel = m_descriptorModels.try_emplace(&event.descriptor(), event.descriptor()).first->second;
             auto& item = m_items.emplace_back(std::make_shared<TraceItem>(++m_traceIndex, descriptorModel, m_publisherModel, event));
-            item->setFilterTargets(m_filterSettings.targets);
+            item->setFilterTargets(*m_filterSettings.targets);
 
             if (item->isFiltered(m_filterMatcher, m_filterSettings))
             {
@@ -54,9 +54,9 @@ void TraceView::render()
 
 void TraceView::initFilterSettings()
 {
-    m_filterExpressionEdit.emplace(m_filterSettings.activeFilter);
+    m_filterExpressionEdit.emplace(*m_filterSettings.activeFilter);
 
-    if (!m_filterSettings.targets->initialized)
+    if (!*m_filterSettings.targets->initialized)
     {
         m_filterSettings.targets->initialized = true;
         m_filterSettings.targets->publishedAt = true;
@@ -68,7 +68,7 @@ void TraceView::initFilterSettings()
 
     // ensure filters are valid
     {
-        dots::vector_t<Filter>& filters = m_filterSettings.storedFilters;
+        dots::vector_t<Filter>& filters = *m_filterSettings.storedFilters;
 
         if (auto& selectedFilter = m_filterSettings.selectedFilter; *selectedFilter >= filters.size())
         {
@@ -81,7 +81,7 @@ void TraceView::applyFilters()
 {
     try
     {
-        FilterMatcher filterMatcher{ m_filterSettings.activeFilter };
+        FilterMatcher filterMatcher{ *m_filterSettings.activeFilter };
         m_filterMatcher.emplace(std::move(filterMatcher));
         m_itemsFiltered.clear();
 
@@ -124,8 +124,8 @@ void TraceView::renderFilterArea()
 
         // render filter list
         {
-            dots::vector_t<Filter>& filters = m_filterSettings.storedFilters;
-            auto& selectedFilter = m_filterSettings.selectedFilter;
+            dots::vector_t<Filter>& filters = *m_filterSettings.storedFilters;
+            uint32_t& selectedFilter = *m_filterSettings.selectedFilter;
 
             ImGui::SameLine(0, 0);
 
@@ -148,9 +148,9 @@ void TraceView::renderFilterArea()
                     {
                         filters.erase(filters.begin() + selectedFilter);
 
-                        if (*selectedFilter > filters.size())
+                        if (selectedFilter > filters.size())
                         {
-                            --*selectedFilter;
+                            --selectedFilter;
                         }
                         else
                         {
@@ -168,31 +168,31 @@ void TraceView::renderFilterArea()
 
                     if (ImGui::MenuItem("Published At", nullptr, &*m_filterSettings.targets->publishedAt))
                     {
-                        for (const auto& item : m_items){ item->setFilterTargets(m_filterSettings.targets); }
+                        for (const auto& item : m_items){ item->setFilterTargets(*m_filterSettings.targets); }
                         m_filtersChanged = true;
                     }
 
                     if (ImGui::MenuItem("Published By", nullptr, &*m_filterSettings.targets->publishedBy))
                     {
-                        for (const auto& item : m_items){ item->setFilterTargets(m_filterSettings.targets); }
+                        for (const auto& item : m_items){ item->setFilterTargets(*m_filterSettings.targets); }
                         m_filtersChanged = true;
                     }
 
                     if (ImGui::MenuItem("Operation", nullptr, &*m_filterSettings.targets->operation))
                     {
-                        for (const auto& item : m_items){ item->setFilterTargets(m_filterSettings.targets); }
+                        for (const auto& item : m_items){ item->setFilterTargets(*m_filterSettings.targets); }
                         m_filtersChanged = true;
                     }
 
                     if (ImGui::MenuItem("Type", nullptr, &*m_filterSettings.targets->type))
                     {
-                        for (const auto& item : m_items){ item->setFilterTargets(m_filterSettings.targets); }
+                        for (const auto& item : m_items){ item->setFilterTargets(*m_filterSettings.targets); }
                         m_filtersChanged = true;
                     }
 
                     if (ImGui::MenuItem("Instance", nullptr, &*m_filterSettings.targets->instance))
                     {
-                        for (const auto& item : m_items){ item->setFilterTargets(m_filterSettings.targets); }
+                        for (const auto& item : m_items){ item->setFilterTargets(*m_filterSettings.targets); }
                         m_filtersChanged = true;
                     }
 
@@ -210,7 +210,7 @@ void TraceView::renderFilterArea()
                     {
                         selectedFilter = i;
                         m_filterSettings.activeFilter = filters[selectedFilter];
-                        m_filterExpressionEdit = FilterExpressionEdit{ m_filterSettings.activeFilter };
+                        m_filterExpressionEdit = FilterExpressionEdit{ *m_filterSettings.activeFilter };
                         m_filtersChanged = true;
                     }
 
@@ -224,12 +224,12 @@ void TraceView::renderFilterArea()
         // render filter expression options
         {
             ImGui::SameLine();
-            m_filtersChanged |= ImGuiExt::ToggleButton("Aa", m_filterSettings.activeFilter->matchCase, "Match case");
+            m_filtersChanged |= ImGuiExt::ToggleButton("Aa", *m_filterSettings.activeFilter->matchCase, "Match case");
 
             ImGui::SameLine();
-            if (ImGuiExt::ToggleButton("Re", m_filterSettings.activeFilter->regex, "Interpret expression as a regular expression instead of a quick filter."))
+            if (ImGuiExt::ToggleButton("Re", *m_filterSettings.activeFilter->regex, "Interpret expression as a regular expression instead of a quick filter."))
             {
-                m_filterExpressionEdit = FilterExpressionEdit{ m_filterSettings.activeFilter };
+                m_filterExpressionEdit = FilterExpressionEdit{ *m_filterSettings.activeFilter };
                 m_filtersChanged = true;
             }
         }
@@ -250,7 +250,7 @@ void TraceView::renderFilterArea()
                 if (ImGui::Button(ClearLabel))
                 {
                     m_filterSettings.activeFilter->expression->clear();
-                    m_filterExpressionEdit = FilterExpressionEdit{ m_filterSettings.activeFilter };
+                    m_filterExpressionEdit = FilterExpressionEdit{ *m_filterSettings.activeFilter };
                     m_filtersChanged = true;
                     m_filterSettings.selectedFilter = NoFilterSelected;
                 }

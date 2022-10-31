@@ -1,13 +1,13 @@
 #include <models/StructDescriptorModel.h>
 #include <common/Colors.h>
 
-StructDescriptorModel::StructDescriptorModel(const dots::type::StructDescriptor<>& descriptor) :
+StructDescriptorModel::StructDescriptorModel(const dots::type::StructDescriptor& descriptor) :
     m_descriptor{ descriptor }
 {
     m_declarationText.emplace_back("struct", ColorThemeActive.Keyword);
     m_declarationText.emplace_back(descriptor.name(), ColorThemeActive.UserType);
 
-    if (uint8_t flags = descriptor.flags(); flags != dots::type::StructDescriptor<>::Cached)
+    if (uint8_t flags = descriptor.flags(); flags != dots::type::StructDescriptor::Cached)
     {
         std::string part = "[";
 
@@ -58,7 +58,7 @@ const std::vector<PropertyDescriptorModel>& StructDescriptorModel::propertyDescr
     return m_propertyDescriptorModels;
 }
 
-const dots::type::StructDescriptor<>& StructDescriptorModel::descriptor() const
+const dots::type::StructDescriptor& StructDescriptorModel::descriptor() const
 {
     return m_descriptor;
 }

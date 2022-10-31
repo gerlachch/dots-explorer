@@ -61,7 +61,7 @@ option(DOTS_BUILD_UNIT_TESTS "Build the unit tests" OFF)
 FetchContent_Declare(
     dots-cpp
     GIT_REPOSITORY https://github.com/pnxs/dots-cpp.git
-    GIT_TAG        v1.6.2
+    GIT_TAG        v1.7.0
 )
 
 FetchContent_Declare(
