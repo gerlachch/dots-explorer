@@ -51,24 +51,6 @@ std::future<GitHubReleaseInfo> Version::GetReleaseInfo(std::string_view release/
 
         curl.wait();
 
-        // note that this is currently necessary because the JSON serializer
-        // expects timestamps to use the offset format
-        auto replace_all = [](std::string& str, std::string_view subStr, std::string_view replaceStr)
-        {
-            for(size_t pos = 0;; pos += replaceStr.length())
-            {
-                if (pos = str.find(subStr, pos); pos == std::string::npos)
-                {
-                    return;
-                }
-
-                str.erase(pos, subStr.length());
-                str.insert(pos, replaceStr);
-            }
-        };
-
-        replace_all(body, "Z\"", "+00:00\"");
-
         return GitHubJsonSerializer::Deserialize<GitHubReleaseInfo>(body);
     });
 }
