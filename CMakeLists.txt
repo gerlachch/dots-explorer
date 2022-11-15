@@ -91,7 +91,7 @@ FetchContent_MakeAvailable(dots-cpp fmt glfw re2)
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG        e346059eef140c5a8611581f3e6c8b8816d6998e
+    GIT_TAG        v1.89
 )
 # Check if population has already been performed
 FetchContent_GetProperties(imgui)
