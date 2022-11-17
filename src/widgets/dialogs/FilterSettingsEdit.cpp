@@ -15,7 +15,7 @@ FilterSettingsEdit::FilterSettingsEdit(FilterSettings& settings, Filter* existin
 
         for (auto& property : m_filter)
         {
-            property.constructOrValue();
+            property.valueOrEmplace();
         }
     }
     else
@@ -57,10 +57,10 @@ bool FilterSettingsEdit::render()
                 ImGui::PopItemWidth();
 
                 ImGui::SameLine();
-                ImGuiExt::ToggleButton("Aa", m_filter.matchCase, "Match case");
+                ImGuiExt::ToggleButton("Aa", *m_filter.matchCase, "Match case");
 
                 ImGui::SameLine();
-                if (ImGuiExt::ToggleButton("Re", m_filter.regex, "Interpret expression as a regular expression instead of a quick filter."))
+                if (ImGuiExt::ToggleButton("Re", *m_filter.regex, "Interpret expression as a regular expression instead of a quick filter."))
                 {
                     m_filterExpressionEdit.emplace(m_filter, "");
                 }

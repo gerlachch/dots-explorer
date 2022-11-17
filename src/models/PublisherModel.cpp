@@ -29,6 +29,6 @@ void PublisherModel::handleDotsClient(const dots::Event<DotsClient>& event)
 {
     if (const auto& client = event(); client.name.isValid())
     {
-        publisherNameText(client.id).first = fmt::format("\"{}\"", *client.name);
+        publisherNameText(*client.id).first = fmt::format("\"{}\"", *client.name);
     }
 }

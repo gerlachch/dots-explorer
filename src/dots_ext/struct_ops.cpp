@@ -45,7 +45,7 @@ namespace dots::type
     {
         for (auto& property : instance)
         {
-            property.constructOrValue();
+            property.valueOrEmplace();
 
             if (property.descriptor().valueDescriptor().type() == Type::Struct)
             {

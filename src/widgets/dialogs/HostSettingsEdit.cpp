@@ -78,8 +78,8 @@ bool HostSettingsEdit::render()
                 if (ImGui::Button(label))
                 {
                     Host host{
-                        Host::endpoint_i{ m_endpointBuffer.data() },
-                        Host::description_i{ m_descriptionBuffer.data() }
+                        .endpoint = m_endpointBuffer.data(),
+                        .description = m_descriptionBuffer.data()
                     };
 
                     if (m_editHost == nullptr)

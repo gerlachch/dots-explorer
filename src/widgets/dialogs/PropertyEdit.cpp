@@ -61,20 +61,20 @@ void PropertyEdit::render()
             {
                 constexpr const char* Items[] = { "<invalid>", "false", "true" };
                 auto boolProperty = property.to<dots::bool_t>();
-                size_t itemIndex = boolProperty.isValid() + boolProperty.equal(true);
+                size_t itemIndex = boolProperty.isValid() + (boolProperty == true);
 
                 if (ImGui::BeginCombo(m_inputLabel.data(), Items[itemIndex]))
                 {
                     ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.Keyword);
                     if (ImGui::Selectable(Items[2], itemIndex == 2))
                     {
-                        boolProperty.constructOrAssign(true);
+                        boolProperty.emplace(true);
                         model.fetch();
                         m_included = true;
                     }
                     if (ImGui::Selectable(Items[1], itemIndex == 1))
                     {
-                        boolProperty.constructOrAssign(false);
+                        boolProperty.emplace(false);
                         model.fetch();
                         m_included = true;
                     }
@@ -85,19 +85,19 @@ void PropertyEdit::render()
             }
             else if (type == dots::type::Type::Enum)
             {
-                const auto& enumDescriptor = property.descriptor().valueDescriptor().to<dots::type::EnumDescriptor<>>();
+                const auto& enumDescriptor = property.descriptor().valueDescriptor().to<dots::type::EnumDescriptor>();
                 const char* previewValue = property.isValid() ? enumDescriptor.enumeratorFromValue(*property).name().data() : "<invalid>";
 
                 if (ImGui::BeginCombo(m_inputLabel.data(), previewValue))
                 {
                     ImGui::PushStyleColor(ImGuiCol_Text, ColorThemeActive.EnumType);
-                    for (const dots::type::EnumeratorDescriptor<>& enumeratorDescriptor : enumDescriptor.enumeratorsTypeless())
+                    for (const dots::type::EnumeratorDescriptor& enumeratorDescriptor : enumDescriptor.enumeratorsTypeless())
                     {
                         const auto& enumerator = enumeratorDescriptor.valueTypeless();
 
                         if (ImGui::Selectable(enumeratorDescriptor.name().data(), property == enumerator))
                         {
-                            property.constructOrAssign(enumerator);
+                            property.emplace(enumerator);
                             model.fetch();
                             m_included = true;
                         }
@@ -187,12 +187,12 @@ void PropertyEdit::render()
                     if (type == dots::type::Type::timepoint)
                     {
                         auto timepointProperty = property.to<dots::timepoint_t>();
-                        timepointProperty.constructOrAssign(dots::timepoint_t::Now());
+                        timepointProperty.emplace(dots::timepoint_t::Now());
                     }
                     else/* if (type == dots::type::Type::steady_timepoint)*/
                     {
                         auto steadyTimepointProperty = property.to<dots::steady_timepoint_t>();
-                        steadyTimepointProperty.constructOrAssign(dots::steady_timepoint_t::Now());
+                        steadyTimepointProperty.emplace(dots::steady_timepoint_t::Now());
                     }
 
                     model.fetch();

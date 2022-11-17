@@ -36,7 +36,7 @@ bool FilterExpressionEdit::render()
 
     ImGui::PopStyleColor();
 
-    if (m_filter->regex)
+    if (*m_filter->regex)
     {
         ImGuiExt::TooltipLastHoveredItem(
             "Filters can be specified by using any re2 flavor regular expression.\n"

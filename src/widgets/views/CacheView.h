@@ -18,7 +18,7 @@ struct CacheView
     CacheView& operator = (const CacheView& rhs) = delete;
     CacheView& operator = (CacheView&& rhs) = delete;
 
-    void update(const dots::type::StructDescriptor<>& descriptor);
+    void update(const dots::type::StructDescriptor& descriptor);
     void render();
 
 private:

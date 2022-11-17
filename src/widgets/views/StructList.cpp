@@ -6,7 +6,7 @@
 #include <widgets/views/StructView.h>
 #include <DotsClearCache.dots.h>
 
-StructList::StructList(const dots::type::StructDescriptor<>& descriptor, const PublisherModel& publisherModel) :
+StructList::StructList(const dots::type::StructDescriptor& descriptor, const PublisherModel& publisherModel) :
     m_lastPublishedItem(nullptr),
     m_lastPublishedItemTime{ dots::timepoint_t::min() },
     m_lastUpdateDelta(0.0f),
@@ -99,7 +99,7 @@ bool StructList::less(const ImGuiTableSortSpecs& sortSpecs, const StructList& ot
 
 bool StructList::isFiltered(const std::optional<FilterMatcher>& filter, const FilterSettings& filterSettings) const
 {
-    const dots::type::StructDescriptor<>& descriptor = container().descriptor();
+    const dots::type::StructDescriptor& descriptor = container().descriptor();
 
     if (descriptor.internal() && !*filterSettings.types->internal)
     {
@@ -125,7 +125,7 @@ bool StructList::isFiltered(const std::optional<FilterMatcher>& filter, const Fi
         }
         else
         {
-            return filter->match(filterSettings.activeFilter->matchCase ? descriptor.name() : m_typeNameLower);
+            return filter->match(*filterSettings.activeFilter->matchCase ? descriptor.name() : m_typeNameLower);
         }
     }
 }
@@ -216,7 +216,7 @@ bool StructList::renderBegin()
                 if (ImGui::MenuItem("Remove All [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
                 {
                     dots::publish(DotsClearCache{ 
-                        DotsClearCache::typeNames_i{ dots::vector_t<dots::string_t>{ container().descriptor().name() } }
+                        .typeNames = { container().descriptor().name() }
                     });
                 }
             }
@@ -259,7 +259,7 @@ void StructList::renderEnd()
         ImGuiTableFlags_Hideable
     ;
 
-    const dots::type::StructDescriptor<>& descriptor = m_container.get().descriptor();
+    const dots::type::StructDescriptor& descriptor = m_container.get().descriptor();
     std::optional<dots::type::AnyStruct> editInstance;
 
     if (ImGui::BeginTable(descriptor.name().data(), StructItem::MetaData::MetaDataSize + static_cast<int>(m_headers.size()), TableFlags))

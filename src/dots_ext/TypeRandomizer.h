@@ -108,7 +108,7 @@ namespace dots::type
         template <typename T>
         bool visitPropertyBeginDerived(T& property, bool/* first*/)
         {
-            property.constructOrValue();
+            property.valueOrEmplace();
             return true;
         }
 
@@ -120,10 +120,10 @@ namespace dots::type
         }
 
         template <typename T>
-        void visitEnumDerived(T& value, const EnumDescriptor<T>& descriptor)
+        void visitEnumDerived(T& value, const EnumDescriptor& descriptor)
         {
             const auto& enumerators = descriptor.enumeratorsTypeless();
-            descriptor.construct(value, enumerators[std::uniform_int_distribution<size_t>{ 0, enumerators.size() - 1 }(m_generator)].get().valueTypeless());
+            descriptor.construct(value, enumerators[std::uniform_int_distribution<size_t>{ 0, enumerators.size() - 1 }(m_generator)].valueTypeless());
         }
 
         template <typename T>

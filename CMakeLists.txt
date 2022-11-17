@@ -61,7 +61,7 @@ option(DOTS_BUILD_UNIT_TESTS "Build the unit tests" OFF)
 FetchContent_Declare(
     dots-cpp
     GIT_REPOSITORY https://github.com/pnxs/dots-cpp.git
-    GIT_TAG        v1.6.2
+    GIT_TAG        v1.8.0
 )
 
 FetchContent_Declare(
@@ -91,7 +91,7 @@ FetchContent_MakeAvailable(dots-cpp fmt glfw re2)
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG        e346059eef140c5a8611581f3e6c8b8816d6998e
+    GIT_TAG        v1.89
 )
 # Check if population has already been performed
 FetchContent_GetProperties(imgui)
@@ -175,7 +175,7 @@ target_compile_definitions(${TARGET_NAME}
 )
 target_compile_features(${TARGET_NAME}
     PRIVATE
-        cxx_std_17
+        cxx_std_20
 )
 target_link_libraries(${TARGET_NAME}
     PRIVATE

@@ -98,7 +98,7 @@ void TraceItem::setFilterTargets(const FilterTargets& targets)
 
 bool TraceItem::isFiltered(const std::optional<FilterMatcher>& filter, const FilterSettings& filterSettings) const
 {
-    const dots::type::StructDescriptor<>& descriptor = publishedInstanceModel().descriptorModel().descriptor();
+    const dots::type::StructDescriptor& descriptor = publishedInstanceModel().descriptorModel().descriptor();
 
     if (descriptor.internal() && !*filterSettings.types->internal)
     {
@@ -120,7 +120,7 @@ bool TraceItem::isFiltered(const std::optional<FilterMatcher>& filter, const Fil
         }
         else
         {
-            return filter->match(filterSettings.activeFilter->matchCase ? m_filterText : m_filterTextLower);
+            return filter->match(*filterSettings.activeFilter->matchCase ? m_filterText : m_filterTextLower);
         }
     }
 }

@@ -7,12 +7,12 @@ FilterMatcher::FilterMatcher(const Filter& filter) :
 {
     std::string expression{ *filter.expression };
 
-    if (!filter.matchCase)
+    if (!*filter.matchCase)
     {
         std::transform(expression.begin(), expression.end(), expression.begin(), [](unsigned char c){ return std::tolower(c); });
     }
 
-    if (filter.regex)
+    if (*filter.regex)
     {
         m_regex = std::make_unique<RE2>(expression, RE2::Options{ RE2::Quiet });
 

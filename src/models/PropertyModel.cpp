@@ -57,7 +57,7 @@ bool PropertyModel::fromString(const std::string& value)
 
 void PropertyModel::invalidate()
 {
-    m_property.destroy();
+    m_property = dots::invalid;
     fetch();
 }
 

@@ -56,8 +56,8 @@ const ImGuiExt::ColoredText& MetadataModel::lastPublishedByText() const
 void MetadataModel::fetch(const dots::Event<>& event)
 {
     m_lastOperation = event.mt();
-    m_lastPublished = event.cloneInfo().modified.valueOrDefault(event.cloneInfo().created);
-    m_lastPublishedBy = event.cloneInfo().lastUpdateFrom.valueOrDefault(event.cloneInfo().createdFrom);
+    m_lastPublished = event.cloneInfo().modified.valueOrDefault(*event.cloneInfo().created);
+    m_lastPublishedBy = event.cloneInfo().lastUpdateFrom.valueOrDefault(*event.cloneInfo().createdFrom);
     m_lastPublishedProperties = event.header().attributes.valueOrDefault(dots::property_set_t::All);
 
     m_lastPublishedText.first.clear();

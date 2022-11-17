@@ -44,13 +44,16 @@ void HostView::render()
             ImGui::TextUnformatted("Host  ");
         }
 
-        dots::vector_t<Host>& hosts = m_hostSettings.hosts;
+        dots::vector_t<Host>& hosts = *m_hostSettings.hosts;
 
         // ensure hosts are valid
         {
             if (hosts.empty())
             {
-                hosts.emplace_back(Host::endpoint_i{ "tcp://127.0.0.1:11234" }, Host::description_i{ "localhost (default)" });
+                hosts.emplace_back(Host{ 
+                    .endpoint = "tcp://127.0.0.1",
+                    .description = "localhost (default)"
+                });
             }
 
             if (*m_hostSettings.selectedHost >= hosts.size())
@@ -70,10 +73,10 @@ void HostView::render()
                 {
                     if (is_regular_file(path))
                     {
-                        hosts.emplace_back(
-                            Host::endpoint_i{ fmt::format("file:{}{}", path.root_name() == "/" ? "" : "/", path.string() ) },
-                            Host::description_i{ path.filename().string() }
-                        );
+                        hosts.emplace_back(Host{
+                            .endpoint = fmt::format("file:{}{}", path.root_name() == "/" ? "" : "/", path.string() ),
+                            .description = path.filename().string()
+                        });
                         ++hostsAdded;
                     }
                 }
@@ -90,7 +93,7 @@ void HostView::render()
         }
 
         ImGui::BeginDisabled(m_state == State::Connecting);
-        m_selectedHost = &hosts[m_hostSettings.selectedHost];
+        m_selectedHost = &hosts[*m_hostSettings.selectedHost];
 
         // render hosts list
         {
@@ -113,12 +116,12 @@ void HostView::render()
                 {
                     if (ImGui::Selectable("<Remove>"))
                     {
-                        hosts.erase(hosts.begin() + m_hostSettings.selectedHost);
+                        hosts.erase(hosts.begin() + *m_hostSettings.selectedHost);
 
                         if (*m_hostSettings.selectedHost >= hosts.size())
                         {
                             --*m_hostSettings.selectedHost;
-                            m_selectedHost = &hosts[m_hostSettings.selectedHost];
+                            m_selectedHost = &hosts[*m_hostSettings.selectedHost];
                         }
                     }
                 }
@@ -132,9 +135,9 @@ void HostView::render()
                     auto create_host_label = [this](const Host& host)
                     {
                         m_hostLabel.clear();
-                        m_hostLabel += host.description;
+                        m_hostLabel += *host.description;
                         m_hostLabel += " [";
-                        m_hostLabel += host.endpoint;
+                        m_hostLabel += *host.endpoint;
                         m_hostLabel += "]";
                         return m_hostLabel.data();
                     };
@@ -206,7 +209,7 @@ void HostView::render()
             ImGui::TextColored(stateColor, "%s", stateStr);
         }
 
-        View& selectedView = m_viewSettings.selectedView;
+        View& selectedView = *m_viewSettings.selectedView;
 
         // process view select key
         if (ImGui::IsKeyPressed(ImGuiKey_Tab, false) && !ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId))

@@ -11,7 +11,7 @@ struct Settings
     static void Init();
     static void Clear();
 
-    static dots::type::Struct& Register(const dots::type::StructDescriptor<>& descriptor);
+    static dots::type::Struct& Register(const dots::type::StructDescriptor& descriptor);
 
     template <typename T, std::enable_if_t<std::is_base_of_v<dots::type::Struct, T>, int> = 0>
     static T& Register()

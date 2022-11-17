@@ -13,10 +13,10 @@ CacheView::CacheView() :
 {
     m_subscriptions.emplace_back(dots::subscribe<StructDescriptorData>([](auto&){}));
     m_subscriptions.emplace_back(dots::subscribe<EnumDescriptorData>([](auto&){}));
-    m_subscriptions.emplace_back(dots::subscribe<dots::type::StructDescriptor<>>({ &CacheView::update, this }));
+    m_subscriptions.emplace_back(dots::subscribe<dots::type::StructDescriptor>({ &CacheView::update, this }));
 }
 
-void CacheView::update(const dots::type::StructDescriptor<>& descriptor)
+void CacheView::update(const dots::type::StructDescriptor& descriptor)
 {
     if (!descriptor.substructOnly())
     {
@@ -27,7 +27,7 @@ void CacheView::update(const dots::type::StructDescriptor<>& descriptor)
         {
             structList.update(event);
 
-            if (!m_filterSettings.types->empty == true &&
+            if (!*m_filterSettings.types->empty &&
                 ((event.isCreate() && structList.container().size() == 1) || 
                 (event.isRemove() && structList.container().empty())))
             {
@@ -53,11 +53,11 @@ void CacheView::render()
 
 void CacheView::initFilterSettings()
 {
-    m_filterExpressionEdit.emplace(m_filterSettings.activeFilter);
+    m_filterExpressionEdit.emplace(*m_filterSettings.activeFilter);
 
     // ensure filters are valid
     {
-        dots::vector_t<Filter>& filters = m_filterSettings.storedFilters;
+        dots::vector_t<Filter>& filters = *m_filterSettings.storedFilters;
 
         if (auto& selectedFilter = m_filterSettings.selectedFilter; *selectedFilter >= filters.size())
         {
@@ -70,7 +70,7 @@ void CacheView::applyFilters()
 {
     try
     {
-        FilterMatcher filterMatcher{ m_filterSettings.activeFilter };
+        FilterMatcher filterMatcher{ *m_filterSettings.activeFilter };
         m_filterMatcher.emplace(std::move(filterMatcher));
         m_cacheListFiltered.clear();
 
@@ -113,8 +113,8 @@ void CacheView::renderFilterArea()
 
         // render filter list
         {
-            dots::vector_t<Filter>& filters = m_filterSettings.storedFilters;
-            auto& selectedFilter = m_filterSettings.selectedFilter;
+            dots::vector_t<Filter>& filters = *m_filterSettings.storedFilters;
+            uint32_t& selectedFilter = *m_filterSettings.selectedFilter;
 
             ImGui::SameLine(0, 0);
 
@@ -137,9 +137,9 @@ void CacheView::renderFilterArea()
                     {
                         filters.erase(filters.begin() + selectedFilter);
 
-                        if (*selectedFilter > filters.size())
+                        if (selectedFilter > filters.size())
                         {
-                            --*selectedFilter;
+                            --selectedFilter;
                         }
                         else
                         {
@@ -159,7 +159,7 @@ void CacheView::renderFilterArea()
                     {
                         selectedFilter = i;
                         m_filterSettings.activeFilter = filters[selectedFilter];
-                        m_filterExpressionEdit = FilterExpressionEdit{ m_filterSettings.activeFilter };
+                        m_filterExpressionEdit = FilterExpressionEdit{ *m_filterSettings.activeFilter };
                         m_typesChanged = true;
                     }
 
@@ -173,12 +173,12 @@ void CacheView::renderFilterArea()
         // render filter expression options
         {
             ImGui::SameLine();
-            m_typesChanged |= ImGuiExt::ToggleButton("Aa", m_filterSettings.activeFilter->matchCase, "Match case");
+            m_typesChanged |= ImGuiExt::ToggleButton("Aa", *m_filterSettings.activeFilter->matchCase, "Match case");
 
             ImGui::SameLine();
-            if (ImGuiExt::ToggleButton("Re", m_filterSettings.activeFilter->regex, "Interpret expression as a regular expression instead of a quick filter."))
+            if (ImGuiExt::ToggleButton("Re", *m_filterSettings.activeFilter->regex, "Interpret expression as a regular expression instead of a quick filter."))
             {
-                m_filterExpressionEdit = FilterExpressionEdit{ m_filterSettings.activeFilter };
+                m_filterExpressionEdit = FilterExpressionEdit{ *m_filterSettings.activeFilter };
                 m_typesChanged = true;
             }
         }
@@ -199,7 +199,7 @@ void CacheView::renderFilterArea()
                 if (ImGui::Button(ClearLabel))
                 {
                     m_filterSettings.activeFilter->expression->clear();
-                    m_filterExpressionEdit = FilterExpressionEdit{ m_filterSettings.activeFilter };
+                    m_filterExpressionEdit = FilterExpressionEdit{ *m_filterSettings.activeFilter };
                     m_typesChanged = true;
                     m_filterSettings.selectedFilter = NoFilterSelected;
                 }
