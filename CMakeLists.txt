@@ -61,7 +61,7 @@ option(DOTS_BUILD_UNIT_TESTS "Build the unit tests" OFF)
 FetchContent_Declare(
     dots-cpp
     GIT_REPOSITORY https://github.com/pnxs/dots-cpp.git
-    GIT_TAG        v1.7.0
+    GIT_TAG        v1.8.0
 )
 
 FetchContent_Declare(
@@ -175,7 +175,7 @@ target_compile_definitions(${TARGET_NAME}
 )
 target_compile_features(${TARGET_NAME}
     PRIVATE
-        cxx_std_17
+        cxx_std_20
 )
 target_link_libraries(${TARGET_NAME}
     PRIVATE

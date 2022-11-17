@@ -50,7 +50,10 @@ void HostView::render()
         {
             if (hosts.empty())
             {
-                hosts.emplace_back(Host::endpoint_i{ "tcp://127.0.0.1:11234" }, Host::description_i{ "localhost (default)" });
+                hosts.emplace_back(Host{ 
+                    .endpoint = "tcp://127.0.0.1",
+                    .description = "localhost (default)"
+                });
             }
 
             if (*m_hostSettings.selectedHost >= hosts.size())
@@ -70,10 +73,10 @@ void HostView::render()
                 {
                     if (is_regular_file(path))
                     {
-                        hosts.emplace_back(
-                            Host::endpoint_i{ fmt::format("file:{}{}", path.root_name() == "/" ? "" : "/", path.string() ) },
-                            Host::description_i{ path.filename().string() }
-                        );
+                        hosts.emplace_back(Host{
+                            .endpoint = fmt::format("file:{}{}", path.root_name() == "/" ? "" : "/", path.string() ),
+                            .description = path.filename().string()
+                        });
                         ++hostsAdded;
                     }
                 }

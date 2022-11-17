@@ -216,7 +216,7 @@ bool StructList::renderBegin()
                 if (ImGui::MenuItem("Remove All [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
                 {
                     dots::publish(DotsClearCache{ 
-                        DotsClearCache::typeNames_i{ dots::vector_t<dots::string_t>{ container().descriptor().name() } }
+                        .typeNames = { container().descriptor().name() }
                     });
                 }
             }
