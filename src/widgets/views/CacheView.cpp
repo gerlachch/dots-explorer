@@ -3,38 +3,29 @@
 #include <imgui.h>
 #include <widgets/views/StructList.h>
 #include <common/Settings.h>
-#include <StructDescriptorData.dots.h>
-#include <EnumDescriptorData.dots.h>
 
-CacheView::CacheView() :
+CacheView::CacheView(TransceiverModel& transceiverModel) :
     m_typesChanged(false),
     m_filterSettingsInitialized(false),
     m_filterSettings{ Settings::Register<FilterSettings>() }
 {
-    m_subscriptions.emplace_back(dots::subscribe<StructDescriptorData>([](auto&){}));
-    m_subscriptions.emplace_back(dots::subscribe<EnumDescriptorData>([](auto&){}));
-    m_subscriptions.emplace_back(dots::subscribe<dots::type::StructDescriptor>({ &CacheView::update, this }));
-}
-
-void CacheView::update(const dots::type::StructDescriptor& descriptor)
-{
-    if (!descriptor.substructOnly())
+    transceiverModel.subscribe([this, &transceiverModel](const StructDescriptorModel& descriptorModel)
     {
-        StructList& structList = *m_cacheList.emplace_back(std::make_shared<StructList>(descriptor, m_publisherModel));
+        StructList& structList = *m_cacheList.emplace_back(std::make_shared<StructList>(descriptorModel));
         m_typesChanged = true;
 
-        m_subscriptions.emplace_back(dots::subscribe(descriptor, [this, &structList](const dots::Event<>& event)
+        transceiverModel.subscribe(descriptorModel, [this, &structList](const event_model_ptr_t& eventModel)
         {
-            structList.update(event);
+            structList.update(eventModel);
 
             if (!*m_filterSettings.types->empty &&
-                ((event.isCreate() && structList.container().size() == 1) || 
-                (event.isRemove() && structList.container().empty())))
+                ((eventModel->metadataModel().lastOperation() == DotsMt::create && structList.size() == 1) || 
+                (eventModel->metadataModel().lastOperation() == DotsMt::remove && structList.size() == 0)))
             {
                 m_typesChanged = true;
             }
-        }));
-    }
+        });
+    });
 }
 
 void CacheView::render()
@@ -303,7 +294,7 @@ void CacheView::renderCacheList()
 
             if (ImGui::TableNextColumn())
             {
-                ImGui::Text("%zu", structList->container().size());
+                ImGui::Text("%zu", structList->size());
             }
 
             if (structListOpen)

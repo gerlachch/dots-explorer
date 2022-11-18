@@ -6,16 +6,14 @@
 #include <widgets/views/StructView.h>
 #include <DotsClearCache.dots.h>
 
-StructList::StructList(const dots::type::StructDescriptor& descriptor, const PublisherModel& publisherModel) :
+StructList::StructList(const StructDescriptorModel& descriptorModel) :
     m_lastPublishedItem(nullptr),
     m_lastPublishedItemTime{ dots::timepoint_t::min() },
     m_lastUpdateDelta(0.0f),
     m_containerChanged(false),
-    m_containerStorage{ descriptor.cached() ? std::optional<dots::Container<>>{ std::nullopt } : dots::Container<>{ descriptor } },
-    m_container{ descriptor.cached() ? dots::container(descriptor) : *m_containerStorage },
-    m_structDescriptorModel{ descriptor },
-    m_publisherModel{ publisherModel }
+    m_structDescriptorModel{ &descriptorModel }
 {
+    const dots::type::StructDescriptor& descriptor = m_structDescriptorModel->descriptor();
     std::transform(descriptor.name().begin(), descriptor.name().end(), std::back_inserter(m_typeNameLower), [](unsigned char c){ return std::tolower(c); });
 
     const auto& propertyPaths = descriptor.propertyPaths();
@@ -54,9 +52,9 @@ StructList::StructList(const dots::type::StructDescriptor& descriptor, const Pub
     }
 }
 
-const dots::Container<>& StructList::container() const
+size_t StructList::size() const
 {
-    return m_container;
+    return m_items.size();
 }
 
 bool StructList::less(const ImGuiTableSortSpecs& sortSpecs, const StructList& other) const
@@ -81,10 +79,10 @@ bool StructList::less(const ImGuiTableSortSpecs& sortSpecs, const StructList& ot
 
         switch (sortSpec.ColumnIndex)
         {
-            case 0:  less = compare(container().descriptor().name(), other.container().descriptor().name()); break;
+            case 0:  less = compare(m_structDescriptorModel->descriptor().name(), m_structDescriptorModel->descriptor().name()); break;
             case 1:  less = compare(m_lastUpdateDelta, other.m_lastUpdateDelta); break;
             case 2:  less = compare(m_lastUpdateDelta, other.m_lastUpdateDelta); break;
-            case 3:  less = compare(container().size(), other.container().size()); break;
+            case 3:  less = compare(size(), other.size()); break;
             default: IM_ASSERT(0); break;
         }
 
@@ -99,7 +97,7 @@ bool StructList::less(const ImGuiTableSortSpecs& sortSpecs, const StructList& ot
 
 bool StructList::isFiltered(const std::optional<FilterMatcher>& filter, const FilterSettings& filterSettings) const
 {
-    const dots::type::StructDescriptor& descriptor = container().descriptor();
+    const dots::type::StructDescriptor& descriptor = m_structDescriptorModel->descriptor();
 
     if (descriptor.internal() && !*filterSettings.types->internal)
     {
@@ -109,7 +107,7 @@ bool StructList::isFiltered(const std::optional<FilterMatcher>& filter, const Fi
     {
         return false;
     }
-    else if (descriptor.cached() && container().empty() && !*filterSettings.types->empty)
+    else if (descriptor.cached() && size() == 0 && !*filterSettings.types->empty)
     {
         return false;
     }
@@ -130,34 +128,19 @@ bool StructList::isFiltered(const std::optional<FilterMatcher>& filter, const Fi
     }
 }
 
-void StructList::update(const dots::Event<>& event)
+void StructList::update(const event_model_ptr_t& eventModel)
 {
-    const dots::type::Struct* instance;
-
-    if (container().descriptor().cached())
-    {
-        instance = &event.updated();
-    }
-    else
-    {
-        const auto& [updated, cloneInfo] = m_containerStorage->insert(event.header(), event.updated());
-        instance = &*updated;
-    }
-
     m_containerChanged = true;
 
-    auto [it, emplaced] = m_itemsStorage.try_emplace(instance, m_structDescriptorModel, m_publisherModel, *instance);
+    auto [it, inserted] = m_itemsStorage.insert_or_assign(eventModel->publishedInstanceModel().descriptorModel().descriptor().cached() ? eventModel->instanceId() : 0, StructItem{ eventModel });
     StructItem& item = it->second;
 
-    if (emplaced)
+    if (inserted)
     {
         m_items.emplace_back(item);
     }
 
-    item.metadataModel().fetch(event);
-    item.structRefModel().fetch();
-
-    if (dots::timepoint_t lastPublished = item.metadataModel().lastPublished(); lastPublished > m_lastPublishedItemTime)
+    if (dots::timepoint_t lastPublished = item.model().metadataModel().lastPublished(); lastPublished > m_lastPublishedItemTime)
     {
         m_lastPublishedItem = &item;
         m_lastPublishedItemTime = lastPublished;
@@ -170,7 +153,7 @@ bool StructList::renderBegin()
 {
     m_lastUpdateDelta += ImGui::GetIO().DeltaTime;
 
-    bool containerOpen = ImGui::TreeNodeEx(container().descriptor().name().data(), ImGuiTreeNodeFlags_SpanFullWidth);
+    bool containerOpen = ImGui::TreeNodeEx(m_structDescriptorModel->descriptor().name().data(), ImGuiTreeNodeFlags_SpanFullWidth);
     bool openPublishDialog = false;
     std::optional<dots::type::AnyStruct> editInstance;
 
@@ -181,13 +164,13 @@ bool StructList::renderBegin()
         {
             m_lastPublishedItem = &std::max_element(m_items.begin(), m_items.end(), [this](const StructItem& lhs, const StructItem& rhs)
             {
-                return lhs.metadataModel().lastPublished() < rhs.metadataModel().lastPublished();
+                return lhs.model().metadataModel().lastPublished() < rhs.model().metadataModel().lastPublished();
             })->get();
-            m_lastPublishedItemTime = m_lastPublishedItem->metadataModel().lastPublished();
+            m_lastPublishedItemTime = m_lastPublishedItem->model().metadataModel().lastPublished();
         }
 
         ImGui::BeginTooltip();
-        StructView structView{ m_lastPublishedItem->metadataModel(), m_lastPublishedItem->structRefModel() };
+        StructView structView{ m_lastPublishedItem->model().metadataModel(), m_lastPublishedItem->model().updatedInstanceModel() };
         structView.render();
         ImGui::EndTooltip();
 
@@ -195,7 +178,7 @@ bool StructList::renderBegin()
         if (ImGui::GetIO().MouseClicked[ImGuiMouseButton_Left])
         {
             openPublishDialog = true;
-            editInstance = m_lastPublishedItem->structRefModel().instance();
+            editInstance = m_lastPublishedItem->model().updatedInstanceModel().instance();
         }
     }
 
@@ -203,20 +186,20 @@ bool StructList::renderBegin()
     {
         if (ImGui::BeginPopupContextItem())
         {
-            ImGuiExt::TextColored(m_structDescriptorModel.declarationText());
+            ImGuiExt::TextColored(m_structDescriptorModel->declarationText());
             ImGui::Separator();
 
-            if (ImGui::MenuItem(m_structDescriptorModel.descriptor().cached() ? "Create/Update" : "Publish"))
+            if (ImGui::MenuItem(m_structDescriptorModel->descriptor().cached() ? "Create/Update" : "Publish"))
             {
                 openPublishDialog = true;
             }
 
-            if (m_structDescriptorModel.descriptor().cached())
+            if (m_structDescriptorModel->descriptor().cached())
             {
                 if (ImGui::MenuItem("Remove All [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
                 {
                     dots::publish(DotsClearCache{ 
-                        .typeNames = { container().descriptor().name() }
+                        .typeNames = { m_structDescriptorModel->descriptor().name() }
                     });
                 }
             }
@@ -231,11 +214,11 @@ bool StructList::renderBegin()
         {
             if (editInstance == std::nullopt)
             {
-                m_publishDialog.emplace(m_structDescriptorModel, container().descriptor());
+                m_publishDialog.emplace(StructModel{ *m_structDescriptorModel });
             }
             else
             {
-                m_publishDialog.emplace(m_structDescriptorModel, std::move(*editInstance));
+                m_publishDialog.emplace(StructModel{ *m_structDescriptorModel, std::move(*editInstance) });
             }
         }
 
@@ -259,7 +242,7 @@ void StructList::renderEnd()
         ImGuiTableFlags_Hideable
     ;
 
-    const dots::type::StructDescriptor& descriptor = m_container.get().descriptor();
+    const dots::type::StructDescriptor& descriptor = m_structDescriptorModel->descriptor();
     std::optional<dots::type::AnyStruct> editInstance;
 
     if (ImGui::BeginTable(descriptor.name().data(), StructItem::MetaData::MetaDataSize + static_cast<int>(m_headers.size()), TableFlags))
@@ -283,14 +266,14 @@ void StructList::renderEnd()
         {
             m_items.erase(std::remove_if(m_items.begin(), m_items.end(), [this](const StructItem& item)
             {
-                if (item.metadataModel().lastOperation() == DotsMt::remove)
+                if (item.model().metadataModel().lastOperation() == DotsMt::remove)
                 {
                     if (&item == m_lastPublishedItem)
                     {
                         m_lastPublishedItem = nullptr;
                     }
 
-                    m_itemsStorage.erase(&item.structRefModel().instance());
+                    m_itemsStorage.erase(item.model().instanceId());
                     return true;
                 }
                 else
@@ -331,14 +314,14 @@ void StructList::renderEnd()
                 if (const StructItem& item = m_items[itemIndex]; item.isHovered())
                 {
                     ImGui::BeginTooltip();
-                    StructView structView{ item.metadataModel(), item.structRefModel() };
+                    StructView structView{ item.model().metadataModel(), item.model().updatedInstanceModel() };
                     structView.render();
                     ImGui::EndTooltip();
 
                     // open instance in struct edit when clicked
                     if (ImGui::GetIO().MouseClicked[ImGuiMouseButton_Left])
                     {
-                        editInstance = item.structRefModel().instance();
+                        editInstance = item.model().updatedInstanceModel().instance();
                     }
                 }
 
@@ -348,7 +331,7 @@ void StructList::renderEnd()
 
                     if (ImGui::BeginPopupContextItem(item.widgetId()))
                     {
-                        ImGuiExt::TextColored(m_structDescriptorModel.declarationText());
+                        ImGuiExt::TextColored(m_structDescriptorModel->declarationText());
                         ImGui::Separator();
 
                         std::vector<std::reference_wrapper<const StructItem>> selection;
@@ -357,23 +340,23 @@ void StructList::renderEnd()
                             return item.isSelected();
                         });
 
-                        if (selection.size() <= 1 && ImGui::MenuItem(m_structDescriptorModel.descriptor().cached() ? "View/Update" : "View/Publish"))
+                        if (selection.size() <= 1 && ImGui::MenuItem(m_structDescriptorModel->descriptor().cached() ? "View/Update" : "View/Publish"))
                         {
-                            editInstance = item.structRefModel().instance();
+                            editInstance = item.model().updatedInstanceModel().instance();
                         }
 
-                        if (m_structDescriptorModel.descriptor().cached())
+                        if (m_structDescriptorModel->descriptor().cached())
                         {
                             if (selection.size() <= 1 && ImGui::MenuItem("Remove [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
                             {
-                                dots::remove(item.structRefModel().instance());
+                                dots::remove(item.model().updatedInstanceModel().instance());
                             }
 
                             if (selection.size() >= 2 && ImGui::MenuItem("Remove Selection [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
                             {
                                 for (const StructItem& selected : selection)
                                 {
-                                    dots::remove(selected.structRefModel().instance());
+                                    dots::remove(selected.model().updatedInstanceModel().instance());
                                 }
                             }
                         }
@@ -391,7 +374,7 @@ void StructList::renderEnd()
     {
         if (editInstance != std::nullopt)
         {
-            m_publishDialog.emplace(m_structDescriptorModel, std::move(*editInstance));
+            m_publishDialog.emplace(StructModel{ *m_structDescriptorModel, std::move(*editInstance) });
         }
     }
 
@@ -406,7 +389,7 @@ void StructList::renderActivity()
     }
     else
     {
-        ImGuiExt::ColoredText text = m_lastPublishedItem->metadataModel().lastOperationText();
+        ImGuiExt::ColoredText text = m_lastPublishedItem->model().metadataModel().lastOperationText();
         constexpr float AnimationDuration = 1.0f;
         text.second.w = AnimationDuration - std::min(m_lastUpdateDelta, AnimationDuration) / AnimationDuration;
         ImGuiExt::TextColored(text);
@@ -421,7 +404,7 @@ void StructList::renderActivityDot()
     }
     else
     {
-        ImVec4 color = m_lastPublishedItem->metadataModel().lastOperationText().second;
+        ImVec4 color = m_lastPublishedItem->model().metadataModel().lastOperationText().second;
         constexpr float AnimationDuration = 1.0f;
         color.w = AnimationDuration - std::min(m_lastUpdateDelta, AnimationDuration) / AnimationDuration;
 

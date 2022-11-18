@@ -3,6 +3,7 @@
 #include <future>
 #include <dots/dots.h>
 #include <common/Version.h>
+#include <models/TransceiverModel.h>
 #include <widgets/dialogs/HelpDialog.h>
 #include <widgets/dialogs/HostSettingsEdit.h>
 #include <widgets/views/CacheView.h>
@@ -39,6 +40,7 @@ private:
 
     std::optional<HelpDialog> m_helpDialog;
     std::optional<HostSettingsEdit> m_hostSettingsEdit;
+    std::optional<TransceiverModel> m_transceiverModel;
     std::optional<CacheView> m_cacheView;
     std::optional<TraceView> m_traceView;
     std::optional<std::future<void>> m_connectTask;

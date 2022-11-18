@@ -1,10 +1,8 @@
 #include <widgets/views/EventView.h>
 #include <fmt/format.h>
 
-EventView::EventView(const MetadataModel& metadataModel, const StructRefModel& publishedInstanceModel, const StructRefModel& updatedInstanceModel) :
-    m_metadataModel{ metadataModel },
-    m_publishedInstanceModel{ publishedInstanceModel },
-    m_updatedInstanceModel{ updatedInstanceModel }
+EventView::EventView(std::shared_ptr<const EventModel> model) :
+    m_model(std::move(model))
 {
     /* do nothing */
 }
@@ -13,7 +11,7 @@ void EventView::render() const
 {
     // render header
     {
-        ImGuiExt::TextColored(m_publishedInstanceModel.get().descriptorModel().declarationText());
+        ImGuiExt::TextColored(m_model->publishedInstanceModel().descriptorModel().declarationText());
     }
 
     ImGui::Separator();
@@ -25,7 +23,7 @@ void EventView::render() const
         ImGui::TableSetupColumn("Updated Instance");
         ImGui::TableHeadersRow();
 
-        auto render_instance = [this](const StructRefModel& instanceModel)
+        auto render_instance = [this](const StructModel& instanceModel)
         {
             ImGui::TableNextColumn();
 
@@ -35,7 +33,7 @@ void EventView::render() const
                 {
                     const PropertyDescriptorModel& propertyDescriptorModel = propertyModel.descriptorModel();
 
-                    bool highlight = propertyDescriptorModel.propertyPath().elements().front().get().set() <= m_metadataModel.get().lastPublishedProperties();
+                    bool highlight = propertyDescriptorModel.propertyPath().elements().front().get().set() <= m_model->metadataModel().lastPublishedProperties();
                     ImGui::BeginDisabled(!highlight);
 
                     ImGui::TableNextColumn();
@@ -54,8 +52,8 @@ void EventView::render() const
             }
         };
 
-        render_instance(m_publishedInstanceModel);
-        render_instance(m_updatedInstanceModel);
+        render_instance(m_model->publishedInstanceModel());
+        render_instance(m_model->updatedInstanceModel());
 
         ImGui::EndTable();
     }
@@ -73,9 +71,9 @@ void EventView::render() const
             ImGuiExt::TextColored(text);
         };
 
-        render_metadata("Last Operation:", m_metadataModel.get().lastOperationText());
-        render_metadata("Last Published:", m_metadataModel.get().lastPublishedText());
-        render_metadata("Last Published By:", m_metadataModel.get().lastPublishedByText());
+        render_metadata("Last Operation:", m_model->metadataModel().lastOperationText());
+        render_metadata("Last Published:", m_model->metadataModel().lastPublishedText());
+        render_metadata("Last Published By:", m_model->metadataModel().lastPublishedByText());
 
         ImGui::EndTable();
     }

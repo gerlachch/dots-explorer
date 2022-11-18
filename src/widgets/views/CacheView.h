@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 #include <optional>
-#include <dots/dots.h>
 #include <common/FilterMatcher.h>
+#include <models/TransceiverModel.h>
 #include <widgets/dialogs/FilterSettingsEdit.h>
 #include <widgets/views/StructList.h>
 #include <widgets/input/FilterExpressionEdit.h>
@@ -10,7 +10,7 @@
 
 struct CacheView
 {
-    CacheView();
+    CacheView(TransceiverModel& transceiverModel);
     CacheView(const CacheView& other) = delete;
     CacheView(CacheView&& other) = delete;
     ~CacheView() = default;
@@ -18,7 +18,6 @@ struct CacheView
     CacheView& operator = (const CacheView& rhs) = delete;
     CacheView& operator = (CacheView&& rhs) = delete;
 
-    void update(const dots::type::StructDescriptor& descriptor);
     void render();
 
 private:
@@ -40,5 +39,4 @@ private:
     bool m_typesChanged;
     bool m_filterSettingsInitialized;
     FilterSettings& m_filterSettings;
-    std::vector<dots::Subscription> m_subscriptions;
 };

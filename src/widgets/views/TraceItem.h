@@ -1,15 +1,13 @@
 #pragma once
 #include <dots/dots.h>
 #include <common/FilterMatcher.h>
-#include <models/MetadataModel.h>
-#include <models/StructRefModel.h>
-#include <FilterSettings.dots.h>
+#include <models/EventModel.h>
 
 struct ImGuiTableSortSpecs;
 
 struct TraceItem
 {
-    TraceItem(size_t index, const StructDescriptorModel& structDescriptorModel, const PublisherModel& publisherModel, const dots::Event<>& event);
+    TraceItem(std::shared_ptr<const EventModel> model);
     TraceItem(const TraceItem& other) = delete;
     TraceItem(TraceItem&& other) = default;
     ~TraceItem() = default;
@@ -18,11 +16,8 @@ struct TraceItem
     TraceItem& operator = (TraceItem&& rhs) = default;
 
     const char* widgetId() const;
-
-    size_t index() const;
-    const MetadataModel& metadataModel() const;
-    const StructRefModel& publishedInstanceModel() const;
-    const StructRefModel& updatedInstanceModel() const;
+    const EventModel& model() const;
+    const std::shared_ptr<const EventModel>& modelPtr() const;
 
     bool isSelected() const;
     bool isHovered() const;
@@ -41,11 +36,5 @@ private:
     std::string m_filterTextLower;
     bool m_isSelected;
     bool m_isHovered;
-    size_t m_index;
-    ImGuiExt::ColoredText m_indexText;
-    dots::type::AnyStruct m_publishedInstance;
-    dots::type::AnyStruct m_updatedInstance;
-    MetadataModel m_metadataModel;
-    StructRefModel m_publishedInstanceModel;
-    StructRefModel m_updatedInstanceModel;
+    std::shared_ptr<const EventModel> m_model;
 };

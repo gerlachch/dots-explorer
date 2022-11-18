@@ -4,15 +4,14 @@
 #include <fmt/format.h>
 #include <common/Colors.h>
 
-PublishDialog::PublishDialog(const StructDescriptorModel& structDescriptorModel, dots::type::AnyStruct instance) :
+PublishDialog::PublishDialog(StructModel structModel) :
     m_popupId{ fmt::format("PublishDialog-{}_Popup", ++M_id) },
     m_remove(false),
-    m_instance{ std::move(instance) },
-    m_structRefModel{ structDescriptorModel, m_instance }
+    m_structModel{ std::move(structModel) }
 {
-    const dots::type::StructDescriptor& structDescriptor = structDescriptorModel.descriptor();
+    const dots::type::StructDescriptor& structDescriptor = m_structModel.descriptorModel().descriptor();
 
-    for (PropertyModel& propertyModel : m_structRefModel.propertyModels())
+    for (PropertyModel& propertyModel : m_structModel.propertyModels())
     {
         const dots::type::PropertyDescriptor& propertyDescriptor = propertyModel.descriptorModel().propertyPath().destination();
 
@@ -33,16 +32,18 @@ bool PublishDialog::render()
 
     if (ImGui::BeginPopup(m_popupId.data(), ImGuiWindowFlags_NoMove))
     {
+        const dots::type::Struct& instance = m_structModel.instance();
+
         // description
         {
-            ImGuiExt::TextColored(m_structRefModel.descriptorModel().declarationText());
+            ImGuiExt::TextColored(m_structModel.descriptorModel().declarationText());
             ImGui::Separator();
         }
 
         // properties
-        const dots::type::StructDescriptor& structDescriptor = m_instance->_descriptor();
-        auto* existingInstance = m_instance->_hasProperties(structDescriptor.keyProperties())
-            ? dots::container(structDescriptor).find(m_instance)
+        const dots::type::StructDescriptor& structDescriptor = m_structModel.descriptorModel().descriptor();
+        auto* existingInstance = instance._hasProperties(structDescriptor.keyProperties())
+            ? dots::container(structDescriptor).find(instance)
             : nullptr
         ;
 
@@ -167,11 +168,11 @@ bool PublishDialog::render()
                 }
             }
 
-            ImGui::BeginDisabled(errors || !m_instance->_hasProperties(m_instance->_keyProperties()));
+            ImGui::BeginDisabled(errors || !instance._hasProperties(instance._keyProperties()));
             {
                 if (ImGui::Button("Publish"))
                 {
-                    dots::publish(m_instance, includedProperties, m_remove);
+                    dots::publish(instance, includedProperties, m_remove);
                     ImGui::CloseCurrentPopup();
                 }
             }
@@ -183,7 +184,7 @@ bool PublishDialog::render()
                 ImGui::CloseCurrentPopup();
             }
 
-            if (m_instance->_descriptor().cached())
+            if (instance._descriptor().cached())
             {
                 ImGui::SameLine();
                 ImGui::Checkbox("Remove", &m_remove);
@@ -194,7 +195,7 @@ bool PublishDialog::render()
             }
 
             ImGui::SameLine();
-            if (!m_instance->_hasProperties(m_instance->_keyProperties()))
+            if (!instance._hasProperties(instance._keyProperties()))
             {
                 ImGui::TextColored(ColorThemeActive.Error, "[missing keys]");
                 ImGuiExt::TooltipLastHoveredItem("At lest one key property does not have a valid value.");
