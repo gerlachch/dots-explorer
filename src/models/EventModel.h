@@ -5,13 +5,7 @@
 
 struct EventModel
 {
-    EventModel(size_t index, const PublisherModel& publisherModel, const StructDescriptorModel& structDescriptorModel, const dots::Event<>& event);
-    EventModel(const EventModel& other) = delete;
-    EventModel(EventModel&& other) = default;
-    ~EventModel() = default;
-
-    EventModel& operator = (const EventModel& rhs) = delete;
-    EventModel& operator = (EventModel&& rhs) = default;
+    EventModel(size_t index, MetadataModel metadataModel, const StructDescriptorModel& structDescriptorModel, const dots::Event<>& event);
 
     size_t index() const;
     const ImGuiExt::ColoredText& indexText() const;
@@ -24,12 +18,15 @@ struct EventModel
 
 private:
 
-    size_t m_index;
-    ImGuiExt::ColoredText m_indexText;
-    MetadataModel m_metadataModel;
-    StructModel m_publishedInstanceModel;
-    StructModel m_updatedInstanceModel;
-    size_t m_instanceId;
-};
+    struct data
+    {
+        size_t index;
+        ImGuiExt::ColoredText indexText;
+        MetadataModel metadataModel;
+        StructModel publishedInstanceModel;
+        StructModel updatedInstanceModel;
+        size_t instanceId;
+    };
 
-using event_model_ptr_t = std::shared_ptr<const EventModel>;
+    std::shared_ptr<const data> m_data;
+};

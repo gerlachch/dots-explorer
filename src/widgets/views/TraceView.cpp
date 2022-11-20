@@ -14,7 +14,7 @@ TraceView::TraceView(TransceiverModel& transceiverModel) :
     m_sidewaysScrollTotalTime(0.0f),
     m_sidewaysScrollDeltaTime(0.0f)
 {
-    transceiverModel.subscribe([this](const event_model_ptr_t& eventModel)
+    transceiverModel.subscribe([this](const EventModel& eventModel)
     {
         auto& item = m_items.emplace_back(std::make_shared<TraceItem>(eventModel));
         item->setFilterTargets(*m_filterSettings.targets);
@@ -339,7 +339,7 @@ void TraceView::renderEventList()
                 if (const TraceItem& item = *m_itemsFiltered[itemIndex]; item.isHovered())
                 {
                     ImGui::BeginTooltip();
-                    EventView{ item.modelPtr() }.render();
+                    EventView{ item.model() }.render();
                     ImGui::EndTooltip();
 
                     // open instance in struct edit when clicked

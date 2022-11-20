@@ -5,16 +5,16 @@
 #include <common/ImGuiExt.h>
 #include <DotsClient.dots.h>
 
-StructItem::StructItem(std::shared_ptr<const EventModel> eventModel) :
+StructItem::StructItem(EventModel model) :
     m_isSelected(false),
     m_isHovered(false),
-    m_model(std::move(eventModel))
+    m_model(std::move(model))
 {
-    m_propertyModels.reserve(m_model->updatedInstanceModel().propertyModels().size());
+    m_propertyModels.reserve(m_model.updatedInstanceModel().propertyModels().size());
 
-    if (m_model->updatedInstanceModel().propertyModels().size() <= IMGUI_TABLE_MAX_COLUMNS)
+    if (m_model.updatedInstanceModel().propertyModels().size() <= IMGUI_TABLE_MAX_COLUMNS)
     {
-        for (const PropertyModel& propertyModel : m_model->updatedInstanceModel().propertyModels())
+        for (const PropertyModel& propertyModel : m_model.updatedInstanceModel().propertyModels())
         {
             const dots::type::PropertyPath& propertyPath = propertyModel.descriptorModel().propertyPath();
 
@@ -28,7 +28,7 @@ StructItem::StructItem(std::shared_ptr<const EventModel> eventModel) :
     }
     else
     {
-        for (const PropertyModel& propertyModel : m_model->updatedInstanceModel().propertyModels())
+        for (const PropertyModel& propertyModel : m_model.updatedInstanceModel().propertyModels())
         {
             if (propertyModel.descriptorModel().propertyPath().elements().size() == 1)
             {
@@ -49,11 +49,6 @@ const char* StructItem::widgetId() const
 }
 
 const EventModel& StructItem::model() const
-{
-    return *m_model;
-}
-
-const std::shared_ptr<const EventModel>& StructItem::modelPtr() const
 {
     return m_model;
 }
@@ -96,33 +91,33 @@ bool StructItem::less(const ImGuiTableSortSpecs& sortSpecs, const StructItem& ot
 
             if (columnIndex == 0)
             {
-                if (compare(m_model->metadataModel().lastOperationText(), other.m_model->metadataModel().lastOperationText()))
+                if (compare(m_model.metadataModel().lastOperationText(), other.m_model.metadataModel().lastOperationText()))
                 {
                     return true;
                 }
-                else if (compare(other.m_model->metadataModel().lastOperationText(), m_model->metadataModel().lastOperationText()))
+                else if (compare(other.m_model.metadataModel().lastOperationText(), m_model.metadataModel().lastOperationText()))
                 {
                     return false;
                 }
             }
             else if (columnIndex == 1)
             {
-                if (compare(m_model->metadataModel().lastPublishedText(), other.m_model->metadataModel().lastPublishedText()))
+                if (compare(m_model.metadataModel().lastPublishedText(), other.m_model.metadataModel().lastPublishedText()))
                 {
                     return true;
                 }
-                else if (compare(other.m_model->metadataModel().lastPublishedText(), m_model->metadataModel().lastPublishedText()))
+                else if (compare(other.m_model.metadataModel().lastPublishedText(), m_model.metadataModel().lastPublishedText()))
                 {
                     return false;
                 }
             }
             else/* if (columnIndex == 2)*/
             {
-                if (compare(m_model->metadataModel().lastPublishedByText(), other.m_model->metadataModel().lastPublishedByText()))
+                if (compare(m_model.metadataModel().lastPublishedByText(), other.m_model.metadataModel().lastPublishedByText()))
                 {
                     return true;
                 }
-                else if (compare(other.m_model->metadataModel().lastPublishedByText(), m_model->metadataModel().lastPublishedByText()))
+                else if (compare(other.m_model.metadataModel().lastPublishedByText(), m_model.metadataModel().lastPublishedByText()))
                 {
                     return false;
                 }
@@ -130,7 +125,7 @@ bool StructItem::less(const ImGuiTableSortSpecs& sortSpecs, const StructItem& ot
         }
     }
 
-    return &m_model->updatedInstanceModel().instance() < &other.m_model->updatedInstanceModel().instance();
+    return &m_model.updatedInstanceModel().instance() < &other.m_model.updatedInstanceModel().instance();
 }
 
 bool StructItem::isSelected() const
@@ -151,19 +146,19 @@ void StructItem::render(bool hoverCondition)
     {
         if (ImGui::TableNextColumn())
         {
-            ImGuiExt::TextColored(m_model->metadataModel().lastOperationText());
+            ImGuiExt::TextColored(m_model.metadataModel().lastOperationText());
             m_isHovered |= hoverCondition && ImGui::IsItemHovered();
         }
 
         if (ImGui::TableNextColumn())
         {
-            ImGuiExt::TextColored(m_model->metadataModel().lastPublishedText());
+            ImGuiExt::TextColored(m_model.metadataModel().lastPublishedText());
             m_isHovered |= hoverCondition && ImGui::IsItemHovered();
         }
 
         if (ImGui::TableNextColumn())
         {
-            ImGuiExt::TextColored(m_model->metadataModel().lastPublishedByText());
+            ImGuiExt::TextColored(m_model.metadataModel().lastPublishedByText());
             m_isHovered |= hoverCondition && ImGui::IsItemHovered();
         }
     }

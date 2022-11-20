@@ -3,7 +3,7 @@
 #include <common/Colors.h>
 #include <common/ImGuiExt.h>
 
-TraceItem::TraceItem(std::shared_ptr<const EventModel> model) :
+TraceItem::TraceItem(EventModel model) :
     m_isSelected(false),
     m_isHovered(false),
     m_model(std::move(model))
@@ -22,11 +22,6 @@ const char* TraceItem::widgetId() const
 }
 
 const EventModel& TraceItem::model() const
-{
-    return *m_model;
-}
-
-const std::shared_ptr<const EventModel>& TraceItem::modelPtr() const
 {
     return m_model;
 }

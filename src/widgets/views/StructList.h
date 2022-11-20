@@ -25,7 +25,7 @@ struct StructList
     bool less(const ImGuiTableSortSpecs& sortSpecs, const StructList& other) const;
     bool isFiltered(const std::optional<FilterMatcher>& filter, const FilterSettings& filterSettings) const;
 
-    void update(const event_model_ptr_t& eventModel);
+    void update(const EventModel& eventModel);
     bool renderBegin();
     void renderEnd();
     void renderActivity();

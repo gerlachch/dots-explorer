@@ -38,7 +38,6 @@ private:
     std::vector<std::shared_ptr<TraceItem>> m_items;
     std::vector<std::shared_ptr<TraceItem>> m_itemsFiltered;
     std::optional<FilterMatcher> m_filterMatcher;
-    PublisherModel m_publisherModel;
     size_t m_traceIndex;
     bool m_filtersChanged;
     bool m_filterSettingsInitialized;

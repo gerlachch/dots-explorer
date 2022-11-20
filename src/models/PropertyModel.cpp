@@ -4,16 +4,16 @@
 
 static dots::serialization::StringSerializer StringSerializer;
 
-PropertyModel::PropertyModel(const PropertyDescriptorModel& descriptorModel, dots::type::Struct& instance) :
+PropertyModel::PropertyModel(PropertyDescriptorModel descriptorModel, dots::type::Struct& instance) :
     m_mutable(true),
-    m_descriptorModel{ descriptorModel },
-    m_property{ instance, descriptorModel.propertyPath() }
+    m_descriptorModel{ std::move(descriptorModel) },
+    m_property{ instance, m_descriptorModel.propertyPath() }
 {
     /* do nothing */
 }
 
-PropertyModel::PropertyModel(const PropertyDescriptorModel& descriptorModel, const dots::type::Struct& instance) :
-    PropertyModel(descriptorModel, const_cast<dots::type::Struct&>(instance))
+PropertyModel::PropertyModel(PropertyDescriptorModel descriptorModel, const dots::type::Struct& instance) :
+    PropertyModel(std::move(descriptorModel), const_cast<dots::type::Struct&>(instance))
 {
     m_mutable = false;
 }

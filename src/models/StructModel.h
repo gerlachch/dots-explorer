@@ -6,15 +6,9 @@
 
 struct StructModel
 {
-    StructModel(const StructDescriptorModel& descriptorModel, dots::type::AnyStruct instance);
-    StructModel(const StructDescriptorModel& descriptorModel, const dots::type::Struct& instance);
-    StructModel(const StructDescriptorModel& descriptorModel);
-    StructModel(const StructModel& other) = delete;
-    StructModel(StructModel&& other) = default;
-    ~StructModel() = default;
-
-    StructModel& operator = (const StructModel& rhs) = delete;
-    StructModel& operator = (StructModel&& rhs) = default;
+    StructModel(StructDescriptorModel descriptorModel, dots::type::AnyStruct instance);
+    StructModel(StructDescriptorModel descriptorModel, const dots::type::Struct& instance);
+    StructModel(StructDescriptorModel descriptorModel);
 
     const StructDescriptorModel& descriptorModel() const;
 
@@ -26,9 +20,12 @@ struct StructModel
 
 private:
 
-    using descriptor_model_ref_t = std::reference_wrapper<const StructDescriptorModel>;
+    struct data
+    {
+        StructDescriptorModel descriptorModel;
+        dots::type::AnyStruct instance;
+        std::vector<PropertyModel> propertyModels;
+    };
 
-    descriptor_model_ref_t m_descriptorModel;
-    dots::type::AnyStruct m_instance;
-    std::vector<PropertyModel> m_propertyModels;
+    std::shared_ptr<data> m_data;
 };

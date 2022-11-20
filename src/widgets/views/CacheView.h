@@ -35,7 +35,6 @@ private:
     std::vector<std::shared_ptr<StructList>> m_cacheList;
     std::vector<std::shared_ptr<StructList>> m_cacheListFiltered;
     std::optional<FilterMatcher> m_filterMatcher;
-    PublisherModel m_publisherModel;
     bool m_typesChanged;
     bool m_filterSettingsInitialized;
     FilterSettings& m_filterSettings;

@@ -7,17 +7,10 @@ struct ImGuiTableSortSpecs;
 
 struct TraceItem
 {
-    TraceItem(std::shared_ptr<const EventModel> model);
-    TraceItem(const TraceItem& other) = delete;
-    TraceItem(TraceItem&& other) = default;
-    ~TraceItem() = default;
-
-    TraceItem& operator = (const TraceItem& rhs) = delete;
-    TraceItem& operator = (TraceItem&& rhs) = default;
+    TraceItem(EventModel model);
 
     const char* widgetId() const;
     const EventModel& model() const;
-    const std::shared_ptr<const EventModel>& modelPtr() const;
 
     bool isSelected() const;
     bool isHovered() const;
@@ -36,5 +29,5 @@ private:
     std::string m_filterTextLower;
     bool m_isSelected;
     bool m_isHovered;
-    std::shared_ptr<const EventModel> m_model;
+    EventModel m_model;
 };

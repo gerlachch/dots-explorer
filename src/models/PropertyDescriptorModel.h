@@ -16,8 +16,13 @@ struct PropertyDescriptorModel
 private:
 
     using property_path_ref_t = std::reference_wrapper<const dots::type::PropertyPath>;
-    
-    std::vector<ImGuiExt::ColoredText> m_declarationText;
-    ImVec4 m_valueColor;
-    property_path_ref_t m_propertyPath;
+
+    struct data
+    {
+        std::vector<ImGuiExt::ColoredText> declarationText;
+        ImVec4 valueColor;
+        property_path_ref_t propertyPath;
+    };
+
+    std::shared_ptr<data> m_data;
 };

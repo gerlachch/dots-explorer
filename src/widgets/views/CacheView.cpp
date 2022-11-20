@@ -14,13 +14,13 @@ CacheView::CacheView(TransceiverModel& transceiverModel) :
         StructList& structList = *m_cacheList.emplace_back(std::make_shared<StructList>(descriptorModel));
         m_typesChanged = true;
 
-        transceiverModel.subscribe(descriptorModel, [this, &structList](const event_model_ptr_t& eventModel)
+        transceiverModel.subscribe(descriptorModel, [this, &structList](const EventModel& eventModel)
         {
             structList.update(eventModel);
 
             if (!*m_filterSettings.types->empty &&
-                ((eventModel->metadataModel().lastOperation() == DotsMt::create && structList.size() == 1) || 
-                (eventModel->metadataModel().lastOperation() == DotsMt::remove && structList.size() == 0)))
+                ((eventModel.metadataModel().lastOperation() == DotsMt::create && structList.size() == 1) || 
+                (eventModel.metadataModel().lastOperation() == DotsMt::remove && structList.size() == 0)))
             {
                 m_typesChanged = true;
             }

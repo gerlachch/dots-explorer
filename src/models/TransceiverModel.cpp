@@ -1,13 +1,17 @@
 #include <models/TransceiverModel.h>
 #include <StructDescriptorData.dots.h>
 #include <EnumDescriptorData.dots.h>
+#include <fmt/format.h>
 
 TransceiverModel::TransceiverModel() :
+    m_publisherNameTexts{ std::make_shared<std::map<uint32_t, ImGuiExt::ColoredText>>() },
+    m_publisherModel{ m_publisherNameTexts },
     m_eventIndex(0)
 {
     m_subscriptions.emplace_back(dots::subscribe<StructDescriptorData>([](auto&){}));
     m_subscriptions.emplace_back(dots::subscribe<EnumDescriptorData>([](auto&){}));
-    m_subscriptions.emplace_back(dots::subscribe<dots::type::StructDescriptor>({ &TransceiverModel::update, this }));
+    m_subscriptions.emplace_back(dots::subscribe<dots::type::StructDescriptor>({ &TransceiverModel::handleNewType, this }));
+    m_subscriptions.emplace_back(dots::subscribe<DotsClient>({ &TransceiverModel::handleDotsClient, this }));
 }
 
 void TransceiverModel::subscribe(const StructDescriptorModel& descriptorModel, event_handler_t handler)
@@ -25,7 +29,7 @@ void TransceiverModel::subscribe(struct_type_handler_t handler)
     m_structTypeHandlers.emplace_back(std::move(handler));
 }
 
-void TransceiverModel::update(const dots::type::StructDescriptor& descriptor)
+void TransceiverModel::handleNewType(const dots::type::StructDescriptor& descriptor)
 {
     if (!descriptor.substructOnly())
     {
@@ -38,7 +42,7 @@ void TransceiverModel::update(const dots::type::StructDescriptor& descriptor)
 
         m_subscriptions.emplace_back(dots::subscribe(descriptor, [this, &descriptorModel](const dots::Event<>& event)
         {
-            auto eventModel = std::make_shared<EventModel>(++m_eventIndex, m_publisherModel, descriptorModel, event);
+            EventModel eventModel{ ++m_eventIndex, { m_publisherModel, event }, descriptorModel, event };
 
             for (auto& handler : m_eventHandlers)
             {
@@ -53,5 +57,25 @@ void TransceiverModel::update(const dots::type::StructDescriptor& descriptor)
                 }
             }
         }));
+    }
+}
+
+void TransceiverModel::handleDotsClient(const dots::Event<DotsClient>& event)
+{
+    if (const auto& client = event(); client.name.isValid())
+    {
+        auto& publisherNameText = [this](dots::uint32_t id) -> auto&
+        {
+            if (auto it = m_publisherNameTexts->find(id); it == m_publisherNameTexts->end())
+            {
+                return m_publisherNameTexts->try_emplace(id, fmt::format("\"<unknown> [{}]\"", id), ColorThemeActive.StringType).first->second;
+            }
+            else
+            {
+                return it->second;
+            }
+        }(*client.id);
+
+        publisherNameText.first = fmt::format("\"{}\"", *client.name);
     }
 }

@@ -18,7 +18,12 @@ private:
     using descriptor_ref_t = std::reference_wrapper<const dots::type::StructDescriptor>;
     using colored_text_t = std::pair<std::string, ImVec4>;
 
-    std::vector<colored_text_t> m_declarationText;
-    std::vector<PropertyDescriptorModel> m_propertyDescriptorModels;
-    descriptor_ref_t m_descriptor;
+    struct data
+    {
+        std::vector<colored_text_t> declarationText;
+        std::vector<PropertyDescriptorModel> propertyDescriptorModels;
+        descriptor_ref_t descriptor;
+    };
+
+    std::shared_ptr<data> m_data;
 };

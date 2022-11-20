@@ -1,7 +1,7 @@
 #include <widgets/views/EventView.h>
 #include <fmt/format.h>
 
-EventView::EventView(std::shared_ptr<const EventModel> model) :
+EventView::EventView(EventModel model) :
     m_model(std::move(model))
 {
     /* do nothing */
@@ -11,7 +11,7 @@ void EventView::render() const
 {
     // render header
     {
-        ImGuiExt::TextColored(m_model->publishedInstanceModel().descriptorModel().declarationText());
+        ImGuiExt::TextColored(m_model.publishedInstanceModel().descriptorModel().declarationText());
     }
 
     ImGui::Separator();
@@ -33,7 +33,7 @@ void EventView::render() const
                 {
                     const PropertyDescriptorModel& propertyDescriptorModel = propertyModel.descriptorModel();
 
-                    bool highlight = propertyDescriptorModel.propertyPath().elements().front().get().set() <= m_model->metadataModel().lastPublishedProperties();
+                    bool highlight = propertyDescriptorModel.propertyPath().elements().front().get().set() <= m_model.metadataModel().lastPublishedProperties();
                     ImGui::BeginDisabled(!highlight);
 
                     ImGui::TableNextColumn();
@@ -52,8 +52,8 @@ void EventView::render() const
             }
         };
 
-        render_instance(m_model->publishedInstanceModel());
-        render_instance(m_model->updatedInstanceModel());
+        render_instance(m_model.publishedInstanceModel());
+        render_instance(m_model.updatedInstanceModel());
 
         ImGui::EndTable();
     }
@@ -71,9 +71,9 @@ void EventView::render() const
             ImGuiExt::TextColored(text);
         };
 
-        render_metadata("Last Operation:", m_model->metadataModel().lastOperationText());
-        render_metadata("Last Published:", m_model->metadataModel().lastPublishedText());
-        render_metadata("Last Published By:", m_model->metadataModel().lastPublishedByText());
+        render_metadata("Last Operation:", m_model.metadataModel().lastOperationText());
+        render_metadata("Last Published:", m_model.metadataModel().lastPublishedText());
+        render_metadata("Last Published By:", m_model.metadataModel().lastPublishedByText());
 
         ImGui::EndTable();
     }

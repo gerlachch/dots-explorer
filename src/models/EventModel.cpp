@@ -2,42 +2,44 @@
 #include <fmt/format.h>
 #include <common/Colors.h>
 
-EventModel::EventModel(size_t index, const PublisherModel& publisherModel, const StructDescriptorModel& structDescriptorModel, const dots::Event<>& event) :
-    m_index(index),
-    m_indexText{ fmt::format("#{}", m_index), ColorThemeActive.Disabled },
-    m_metadataModel{ publisherModel },
-    m_publishedInstanceModel{ structDescriptorModel, event.transmitted() },
-    m_updatedInstanceModel{ structDescriptorModel, event.updated() },
-    m_instanceId(reinterpret_cast<size_t>(&event.updated()))
+EventModel::EventModel(size_t index, MetadataModel metadataModel, const StructDescriptorModel& structDescriptorModel, const dots::Event<>& event) :
+    m_data(std::make_shared<data>(data{
+        .index = index,
+        .indexText = { fmt::format("#{}", index), ColorThemeActive.Disabled },
+        .metadataModel = std::move(metadataModel),
+        .publishedInstanceModel = { structDescriptorModel, event.transmitted() },
+        .updatedInstanceModel = { structDescriptorModel, event.updated() },
+        .instanceId = reinterpret_cast<size_t>(&event.updated())
+    }))
 {
-    m_metadataModel.fetch(event);
+    /* do nothing */
 }
 
 size_t EventModel::index() const
 {
-    return m_index;
+    return m_data->index;
 }
 
 const ImGuiExt::ColoredText& EventModel::indexText() const
 {
-    return m_indexText;
+    return m_data->indexText;
 }
 
 size_t EventModel::instanceId() const
 {
-    return m_instanceId;
+    return m_data->instanceId;
 }
 
 const MetadataModel& EventModel::metadataModel() const
 {
-    return m_metadataModel;
+    return m_data->metadataModel;
 }
 const StructModel& EventModel::publishedInstanceModel() const
 {
-    return m_publishedInstanceModel;
+    return m_data->publishedInstanceModel;
 }
 
 const StructModel& EventModel::updatedInstanceModel() const
 {
-    return m_updatedInstanceModel;
+    return m_data->updatedInstanceModel;
 }

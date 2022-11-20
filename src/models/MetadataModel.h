@@ -7,7 +7,7 @@
 
 struct MetadataModel
 {
-    MetadataModel(const PublisherModel& publisherModel);
+    MetadataModel(const PublisherModel& publisherModel, const dots::Event<>& event);
 
     DotsMt lastOperation() const;
     dots::timepoint_t lastPublished() const;
@@ -18,13 +18,9 @@ struct MetadataModel
     const ImGuiExt::ColoredText& lastPublishedText() const;
     const ImGuiExt::ColoredText& lastPublishedByText() const;
 
-    void fetch(const dots::Event<>& event);
-
 private:
 
     enum MetaData { LastPublished, LastPublishedBy, MetaDataSize };
-
-    using publisher_model_ref_t = std::reference_wrapper<const PublisherModel>;
 
     inline static std::array<ImGuiExt::ColoredText, 3> LastOperationTexts{
         ImGuiExt::ColoredText{ "CREATE", ColorThemeActive.Create },
@@ -32,10 +28,15 @@ private:
         ImGuiExt::ColoredText{ "REMOVE", ColorThemeActive.Remove }
     };
 
-    DotsMt m_lastOperation;
-    dots::timepoint_t m_lastPublished;
-    dots::uint32_t m_lastPublishedBy;
-    dots::property_set_t m_lastPublishedProperties;
-    mutable ImGuiExt::ColoredText m_lastPublishedText;
-    publisher_model_ref_t m_publisherModel;
+    struct data
+    {
+        DotsMt lastOperation;
+        dots::timepoint_t lastPublished;
+        dots::uint32_t lastPublishedBy;
+        dots::property_set_t lastPublishedProperties;
+        ImGuiExt::ColoredText lastPublishedText;
+        PublisherModel publisherModel;
+    };
+
+    std::shared_ptr<const data> m_data;
 };
