@@ -19,6 +19,7 @@ struct StructItem
     bool isHovered() const;
 
     void render(bool hoverCondition);
+    void renderTooltip() const;
 
 private:
 

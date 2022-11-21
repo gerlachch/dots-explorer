@@ -19,6 +19,7 @@ struct TraceItem
     bool isFiltered(const std::optional<FilterMatcher>& filter, const FilterSettings& filterSettings) const;
 
     void render(bool hoverCondition);
+    void renderTooltip() const;
 
 private:
 

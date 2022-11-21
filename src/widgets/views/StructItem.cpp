@@ -175,3 +175,64 @@ void StructItem::render(bool hoverCondition)
         }
     }
 }
+
+void StructItem::renderTooltip() const
+{
+    ImGui::BeginTooltip();
+
+    // render header
+    {
+        ImGuiExt::TextColored(m_model.updatedInstanceModel().descriptorModel().declarationText());
+    }
+
+    ImGui::Separator();
+
+    // render properties
+    if (ImGui::BeginTable("PropertyTable", 2))
+    {
+        for (const PropertyModel& propertyModel : m_model.updatedInstanceModel().propertyModels())
+        {
+            ImGui::TableNextRow();
+
+            ImGui::TableNextColumn();
+            ImGuiExt::TextColored(propertyModel.descriptorModel().declarationText());
+
+            ImGui::TableNextColumn();
+
+            if (propertyModel.property().descriptor().valueDescriptor().type() != dots::type::Type::Struct)
+            {
+                ImGuiExt::TextColored(propertyModel.valueText());
+            }
+        }
+
+        ImGui::EndTable();
+    }
+
+    ImGui::Separator();
+
+    // render meta data
+    if (ImGui::BeginTable("MetaDataTable", 2))
+    {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted("Last Operation:");
+        ImGui::TableNextColumn();
+        ImGuiExt::TextColored(m_model.metadataModel().lastOperationText());
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted("Last Published:");
+        ImGui::TableNextColumn();
+        ImGuiExt::TextColored(m_model.metadataModel().lastPublishedText());
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted("Last Published By:");
+        ImGui::TableNextColumn();
+        ImGuiExt::TextColored(m_model.metadataModel().lastPublishedByText());
+
+        ImGui::EndTable();
+    }
+
+    ImGui::EndTooltip();
+}

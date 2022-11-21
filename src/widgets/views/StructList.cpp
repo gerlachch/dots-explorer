@@ -3,7 +3,6 @@
 #include <imgui_internal.h>
 #include <fmt/format.h>
 #include <common/ImGuiExt.h>
-#include <widgets/views/StructView.h>
 #include <DotsClearCache.dots.h>
 
 StructList::StructList(const StructDescriptorModel& descriptorModel) :
@@ -169,10 +168,7 @@ bool StructList::renderBegin()
             m_lastPublishedItemTime = m_lastPublishedItem->model().metadataModel().lastPublished();
         }
 
-        ImGui::BeginTooltip();
-        StructView structView{ m_lastPublishedItem->model().metadataModel(), m_lastPublishedItem->model().updatedInstanceModel() };
-        structView.render();
-        ImGui::EndTooltip();
+        m_lastPublishedItem->renderTooltip();
 
         // open last published instance in struct edit when clicked
         if (ImGui::GetIO().MouseClicked[ImGuiMouseButton_Left])
@@ -313,10 +309,7 @@ void StructList::renderEnd()
                 // render quick info tooltip
                 if (const StructItem& item = m_items[itemIndex]; item.isHovered())
                 {
-                    ImGui::BeginTooltip();
-                    StructView structView{ item.model().metadataModel(), item.model().updatedInstanceModel() };
-                    structView.render();
-                    ImGui::EndTooltip();
+                    item.renderTooltip();
 
                     // open instance in struct edit when clicked
                     if (ImGui::GetIO().MouseClicked[ImGuiMouseButton_Left])

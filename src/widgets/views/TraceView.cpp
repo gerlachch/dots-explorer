@@ -2,7 +2,6 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <common/Settings.h>
-#include <widgets/views/EventView.h>
 
 TraceView::TraceView(TransceiverModel& transceiverModel) :
     m_traceIndex(0),
@@ -338,9 +337,7 @@ void TraceView::renderEventList()
                 // render quick info tooltip
                 if (const TraceItem& item = *m_itemsFiltered[itemIndex]; item.isHovered())
                 {
-                    ImGui::BeginTooltip();
-                    EventView{ item.model() }.render();
-                    ImGui::EndTooltip();
+                    item.renderTooltip();
 
                     // open instance in struct edit when clicked
                     if (ImGui::GetIO().MouseClicked[ImGuiMouseButton_Left])
