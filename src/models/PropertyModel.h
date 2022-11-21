@@ -8,8 +8,8 @@ struct ImGuiTableColumnSortSpecs;
 
 struct PropertyModel
 {
-    PropertyModel(const PropertyDescriptorModel& descriptorModel, dots::type::Struct& instance);
-    PropertyModel(const PropertyDescriptorModel& descriptorModel, const dots::type::Struct& instance);
+    PropertyModel(PropertyDescriptorModel descriptorModel, dots::type::Struct& instance);
+    PropertyModel(PropertyDescriptorModel descriptorModel, const dots::type::Struct& instance);
 
     const PropertyDescriptorModel& descriptorModel() const;
 
@@ -31,12 +31,10 @@ struct PropertyModel
 
 private:
 
-    using descriptor_model_ref_t = std::reference_wrapper<const PropertyDescriptorModel>;
-
     inline static dots::type::TypeRandomizer<> M_randomizer{ std::random_device{}() };
 
     mutable std::string m_valueStr;
     bool m_mutable;
-    descriptor_model_ref_t m_descriptorModel;
+    PropertyDescriptorModel m_descriptorModel;
     dots::type::ProxyProperty<> m_property;
 };

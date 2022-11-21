@@ -2,33 +2,20 @@
 #include <fmt/format.h>
 #include <common/Colors.h>
 
-PublisherModel::PublisherModel() :
-    m_subscription(dots::subscribe<DotsClient>({ &PublisherModel::handleDotsClient, this }))
+PublisherModel::PublisherModel(std::shared_ptr<std::map<uint32_t, ImGuiExt::ColoredText>> publisherNameTexts) :
+    m_publisherNameTexts(std::move(publisherNameTexts))
 {
-    m_publisherNameTexts.try_emplace(dots::Connection::HostId, fmt::format("\"{}\"", dots::global_transceiver()->connection().peerName()), ColorThemeActive.StringType).first->second;
+    /* do nothing */
 }
 
 const ImGuiExt::ColoredText& PublisherModel::publisherNameText(uint32_t id) const
 {
-    if (auto it = m_publisherNameTexts.find(id); it == m_publisherNameTexts.end())
+    if (auto it = m_publisherNameTexts->find(id); it == m_publisherNameTexts->end())
     {
-        return m_publisherNameTexts.try_emplace(id, fmt::format("\"<unknown> [{}]\"", id), ColorThemeActive.StringType).first->second;
+        return m_publisherNameTexts->try_emplace(id, fmt::format("\"<unknown> [{}]\"", id), ColorThemeActive.StringType).first->second;
     }
     else
     {
         return it->second;
-    }
-}
-
-ImGuiExt::ColoredText& PublisherModel::publisherNameText(uint32_t id)
-{
-    return const_cast<ImGuiExt::ColoredText&>(std::as_const(*this).publisherNameText(id));
-}
-
-void PublisherModel::handleDotsClient(const dots::Event<DotsClient>& event)
-{
-    if (const auto& client = event(); client.name.isValid())
-    {
-        publisherNameText(*client.id).first = fmt::format("\"{}\"", *client.name);
     }
 }

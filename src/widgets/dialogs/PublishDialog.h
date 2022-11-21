@@ -1,12 +1,12 @@
 #pragma once
 #include <vector>
 #include <dots/dots.h>
-#include <models/StructRefModel.h>
+#include <models/StructModel.h>
 #include <widgets/dialogs/PropertyEdit.h>
 
 struct PublishDialog
 {
-    PublishDialog(const StructDescriptorModel& structDescriptorModel, dots::type::AnyStruct instance);
+    PublishDialog(StructModel structModel);
     PublishDialog(const PublishDialog& other) = delete;
     PublishDialog(PublishDialog&& other) = default;
     ~PublishDialog() = default;
@@ -22,7 +22,6 @@ private:
 
     std::string m_popupId;
     bool m_remove;
-    dots::type::AnyStruct m_instance;
-    StructRefModel m_structRefModel;
+    StructModel m_structModel;
     std::vector<PropertyEdit> m_propertyEdits;
 };

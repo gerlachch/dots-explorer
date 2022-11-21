@@ -121,12 +121,14 @@ target_sources(${TARGET_NAME}
         src/common/Settings.cpp
         src/common/Version.cpp
         src/common/FilterMatcher.cpp
+        src/models/EventModel.cpp
         src/models/PropertyModel.cpp
         src/models/PropertyDescriptorModel.cpp
         src/models/PublisherModel.cpp
         src/models/MetadataModel.cpp
-        src/models/StructRefModel.cpp
+        src/models/StructModel.cpp
         src/models/StructDescriptorModel.cpp
+        src/models/TransceiverModel.cpp
         src/dots_ext/FileInChannel.cpp
         src/dots_ext/struct_ops.cpp
         src/widgets/views/TraceView.cpp
@@ -137,11 +139,9 @@ target_sources(${TARGET_NAME}
         src/widgets/dialogs/HelpDialog.cpp
         src/widgets/dialogs/PublishDialog.cpp
         src/widgets/views/StructItem.cpp
-        src/widgets/views/StructView.cpp
         src/widgets/views/CacheView.cpp
         src/widgets/dialogs/PropertyEdit.cpp
         src/widgets/input/FilterExpressionEdit.cpp
-        src/widgets/views/EventView.cpp
         $<$<OR:$<BOOL:${DOTS_EXPLORER_USE_OPENGL_BACKEND}>,$<BOOL:${DOTS_EXPLORER_USE_VULKAN_BACKEND}>>:${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp>
         $<$<BOOL:${DOTS_EXPLORER_USE_VULKAN_BACKEND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp>
         $<$<BOOL:${DOTS_EXPLORER_USE_OPENGL_BACKEND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp>

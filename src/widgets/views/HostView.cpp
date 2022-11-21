@@ -344,6 +344,7 @@ void HostView::disconnect()
         ioContext.stop();
         m_cacheView.reset();
         m_traceView.reset();
+        m_transceiverModel.reset();
         dots::global_transceiver().reset();
         ioContext.restart();
         ioContext.poll();
@@ -417,8 +418,9 @@ void HostView::update()
                 if (auto status = m_connectTask->wait_for(std::chrono::milliseconds{ 5 }); status == std::future_status::ready)
                 {
                     m_connectTask->get();
-                    m_cacheView.emplace();
-                    m_traceView.emplace();
+                    m_transceiverModel.emplace();
+                    m_cacheView.emplace(*m_transceiverModel);
+                    m_traceView.emplace(*m_transceiverModel);
                     dots::publish(DotsDescriptorRequest{});
                     m_state = State::Connected;
                 }

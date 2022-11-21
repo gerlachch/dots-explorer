@@ -1,7 +1,6 @@
 #pragma once
 #include <dots/dots.h>
-#include <models/MetadataModel.h>
-#include <models/StructRefModel.h>
+#include <models/EventModel.h>
 
 struct ImGuiTableSortSpecs;
 
@@ -9,21 +8,10 @@ struct StructItem
 {
     enum MetaData { LastOp, LastPublished, LastPublishedBy, MetaDataSize };
 
-    StructItem(const StructDescriptorModel& structDescriptorModel, const PublisherModel& publisherModel, const dots::type::Struct& instance);
-    StructItem(const StructItem& other) = delete;
-    StructItem(StructItem&& other) = default;
-    ~StructItem() = default;
-
-    StructItem& operator = (const StructItem& rhs) = delete;
-    StructItem& operator = (StructItem&& rhs) = default;
+    StructItem(EventModel model);
 
     const char* widgetId() const;
-
-    const MetadataModel& metadataModel() const;
-    MetadataModel& metadataModel();
-
-    const StructRefModel& structRefModel() const ;
-    StructRefModel& structRefModel();
+    const EventModel& model() const;
 
     bool less(const ImGuiTableSortSpecs& sortSpecs, const StructItem& other) const;
 
@@ -31,17 +19,17 @@ struct StructItem
     bool isHovered() const;
 
     void render(bool hoverCondition);
+    void renderTooltip() const;
 
 private:
 
-    using property_model_ref_t = std::reference_wrapper<PropertyModel>;
+    using property_model_ref_t = std::reference_wrapper<const PropertyModel>;
 
     inline static uint64_t M_nextWidgetId = 0;
 
     mutable std::string m_widgetId;
     bool m_isSelected;
     bool m_isHovered;
-    MetadataModel m_metadataModel;
-    StructRefModel m_structRefModel;
+    EventModel m_model;
     std::vector<property_model_ref_t> m_propertyModels;
 };

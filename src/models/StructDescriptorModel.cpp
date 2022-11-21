@@ -2,10 +2,12 @@
 #include <common/Colors.h>
 
 StructDescriptorModel::StructDescriptorModel(const dots::type::StructDescriptor& descriptor) :
-    m_descriptor{ descriptor }
+    m_data(std::make_shared<data>(data{
+        .descriptor = descriptor
+    }))
 {
-    m_declarationText.emplace_back("struct", ColorThemeActive.Keyword);
-    m_declarationText.emplace_back(descriptor.name(), ColorThemeActive.UserType);
+    m_data->declarationText.emplace_back("struct", ColorThemeActive.Keyword);
+    m_data->declarationText.emplace_back(descriptor.name(), ColorThemeActive.UserType);
 
     if (uint8_t flags = descriptor.flags(); flags != dots::type::StructDescriptor::Cached)
     {
@@ -44,26 +46,26 @@ StructDescriptorModel::StructDescriptorModel(const dots::type::StructDescriptor&
         part.erase(part.size() - 2);
         part += ']';
 
-        m_declarationText.emplace_back(std::move(part), ColorThemeActive.Keyword);
+        m_data->declarationText.emplace_back(std::move(part), ColorThemeActive.Keyword);
     }
 
-    for (const dots::type::PropertyPath& propertyPath : m_descriptor.get().propertyPaths())
+    for (const dots::type::PropertyPath& propertyPath : m_data->descriptor.get().propertyPaths())
     {
-        m_propertyDescriptorModels.emplace_back(propertyPath);
+        m_data->propertyDescriptorModels.emplace_back(propertyPath);
     }
 }
 
 const std::vector<PropertyDescriptorModel>& StructDescriptorModel::propertyDescriptorModels() const
 {
-    return m_propertyDescriptorModels;
+    return m_data->propertyDescriptorModels;
 }
 
 const dots::type::StructDescriptor& StructDescriptorModel::descriptor() const
 {
-    return m_descriptor;
+    return m_data->descriptor;
 }
 
 auto StructDescriptorModel::declarationText() const -> const std::vector<colored_text_t>&
 {
-    return m_declarationText;
+    return m_data->declarationText;
 }

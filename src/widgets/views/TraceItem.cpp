@@ -2,20 +2,13 @@
 #include <fmt/format.h>
 #include <common/Colors.h>
 #include <common/ImGuiExt.h>
-#include <dots_ext/struct_ops.h>
 
-TraceItem::TraceItem(size_t index, const StructDescriptorModel& structDescriptorModel, const PublisherModel& publisherModel, const dots::Event<>& event) :
+TraceItem::TraceItem(EventModel model) :
     m_isSelected(false),
     m_isHovered(false),
-    m_index(index),
-    m_indexText{ fmt::format("#{}", m_index), ColorThemeActive.Disabled },
-    m_publishedInstance{ copy_all(event.transmitted()) },
-    m_updatedInstance{ copy_all(event.updated()) },
-    m_metadataModel{ publisherModel },
-    m_publishedInstanceModel{ structDescriptorModel, *m_publishedInstance },
-    m_updatedInstanceModel{ structDescriptorModel, *m_updatedInstance }
+    m_model(std::move(model))
 {
-    m_metadataModel.fetch(event);
+    /* do nothing */
 }
 
 const char* TraceItem::widgetId() const
@@ -28,23 +21,9 @@ const char* TraceItem::widgetId() const
     return m_widgetId.data();
 }
 
-size_t TraceItem::index() const
+const EventModel& TraceItem::model() const
 {
-    return m_index;
-}
-
-const MetadataModel& TraceItem::metadataModel() const
-{
-    return m_metadataModel;
-}
-const StructRefModel& TraceItem::publishedInstanceModel() const
-{
-    return m_publishedInstanceModel;
-}
-
-const StructRefModel& TraceItem::updatedInstanceModel() const
-{
-    return m_updatedInstanceModel;
+    return m_model;
 }
 
 bool TraceItem::isSelected() const
@@ -63,27 +42,27 @@ void TraceItem::setFilterTargets(const FilterTargets& targets)
 
     if (*targets.type)
     {
-        m_filterText += fmt::format(" {}", m_publishedInstanceModel.descriptorModel().declarationText()[1].first);
+        m_filterText += fmt::format(" {}", model().descriptorModel().declarationText()[1].first);
     }
 
     if (*targets.publishedAt)
     {
-        m_filterText += fmt::format(" {}", m_metadataModel.lastPublishedText().first);
+        m_filterText += fmt::format(" {}", model().metadataModel().lastPublishedText().first);
     }
 
     if (*targets.publishedBy)
     {
-        m_filterText += fmt::format(" {}", m_metadataModel.lastPublishedByText().first);
+        m_filterText += fmt::format(" {}", model().metadataModel().lastPublishedByText().first);
     }
 
     if (*targets.operation)
     {
-        m_filterText += fmt::format(" {}", m_metadataModel.lastOperationText().first);
+        m_filterText += fmt::format(" {}", model().metadataModel().lastOperationText().first);
     }
 
     if (*targets.instance)
     {
-        for (const PropertyModel& propertyModel : m_updatedInstanceModel.propertyModels())
+        for (const PropertyModel& propertyModel : model().updatedInstanceModel().propertyModels())
         {
             if (propertyModel.property().isValid())
             {
@@ -98,7 +77,7 @@ void TraceItem::setFilterTargets(const FilterTargets& targets)
 
 bool TraceItem::isFiltered(const std::optional<FilterMatcher>& filter, const FilterSettings& filterSettings) const
 {
-    const dots::type::StructDescriptor& descriptor = publishedInstanceModel().descriptorModel().descriptor();
+    const dots::type::StructDescriptor& descriptor = model().descriptorModel().descriptor();
 
     if (descriptor.internal() && !*filterSettings.types->internal)
     {
@@ -131,7 +110,7 @@ void TraceItem::render(bool hoverCondition)
 
     if (ImGui::TableNextColumn())
     {
-        const auto& [text, color] = m_indexText;
+        const auto& [text, color] = model().indexText();
         ImGui::PushStyleColor(ImGuiCol_Header, ColorThemeActive.Marker);
         ImGui::PushStyleColor(ImGuiCol_Text, color);
         ImGui::Selectable(text.data(), &m_isSelected, ImGuiSelectableFlags_SpanAllColumns);
@@ -141,27 +120,27 @@ void TraceItem::render(bool hoverCondition)
 
     if (ImGui::TableNextColumn())
     {
-        ImGuiExt::TextColored(m_metadataModel.lastPublishedText());
+        ImGuiExt::TextColored(model().metadataModel().lastPublishedText());
         m_isHovered |= hoverCondition && ImGui::IsItemHovered();
     }
 
     if (ImGui::TableNextColumn())
     {
-        ImGuiExt::TextColored(m_metadataModel.lastPublishedByText());
+        ImGuiExt::TextColored(model().metadataModel().lastPublishedByText());
         m_isHovered |= hoverCondition && ImGui::IsItemHovered();
     }
 
     if (ImGui::TableNextColumn())
     {
-        ImGuiExt::TextColored(m_metadataModel.lastOperationText());
+        ImGuiExt::TextColored(model().metadataModel().lastOperationText());
         m_isHovered |= hoverCondition && ImGui::IsItemHovered();
     }
 
-    auto render_instance = [this, &hoverCondition](const StructRefModel& structRefModel)
+    auto render_instance = [this, &hoverCondition](const StructModel& structModel)
     {
-        ImGuiExt::TextColored(structRefModel.descriptorModel().declarationText()[1]);
+        ImGuiExt::TextColored(structModel.descriptorModel().declarationText()[1]);
 
-        for (const PropertyModel& propertyModel : structRefModel.propertyModels())
+        for (const PropertyModel& propertyModel : structModel.propertyModels())
         {
             if (!propertyModel.property().isValid())
             {
@@ -180,11 +159,87 @@ void TraceItem::render(bool hoverCondition)
 
     if (ImGui::TableNextColumn())
     {
-        render_instance(m_publishedInstanceModel);
+        render_instance(model().publishedInstanceModel());
     }
 
     if (ImGui::TableNextColumn())
     {
-        render_instance(m_updatedInstanceModel);
+        render_instance(model().updatedInstanceModel());
     }
+}
+
+void TraceItem::renderTooltip() const
+{
+    ImGui::BeginTooltip();
+
+    // render header
+    {
+        ImGuiExt::TextColored(m_model.descriptorModel().declarationText());
+    }
+
+    ImGui::Separator();
+
+    // render instances
+    if (ImGui::BeginTable("EventTraceQuickInfo", 2, ImGuiTableFlags_SizingStretchSame))
+    {
+        ImGui::TableSetupColumn("Published Instance");
+        ImGui::TableSetupColumn("Updated Instance");
+        ImGui::TableHeadersRow();
+
+        auto render_instance = [this](const StructModel& instanceModel)
+        {
+            ImGui::TableNextColumn();
+
+            if (ImGui::BeginTable(fmt::format("PropertyTable-{}", reinterpret_cast<const void*>(&instanceModel)).data(), 2))
+            {
+                for (const PropertyModel& propertyModel : instanceModel.propertyModels())
+                {
+                    const PropertyDescriptorModel& propertyDescriptorModel = propertyModel.descriptorModel();
+
+                    bool highlight = propertyDescriptorModel.propertyPath().elements().front().get().set() <= m_model.metadataModel().lastPublishedProperties();
+                    ImGui::BeginDisabled(!highlight);
+
+                    ImGui::TableNextColumn();
+                    ImGuiExt::TextColored(propertyDescriptorModel.declarationText());
+
+                    ImGui::TableNextColumn();
+                    if (propertyModel.property().descriptor().valueDescriptor().type() != dots::type::Type::Struct)
+                    {
+                        ImGuiExt::TextColored(propertyModel.valueText());
+                    }
+
+                    ImGui::EndDisabled();
+                }
+
+                ImGui::EndTable();
+            }
+        };
+
+        render_instance(m_model.publishedInstanceModel());
+        render_instance(m_model.updatedInstanceModel());
+
+        ImGui::EndTable();
+    }
+
+    ImGui::Separator();
+
+    // render meta data
+    if (ImGui::BeginTable("MetaDataTable", 2))
+    {
+        auto render_metadata = [](std::string_view metadataName, const ImGuiExt::ColoredText& text)
+        {
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted(metadataName.data(), metadataName.data() + metadataName.size());
+            ImGui::TableNextColumn();
+            ImGuiExt::TextColored(text);
+        };
+
+        render_metadata("Last Operation:", m_model.metadataModel().lastOperationText());
+        render_metadata("Last Published:", m_model.metadataModel().lastPublishedText());
+        render_metadata("Last Published By:", m_model.metadataModel().lastPublishedByText());
+
+        ImGui::EndTable();
+    }
+
+    ImGui::EndTooltip();
 }

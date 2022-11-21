@@ -2,11 +2,8 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <common/Settings.h>
-#include <widgets/views/EventView.h>
-#include <StructDescriptorData.dots.h>
-#include <EnumDescriptorData.dots.h>
 
-TraceView::TraceView() :
+TraceView::TraceView(TransceiverModel& transceiverModel) :
     m_traceIndex(0),
     m_filtersChanged(true),
     m_filterSettingsInitialized(false),
@@ -16,27 +13,16 @@ TraceView::TraceView() :
     m_sidewaysScrollTotalTime(0.0f),
     m_sidewaysScrollDeltaTime(0.0f)
 {
-    m_subscriptions.emplace_back(dots::subscribe<StructDescriptorData>([](auto&){}));
-    m_subscriptions.emplace_back(dots::subscribe<EnumDescriptorData>([](auto&){}));
-    m_subscriptions.emplace_back(dots::subscribe<dots::type::StructDescriptor>({ &TraceView::update, this }));
-}
-
-void TraceView::update(const dots::type::StructDescriptor& descriptor)
-{
-    if (!descriptor.substructOnly())
+    transceiverModel.subscribe([this](const EventModel& eventModel)
     {
-        m_subscriptions.emplace_back(dots::subscribe(descriptor, [this](const dots::Event<>& event)
-        {
-            StructDescriptorModel& descriptorModel = m_descriptorModels.try_emplace(&event.descriptor(), event.descriptor()).first->second;
-            auto& item = m_items.emplace_back(std::make_shared<TraceItem>(++m_traceIndex, descriptorModel, m_publisherModel, event));
-            item->setFilterTargets(*m_filterSettings.targets);
+        auto& item = m_items.emplace_back(std::make_shared<TraceItem>(eventModel));
+        item->setFilterTargets(*m_filterSettings.targets);
 
-            if (item->isFiltered(m_filterMatcher, m_filterSettings))
-            {
-                m_itemsFiltered.emplace_back(item);
-            }
-        }));
-    }
+        if (item->isFiltered(m_filterMatcher, m_filterSettings))
+        {
+            m_itemsFiltered.emplace_back(item);
+        }
+    });
 }
 
 void TraceView::render()
@@ -351,9 +337,7 @@ void TraceView::renderEventList()
                 // render quick info tooltip
                 if (const TraceItem& item = *m_itemsFiltered[itemIndex]; item.isHovered())
                 {
-                    ImGui::BeginTooltip();
-                    EventView{ item.metadataModel(), item.publishedInstanceModel(), item.updatedInstanceModel() }.render();
-                    ImGui::EndTooltip();
+                    item.renderTooltip();
 
                     // open instance in struct edit when clicked
                     if (ImGui::GetIO().MouseClicked[ImGuiMouseButton_Left])
@@ -368,7 +352,7 @@ void TraceView::renderEventList()
 
                     if (ImGui::BeginPopupContextItem(item.widgetId()))
                     {
-                        const StructDescriptorModel& descriptorModel = item.publishedInstanceModel().descriptorModel();
+                        const StructDescriptorModel& descriptorModel = item.model().descriptorModel();
 
                         ImGuiExt::TextColored(descriptorModel.declarationText());
                         ImGui::Separator();
@@ -480,8 +464,8 @@ void TraceView::renderEventList()
     {
         if (editItem != nullptr)
         {
-            const StructRefModel& structRefModel = editItem->publishedInstanceModel();
-            m_publishDialog.emplace(structRefModel.descriptorModel(), structRefModel.instance());
+            const StructModel& structModel = editItem->model().publishedInstanceModel();
+            m_publishDialog.emplace(StructModel{ structModel.descriptorModel(), structModel.instance() });
         }
 
         if (m_publishDialog != std::nullopt && !m_publishDialog->render())
@@ -496,7 +480,7 @@ void TraceView::renderEventList()
         {
             auto comp = [](const auto& lhs, const auto& rhs)
             {
-                return lhs->index() < rhs->index();
+                return lhs->model().index() < rhs->model().index();
             };
 
             if (auto it = std::lower_bound(m_items.begin(), m_items.end(), discardUntilItem, comp); it != m_items.end())
