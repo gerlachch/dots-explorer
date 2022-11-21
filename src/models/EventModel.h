@@ -5,13 +5,14 @@
 
 struct EventModel
 {
-    EventModel(size_t index, MetadataModel metadataModel, const StructDescriptorModel& structDescriptorModel, const dots::Event<>& event);
+    EventModel(size_t index, MetadataModel metadataModel, const StructDescriptorModel& descriptorModel, const dots::Event<>& event);
 
     size_t index() const;
     const ImGuiExt::ColoredText& indexText() const;
 
     size_t instanceId() const;
 
+    const StructDescriptorModel& descriptorModel() const;
     const MetadataModel& metadataModel() const;
     const StructModel& publishedInstanceModel() const;
     const StructModel& updatedInstanceModel() const;

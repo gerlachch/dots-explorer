@@ -182,7 +182,7 @@ void StructItem::renderTooltip() const
 
     // render header
     {
-        ImGuiExt::TextColored(m_model.updatedInstanceModel().descriptorModel().declarationText());
+        ImGuiExt::TextColored(m_model.descriptorModel().declarationText());
     }
 
     ImGui::Separator();

@@ -131,7 +131,7 @@ void StructList::update(const EventModel& eventModel)
 {
     m_containerChanged = true;
 
-    auto [it, inserted] = m_itemsStorage.insert_or_assign(eventModel.publishedInstanceModel().descriptorModel().descriptor().cached() ? eventModel.instanceId() : 0, StructItem{ eventModel });
+    auto [it, inserted] = m_itemsStorage.insert_or_assign(eventModel.descriptorModel().descriptor().cached() ? eventModel.instanceId() : 0, StructItem{ eventModel });
     StructItem& item = it->second;
 
     if (inserted)

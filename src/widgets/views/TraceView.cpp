@@ -352,7 +352,7 @@ void TraceView::renderEventList()
 
                     if (ImGui::BeginPopupContextItem(item.widgetId()))
                     {
-                        const StructDescriptorModel& descriptorModel = item.model().publishedInstanceModel().descriptorModel();
+                        const StructDescriptorModel& descriptorModel = item.model().descriptorModel();
 
                         ImGuiExt::TextColored(descriptorModel.declarationText());
                         ImGui::Separator();

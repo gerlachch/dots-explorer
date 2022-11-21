@@ -42,7 +42,7 @@ void TraceItem::setFilterTargets(const FilterTargets& targets)
 
     if (*targets.type)
     {
-        m_filterText += fmt::format(" {}", model().updatedInstanceModel().descriptorModel().declarationText()[1].first);
+        m_filterText += fmt::format(" {}", model().descriptorModel().declarationText()[1].first);
     }
 
     if (*targets.publishedAt)
@@ -77,7 +77,7 @@ void TraceItem::setFilterTargets(const FilterTargets& targets)
 
 bool TraceItem::isFiltered(const std::optional<FilterMatcher>& filter, const FilterSettings& filterSettings) const
 {
-    const dots::type::StructDescriptor& descriptor = model().updatedInstanceModel().descriptorModel().descriptor();
+    const dots::type::StructDescriptor& descriptor = model().descriptorModel().descriptor();
 
     if (descriptor.internal() && !*filterSettings.types->internal)
     {
@@ -174,7 +174,7 @@ void TraceItem::renderTooltip() const
 
     // render header
     {
-        ImGuiExt::TextColored(m_model.publishedInstanceModel().descriptorModel().declarationText());
+        ImGuiExt::TextColored(m_model.descriptorModel().declarationText());
     }
 
     ImGui::Separator();
