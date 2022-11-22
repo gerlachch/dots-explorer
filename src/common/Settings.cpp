@@ -43,18 +43,14 @@ void* Settings::ReadOpenHandler(ImGuiContext*/* ctx*/, ImGuiSettingsHandler*/* h
 void Settings::ReadLineHandler(ImGuiContext*/* ctx*/, ImGuiSettingsHandler*/* handler*/, void*/* entry*/, const char* line)
 {
     if (*line == '\0')
-    {
         return;
-    }
 
     try
     {
         auto [name, value] = dots::tools::split_left_at_first_of(line, "=");
 
         if (auto it = M_settingsMap.find(std::string{ name }); it != M_settingsMap.end())
-        {
             dots::from_string(std::string{ value }, *it->second);
-        }
     }
     catch (...)
     {

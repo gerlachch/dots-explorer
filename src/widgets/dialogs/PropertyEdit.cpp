@@ -114,19 +114,13 @@ void PropertyEdit::render()
                     m_inputBuffer.assign(std::max(value.size(), size_t{ 256 }), '\0');
 
                     if (type == dots::type::Type::string)
-                    {
                         std::copy(value.begin() + 1, value.end() - 1, m_inputBuffer.begin());
-                    }
                     else
-                    {
                         std::copy(value.begin(), value.end(), m_inputBuffer.begin());
-                    }
                 }
 
                 if (ImGui::InputText(m_inputLabel.data(), m_inputBuffer.data(), m_inputBuffer.size(), ImGuiInputTextFlags_AutoSelectAll))
-                {
                     m_included = model.fromString(m_inputBuffer.data());
-                }
             }
 
             ImGui::PopItemWidth();
@@ -139,9 +133,7 @@ void PropertyEdit::render()
             ImGui::SameLine();
 
             if (ImGui::Button(m_excludeLabel.data()))
-            {
                 m_included = std::nullopt;
-            }
 
             ImGuiExt::TooltipLastHoveredItem("Exclude property from publish");
             ImGui::EndDisabled();
@@ -201,9 +193,7 @@ void PropertyEdit::render()
                 ImGuiExt::TooltipLastHoveredItem("Set to 'now' (i.e. the current time)");
             }
             else
-            {
                 ImGui::Dummy(randomizeButtonSize);
-            }
         }
     }
 }

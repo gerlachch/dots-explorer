@@ -63,9 +63,7 @@ namespace dots::type
             property_set_t includedProperties =  randomize<property_set_t>(includedProperties);
 
             if (m_options.forceKeyProperties)
-            {
                 includedProperties += instance._keyProperties();
-            }
 
             includedProperties -= instance._validProperties();
             randomize(instance, includedProperties);
@@ -98,9 +96,7 @@ namespace dots::type
         bool visitStructBeginDerived(T&/* instance*/, property_set_t& includedProperties)
         {
             if (includedProperties.empty())
-            {
                 randomize(includedProperties);
-            }
 
             return true;
         }
@@ -187,9 +183,7 @@ namespace dots::type
                 }
             }
             else
-            {
                 static_assert(!std::is_same_v<T, T>, "type not supported");
-            }
         }
 
     private:

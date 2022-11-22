@@ -34,9 +34,7 @@ namespace dots::io::details
             if (m_serializer.inputAvailable())
             {
                 if (m_transmissionsRead++ % 10000 == 0)
-                {
                     asio::post(m_ioContext.get(), [this]{ asyncReceiveImpl(); });
-                }
                 else
                 {
                     try
@@ -46,13 +44,9 @@ namespace dots::io::details
                         m_serializer.deserialize(*instance);
 
                         if (auto* structDescriptorData = instance->_as<StructDescriptorData>())
-                        {
                             DescriptorConverter{ m_fileRegistry }(*structDescriptorData);
-                        }
                         else if (auto* enumDescriptorData = instance->_as<EnumDescriptorData>())
-                        {
                             DescriptorConverter{ m_fileRegistry }(*enumDescriptorData);
-                        }
 
                         header.attributes.valueOrEmplace(instance->_validProperties());
                         m_fileConnection->transmit(header, instance);

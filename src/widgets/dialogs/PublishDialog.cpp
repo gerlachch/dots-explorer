@@ -98,19 +98,13 @@ bool PublishDialog::render()
                         render_indicator(ColorThemeActive.Create);
 
                         if (isKey)
-                        {
                             ImGuiExt::TooltipLastHoveredItem("The publish will create a new instance identified by this key property.");
-                        }
                         else
                         {
                             if (isValid)
-                            {
                                 ImGuiExt::TooltipLastHoveredItem("The publish will create this property.");
-                            }
                             else
-                            {
                                 ImGuiExt::TooltipLastHoveredItem("The publish will include invalidation of this property, but it will probably have no effect.");
-                            }
                         }
                     }
                     else
@@ -122,13 +116,9 @@ bool PublishDialog::render()
                             render_indicator(ColorThemeActive.Update);
 
                             if (isKey)
-                            {
                                 ImGuiExt::TooltipLastHoveredItem("The publish will update the existing instance identified by this key property.");
-                            }
                             else
-                            {
                                  ImGuiExt::TooltipLastHoveredItem("The publish will include an update of this property, but it will probably have no effect.");
-                            }
                         }
                         else
                         {
@@ -180,9 +170,7 @@ bool PublishDialog::render()
 
             ImGui::SameLine();
             if (ImGui::Button("Cancel"))
-            {
                 ImGui::CloseCurrentPopup();
-            }
 
             if (instance._descriptor().cached())
             {
@@ -218,13 +206,9 @@ bool PublishDialog::render()
                     ImGui::TextColored(ColorThemeActive.Remove, "[%zu selected]", includedCount);
 
                     if (existingInstance == nullptr)
-                    {
                         ImGuiExt::TooltipLastHoveredItem(fmt::format("The publish will contain {} and attempt to remove an existing instance, but it will probably have no effect.", includedCountStr));
-                    }
                     else
-                    {
                         ImGuiExt::TooltipLastHoveredItem(fmt::format("The publish will contain {} and attempt to remove the existing instance.", includedCountStr));
-                    }
                 }
                 else if (existingInstance == nullptr)
                 {
@@ -243,7 +227,5 @@ bool PublishDialog::render()
         return true;
     }
     else
-    {
         return false;
-    }
 }

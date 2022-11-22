@@ -15,9 +15,7 @@ StructItem::StructItem(EventModel model) :
 const char* StructItem::widgetId() const
 {
     if (m_widgetId.empty())
-    {
         m_widgetId = fmt::format("StructItem-{}", M_nextWidgetId++);
-    }
 
     return m_widgetId.data();
 }
@@ -40,9 +38,7 @@ void StructItem::setModel(EventModel model)
             const dots::type::PropertyPath& propertyPath = propertyModel.descriptorModel().propertyPath();
 
             if (propertyPath.destination().valueDescriptor().type() == dots::type::Type::Struct)
-            {
                 continue;
-            }
 
             m_propertyModels.emplace_back(propertyModel);
         }
@@ -52,9 +48,7 @@ void StructItem::setModel(EventModel model)
         for (const PropertyModel& propertyModel : m_model->updatedInstanceModel().propertyModels())
         {
             if (propertyModel.descriptorModel().propertyPath().elements().size() == 1)
-            {
                 m_propertyModels.emplace_back(propertyModel);
-            }
         }
     }
 }
@@ -73,60 +67,40 @@ bool StructItem::less(const ImGuiTableSortSpecs& sortSpecs, const StructItem& ot
             const PropertyModel& propertyModelOther = other.m_propertyModels[columnIndex];
 
             if (propertyModelThis.less(sortSpec, propertyModelOther))
-            {
                 return true;
-            }
             else if (propertyModelOther.less(sortSpec, propertyModelThis))
-            {
                 return false;
-            }
         }
         else
         {
             auto compare = [&sortSpec](const auto& lhs, const auto& rhs)
             {
                 if (sortSpec.SortDirection == ImGuiSortDirection_Ascending)
-                {
                     return std::less{}(lhs.first, rhs.first);
-                }
                 else
-                {
                     return std::greater{}(lhs.first, rhs.first);
-                }
             };
 
             if (columnIndex == 0)
             {
                 if (compare(m_model->metadataModel().lastOperationText(), other.m_model->metadataModel().lastOperationText()))
-                {
                     return true;
-                }
                 else if (compare(other.m_model->metadataModel().lastOperationText(), m_model->metadataModel().lastOperationText()))
-                {
                     return false;
-                }
             }
             else if (columnIndex == 1)
             {
                 if (compare(m_model->metadataModel().lastPublishedText(), other.m_model->metadataModel().lastPublishedText()))
-                {
                     return true;
-                }
                 else if (compare(other.m_model->metadataModel().lastPublishedText(), m_model->metadataModel().lastPublishedText()))
-                {
                     return false;
-                }
             }
             else/* if (columnIndex == 2)*/
             {
                 if (compare(m_model->metadataModel().lastPublishedByText(), other.m_model->metadataModel().lastPublishedByText()))
-                {
                     return true;
-                }
                 else if (compare(other.m_model->metadataModel().lastPublishedByText(), m_model->metadataModel().lastPublishedByText()))
-                {
                     return false;
-                }
             }
         }
     }
@@ -208,9 +182,7 @@ void StructItem::renderTooltip() const
             ImGui::TableNextColumn();
 
             if (propertyModel.property().descriptor().valueDescriptor().type() != dots::type::Type::Struct)
-            {
                 ImGuiExt::TextColored(propertyModel.valueText());
-            }
         }
 
         ImGui::EndTable();

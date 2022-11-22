@@ -114,15 +114,11 @@ bool HelpDialog::render()
         }
 
         if (ImGui::Button("Close") || ImGui::IsKeyPressed(ImGuiKey_Escape, false))
-        {
             ImGui::CloseCurrentPopup();
-        }
 
         ImGui::EndPopup();
         return true;
     }
     else
-    {
         return false;
-    }
 }

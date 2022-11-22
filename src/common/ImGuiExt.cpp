@@ -23,13 +23,9 @@ namespace ImGuiExt
         for (const ColoredText& textPart : text)
         {
             if (first)
-            {
                 first = false;
-            }
             else
-            {
                 ImGui::SameLine(0, spacing);
-            }
 
             TextColored(textPart);
         }
@@ -78,9 +74,7 @@ namespace ImGuiExt
         ImGui::PopStyleColor();
 
         if (!tooltip.empty())
-        {
             TooltipLastHoveredItem(tooltip);
-        }
 
         return pressed;
     }

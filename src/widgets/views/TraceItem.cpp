@@ -14,9 +14,7 @@ TraceItem::TraceItem(EventModel model) :
 const char* TraceItem::widgetId() const
 {
     if (m_widgetId.empty())
-    {
         m_widgetId = fmt::format("TraceItem-{}", M_nextWidgetId++);
-    }
 
     return m_widgetId.data();
 }
@@ -41,33 +39,23 @@ void TraceItem::setFilterTargets(const FilterTargets& targets)
     m_filterText.clear();
 
     if (*targets.type)
-    {
         m_filterText += fmt::format(" {}", model().descriptorModel().declarationText()[1].first);
-    }
 
     if (*targets.publishedAt)
-    {
         m_filterText += fmt::format(" {}", model().metadataModel().lastPublishedText().first);
-    }
 
     if (*targets.publishedBy)
-    {
         m_filterText += fmt::format(" {}", model().metadataModel().lastPublishedByText().first);
-    }
 
     if (*targets.operation)
-    {
         m_filterText += fmt::format(" {}", model().metadataModel().lastOperationText().first);
-    }
 
     if (*targets.instance)
     {
         for (const PropertyModel& propertyModel : model().updatedInstanceModel().propertyModels())
         {
             if (propertyModel.property().isValid())
-            {
                 m_filterText += fmt::format(" {}:{}", propertyModel.descriptorModel().propertyPath().destination().name(), propertyModel.valueText().first);
-            }
         }
     }
 
@@ -80,27 +68,17 @@ bool TraceItem::isFiltered(const std::optional<FilterMatcher>& filter, const Fil
     const dots::type::StructDescriptor& descriptor = model().descriptorModel().descriptor();
 
     if (descriptor.internal() && !*filterSettings.types->internal)
-    {
         return false;
-    }
     else if (!descriptor.cached() && !*filterSettings.types->uncached)
-    {
         return false;
-    }
     else
     {
         if (filterSettings.activeFilter->expression->empty())
-        {
             return true;
-        }
         else if (filter == std::nullopt)
-        {
             return false;
-        }
         else
-        {
             return filter->match(*filterSettings.activeFilter->matchCase ? m_filterText : m_filterTextLower);
-        }
     }
 }
 
@@ -143,9 +121,7 @@ void TraceItem::render(bool hoverCondition)
         for (const PropertyModel& propertyModel : structModel.propertyModels())
         {
             if (!propertyModel.property().isValid())
-            {
                 continue;
-            }
 
             ImGui::SameLine(0, 0);
             ImGui::TextColored(ColorThemeActive.Identifier, " %s:", propertyModel.descriptorModel().propertyPath().destination().name().data());
@@ -158,14 +134,10 @@ void TraceItem::render(bool hoverCondition)
     };
 
     if (ImGui::TableNextColumn())
-    {
         render_instance(model().publishedInstanceModel());
-    }
 
     if (ImGui::TableNextColumn())
-    {
         render_instance(model().updatedInstanceModel());
-    }
 }
 
 void TraceItem::renderTooltip() const
@@ -204,9 +176,7 @@ void TraceItem::renderTooltip() const
 
                     ImGui::TableNextColumn();
                     if (propertyModel.property().descriptor().valueDescriptor().type() != dots::type::Type::Struct)
-                    {
                         ImGuiExt::TextColored(propertyModel.valueText());
-                    }
 
                     ImGui::EndDisabled();
                 }

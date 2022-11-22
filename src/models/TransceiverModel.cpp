@@ -83,13 +83,9 @@ void TransceiverModel::handleDotsClient(const dots::Event<DotsClient>& event)
         auto& publisherNameText = [this](dots::uint32_t id) -> auto&
         {
             if (auto it = m_publisherNameTexts->find(id); it == m_publisherNameTexts->end())
-            {
                 return m_publisherNameTexts->try_emplace(id, fmt::format("\"<unknown> [{}]\"", id), ColorThemeActive.StringType).first->second;
-            }
             else
-            {
                 return it->second;
-            }
         }(*client.id);
 
         publisherNameText.first = fmt::format("\"{}\"", *client.name);
