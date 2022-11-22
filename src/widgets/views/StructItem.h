@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include <dots/dots.h>
 #include <models/EventModel.h>
 
@@ -11,7 +12,9 @@ struct StructItem
     StructItem(EventModel model);
 
     const char* widgetId() const;
+
     const EventModel& model() const;
+    void setModel(EventModel model);
 
     bool less(const ImGuiTableSortSpecs& sortSpecs, const StructItem& other) const;
 
@@ -28,8 +31,8 @@ private:
     inline static uint64_t M_nextWidgetId = 0;
 
     mutable std::string m_widgetId;
+    std::optional<EventModel> m_model;
     bool m_isSelected;
     bool m_isHovered;
-    EventModel m_model;
     std::vector<property_model_ref_t> m_propertyModels;
 };

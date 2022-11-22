@@ -130,18 +130,23 @@ bool StructList::isFiltered(const std::optional<FilterMatcher>& filter, const Fi
 void StructList::update(const EventModel& eventModel)
 {
     m_containerChanged = true;
+    size_t instanceId = eventModel.descriptorModel().descriptor().cached() ? eventModel.instanceId() : 0;
+    StructItem* item;
 
-    auto [it, inserted] = m_itemsStorage.insert_or_assign(eventModel.descriptorModel().descriptor().cached() ? eventModel.instanceId() : 0, StructItem{ eventModel });
-    StructItem& item = it->second;
-
-    if (inserted)
+    if (auto it = m_itemsStorage.find(instanceId); it == m_itemsStorage.end())
     {
-        m_items.emplace_back(item);
+        item = &m_itemsStorage.emplace(instanceId, eventModel).first->second;
+        m_items.emplace_back(*item);
+    }
+    else
+    {
+        item = &it->second;
+        item->setModel(eventModel);
     }
 
-    if (dots::timepoint_t lastPublished = item.model().metadataModel().lastPublished(); lastPublished > m_lastPublishedItemTime)
+    if (dots::timepoint_t lastPublished = item->model().metadataModel().lastPublished(); lastPublished > m_lastPublishedItemTime)
     {
-        m_lastPublishedItem = &item;
+        m_lastPublishedItem = item;
         m_lastPublishedItemTime = lastPublished;
     }
 
