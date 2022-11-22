@@ -169,7 +169,9 @@ void StructItem::render(bool hoverCondition)
         if (ImGui::TableNextColumn())
         {
             ImGui::PushStyleColor(ImGuiCol_Text, propertyModel.valueText().second);
+            ImGui::PushID(this);
             ImGui::Selectable(propertyModel.valueText().first.data(), &m_isSelected, ImGuiSelectableFlags_SpanAllColumns);
+            ImGui::PopID();
             ImGui::PopStyleColor();
             m_isHovered |= hoverCondition && ImGui::IsItemHovered();
         }
