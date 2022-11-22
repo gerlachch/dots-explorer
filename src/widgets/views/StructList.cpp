@@ -53,7 +53,7 @@ StructList::StructList(const StructDescriptorModel& descriptorModel) :
 
 size_t StructList::size() const
 {
-    return m_items.size();
+    return m_items.size() - m_itemsDirty.size();
 }
 
 bool StructList::less(const ImGuiTableSortSpecs& sortSpecs, const StructList& other) const
