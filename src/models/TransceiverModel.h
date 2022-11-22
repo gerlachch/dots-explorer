@@ -35,4 +35,5 @@ private:
     std::shared_ptr<std::map<uint32_t, ImGuiExt::ColoredText>> m_publisherNameTexts;
     PublisherModel m_publisherModel;
     size_t m_eventIndex;
+    std::unordered_map<const dots::type::Struct*, size_t> m_updateIndices;
 };

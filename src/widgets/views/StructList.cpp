@@ -130,12 +130,12 @@ bool StructList::isFiltered(const std::optional<FilterMatcher>& filter, const Fi
 void StructList::update(const EventModel& eventModel)
 {
     m_containerChanged = true;
-    size_t instanceId = eventModel.descriptorModel().descriptor().cached() ? eventModel.instanceId() : 0;
+    size_t updateIndex = eventModel.descriptorModel().descriptor().cached() ? eventModel.updateIndex() : 0;
     StructItem* item;
 
-    if (auto it = m_itemsStorage.find(instanceId); it == m_itemsStorage.end())
+    if (auto it = m_itemsStorage.find(updateIndex); it == m_itemsStorage.end())
     {
-        item = &m_itemsStorage.emplace(instanceId, eventModel).first->second;
+        item = &m_itemsStorage.emplace(updateIndex, eventModel).first->second;
         m_items.emplace_back(*item);
     }
     else
@@ -274,7 +274,7 @@ void StructList::renderEnd()
                         m_lastPublishedItem = nullptr;
                     }
 
-                    m_itemsStorage.erase(item.model().instanceId());
+                    m_itemsStorage.erase(item.model().updateIndex());
                     return true;
                 }
                 else
