@@ -142,6 +142,9 @@ void StructList::update(const EventModel& eventModel)
     {
         item = &it->second;
         item->setModel(eventModel);
+
+        if (item->model().metadataModel().lastOperation() == DotsMt::remove)
+            m_itemsDirty.emplace_back(item);
     }
 
     if (dots::timepoint_t lastPublished = item->model().metadataModel().lastPublished(); lastPublished > m_lastPublishedItemTime)
@@ -264,11 +267,18 @@ void StructList::renderEnd()
         ImGui::TableHeadersRow();
 
         // clean items
+        if (!m_itemsDirty.empty())
         {
             m_items.erase(std::remove_if(m_items.begin(), m_items.end(), [this](const StructItem& item)
             {
-                if (item.model().metadataModel().lastOperation() == DotsMt::remove)
+                if (auto it = std::find(m_itemsDirty.begin(), m_itemsDirty.end(), &item); it == m_itemsDirty.end())
                 {
+                    return false;
+                }
+                else
+                {
+                    m_itemsDirty.erase(it);
+
                     if (&item == m_lastPublishedItem)
                     {
                         m_lastPublishedItem = nullptr;
@@ -277,11 +287,9 @@ void StructList::renderEnd()
                     m_itemsStorage.erase(item.model().updateIndex());
                     return true;
                 }
-                else
-                {
-                    return false;
-                }
             }), m_items.end());
+
+            m_itemsDirty.clear();
         }
 
         // sort items
