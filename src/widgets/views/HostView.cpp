@@ -57,9 +57,7 @@ void HostView::render()
             }
 
             if (*m_hostSettings.selectedHost >= hosts.size())
-            {
                 m_hostSettings.selectedHost = 0;
-            }
         }
 
         // check dropped files
@@ -102,9 +100,7 @@ void HostView::render()
             if (ImGui::BeginCombo("##Hosts", m_selectedHost->description->data(), ImGuiComboFlags_HeightLarge))
             {
                 if (ImGui::Selectable("<New>"))
-                {
                     openHostSettingsEdit = true;
-                }
 
                 if (ImGui::Selectable("<Edit>"))
                 {
@@ -164,9 +160,7 @@ void HostView::render()
             ImGui::Checkbox("Auto", &*m_hostSettings.autoConnect);
 
             if (*m_hostSettings.autoConnect && (m_state == State::Disconnected || (m_state == State::Error && m_deltaSinceError > 5.0f)))
-            {
                 m_state = State::Pending;
-            }
 
             ImGuiExt::TooltipLastHoveredItem("Automatically connect/reconnect on startup and connection loss.");
         }
@@ -186,9 +180,7 @@ void HostView::render()
             else
             {
                 if (ImGui::Button("Connect"))
-                {
                     m_state = State::Pending;
-                }
             }
         }
         ImGui::EndDisabled();
@@ -215,13 +207,9 @@ void HostView::render()
         if (ImGui::IsKeyPressed(ImGuiKey_Tab, false) && !ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId))
         {
             if (selectedView == View::Cache)
-            {
                 selectedView = View::Trace;
-            }
             else if (selectedView == View::Trace)
-            {
                 selectedView = View::Cache;
-            }
         }
 
         // render view selector
@@ -243,9 +231,7 @@ void HostView::render()
                 for (const auto& [view, label] : ViewLabels)
                 {
                     if (ImGui::Selectable(label, view == selectedView) && view != selectedView)
-                    {
                         selectedView = view;
-                    }
                 }
 
                 ImGui::EndCombo();
@@ -292,17 +278,13 @@ void HostView::render()
             }
 
             if (ImGui::Button(label) || ImGui::IsKeyPressed(ImGuiKey_F1, false))
-            {
                 m_helpDialog.emplace(m_releaseInfo == std::nullopt ? nullptr : &*m_releaseInfo);
-            }
 
             ImGui::PopStyleColor(colorsPushed);
             m_helpHintWidth = ImGui::GetItemRectSize().x;
 
             if (m_helpDialog != std::nullopt && !m_helpDialog->render())
-            {
                 m_helpDialog = std::nullopt;
-            }
         }
 
         ImGui::Separator();
@@ -311,27 +293,19 @@ void HostView::render()
         if (m_cacheView != std::nullopt)
         {
             if (selectedView == View::Cache)
-            {
                 m_cacheView->render();
-            }
             else if (selectedView == View::Trace)
-            {
                 m_traceView->render();
-            }
         }
     }
 
     // render host settings edit
     {
         if (openHostSettingsEdit)
-        {
             m_hostSettingsEdit.emplace(m_hostSettings, editHost);
-        }
 
         if (m_hostSettingsEdit != std::nullopt && !m_hostSettingsEdit->render())
-        {
             m_hostSettingsEdit = std::nullopt;
-        }
     }
 }
 
@@ -382,32 +356,22 @@ void HostView::update()
                     std::string_view path = endpoint.path();
                     #ifdef _WIN32
                     if (path.front() == '/')
-                    {
                         path.remove_prefix(1);
-                    }
                     #endif
                     transceiver.open<dots::io::FileInChannel>(path);
                 }
                 else
-                {
                     transceiver.open(endpoint);
-                }
 
                 for (;;)
                 {
                     if (m_connectionError != nullptr)
-                    {
                         std::rethrow_exception(m_connectionError);
-                    }
 
                     if (transceiver.connected())
-                    {
                         break;
-                    }
                     else
-                    {
                         dots::global_transceiver()->ioContext().run_one();
-                    }
                 }
             });
             m_state = State::Connecting;
@@ -442,9 +406,7 @@ void HostView::update()
                     totalHandlersExecuted += handlersExecuted;
 
                     if (!handlersExecuted || (totalHandlersExecuted % 1000 == 0 && (dots::steady_timepoint_t::Now() - start > 15ms)))
-                    {
                         break;
-                    }
                 }
             }
             break;

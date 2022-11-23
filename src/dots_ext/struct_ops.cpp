@@ -22,9 +22,7 @@ namespace dots::type
                     assign_all(valueThis.to<Struct>(), valueOther.to<Struct>());
                 }
                 else
-                {
                     propertyDescriptor.valueDescriptor().constructInPlace(valueThis, valueOther);
-                }
 
                 thisValidProperties += propertyDescriptor.set();
             }
@@ -48,9 +46,7 @@ namespace dots::type
             property.valueOrEmplace();
 
             if (property.descriptor().valueDescriptor().type() == Type::Struct)
-            {
                 default_init(property->to<Struct>());
-            }
         }
 
         return instance;

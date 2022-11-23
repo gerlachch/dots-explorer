@@ -36,6 +36,7 @@ private:
     std::optional<PublishDialog> m_publishDialog;
     std::unordered_map<size_t, StructItem> m_itemsStorage;
     std::vector<std::reference_wrapper<StructItem>> m_items;
+    std::vector<const StructItem*> m_itemsDirty;
     std::vector<std::string> m_headers;
     std::string m_typeNameLower;
     const StructItem* m_lastPublishedItem;

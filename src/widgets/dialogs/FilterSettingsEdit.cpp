@@ -61,9 +61,7 @@ bool FilterSettingsEdit::render()
 
                 ImGui::SameLine();
                 if (ImGuiExt::ToggleButton("Re", *m_filter.regex, "Interpret expression as a regular expression instead of a quick filter."))
-                {
                     m_filterExpressionEdit.emplace(m_filter, "");
-                }
 
                 ImGui::TableNextRow();
 
@@ -93,13 +91,9 @@ bool FilterSettingsEdit::render()
                     m_filter.description = m_descriptionBuffer.data();
 
                     if (m_existingFilter == nullptr)
-                    {
                         m_settings.storedFilters->emplace_back(std::move(m_filter));
-                    }
                     else
-                    {
                         *m_existingFilter = m_filter;
-                    }
 
                     ImGui::CloseCurrentPopup();
                 }
@@ -113,16 +107,12 @@ bool FilterSettingsEdit::render()
 
             ImGui::SameLine();
             if (ImGui::Button("Cancel"))
-            {
                 ImGui::CloseCurrentPopup();
-            }
         }
 
         ImGui::EndPopup();
         return true;
     }
     else
-    {
         return false;
-    }
 }

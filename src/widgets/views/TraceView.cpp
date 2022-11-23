@@ -19,9 +19,7 @@ TraceView::TraceView(TransceiverModel& transceiverModel) :
         item->setFilterTargets(*m_filterSettings.targets);
 
         if (item->isFiltered(m_filterMatcher, m_filterSettings))
-        {
             m_itemsFiltered.emplace_back(item);
-        }
     });
 }
 
@@ -57,9 +55,7 @@ void TraceView::initFilterSettings()
         dots::vector_t<Filter>& filters = *m_filterSettings.storedFilters;
 
         if (auto& selectedFilter = m_filterSettings.selectedFilter; *selectedFilter >= filters.size())
-        {
             selectedFilter = NoFilterSelected;
-        }
     }
 }
 
@@ -94,9 +90,7 @@ void TraceView::renderFilterArea()
             ImGui::TextUnformatted("Filter");
 
             if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_F, false))
-            {
                 ImGui::SetKeyboardFocusHere();
-            }
 
             ImGui::SameLine();
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f - 19);
@@ -118,9 +112,7 @@ void TraceView::renderFilterArea()
             if (ImGui::BeginCombo("##Filters", "", ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge))
             {
                 if (ImGui::Selectable("<New>"))
-                {
                     openFilterSettingsEdit = true;
-                }
 
                 if (selectedFilter == NoFilterSelected)
                 {
@@ -135,13 +127,9 @@ void TraceView::renderFilterArea()
                         filters.erase(filters.begin() + selectedFilter);
 
                         if (selectedFilter > filters.size())
-                        {
                             --selectedFilter;
-                        }
                         else
-                        {
                             selectedFilter = NoFilterSelected;
-                        }
                     }
                 }
 
@@ -263,27 +251,19 @@ void TraceView::renderFilterArea()
         {
             ImGui::SameLine();
             if (m_itemsFiltered.size() == 1)
-            {
                 ImGui::TextDisabled("(showing 1 events)");
-            }
             else
-            {
                 ImGui::TextDisabled("(showing %zu events)", m_itemsFiltered.size());
-            }
         }
     }
 
     // render filter settings edit
     {
         if (openFilterSettingsEdit)
-        {
             m_filterSettingsEdit.emplace(m_filterSettings, editFilter);
-        }
 
         if (m_filterSettingsEdit != std::nullopt && !m_filterSettingsEdit->render())
-        {
             m_filterSettingsEdit = std::nullopt;
-        }
     }
 }
 
@@ -341,16 +321,14 @@ void TraceView::renderEventList()
 
                     // open instance in struct edit when clicked
                     if (ImGui::GetIO().MouseClicked[ImGuiMouseButton_Left])
-                    {
                         editItem = &item;
-                    }
                 }
 
                 // render context menu
                 {
                     const TraceItem& item = *m_itemsFiltered[itemIndex];
 
-                    if (ImGui::BeginPopupContextItem(item.widgetId()))
+                    if (ImGuiExt::BeginPopupContextItem(&item))
                     {
                         const StructDescriptorModel& descriptorModel = item.model().descriptorModel();
 
@@ -358,19 +336,13 @@ void TraceView::renderEventList()
                         ImGui::Separator();
 
                         if (ImGui::MenuItem(descriptorModel.descriptor().cached() ? "View/Update" : "View/Publish"))
-                        {
                             editItem = &item;
-                        }
 
                         if (ImGui::MenuItem("Discard Until [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
-                        {
                             discardUntilItem = m_itemsFiltered[itemIndex];
-                        }
 
                         if (ImGui::MenuItem("Discard All [Hold CTRL]", nullptr, false, ImGui::GetIO().KeyCtrl))
-                        {
                             discardAll = true;
-                        }
 
                         ImGui::EndPopup();
                     }
@@ -380,9 +352,7 @@ void TraceView::renderEventList()
 
         // auto scroll when view is at the bottom
         if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
-        {
             ImGui::SetScrollHereY(1.0f);
-        }
 
         // process scroll input
         {
@@ -469,9 +439,7 @@ void TraceView::renderEventList()
         }
 
         if (m_publishDialog != std::nullopt && !m_publishDialog->render())
-        {
             m_publishDialog = std::nullopt;
-        }
     }
 
     // discard items
@@ -484,14 +452,10 @@ void TraceView::renderEventList()
             };
 
             if (auto it = std::lower_bound(m_items.begin(), m_items.end(), discardUntilItem, comp); it != m_items.end())
-            {
                 m_items.erase(m_items.begin(), it);
-            }
 
             if (auto it = std::lower_bound(m_itemsFiltered.begin(), m_itemsFiltered.end(), discardUntilItem, comp); it != m_itemsFiltered.end())
-            {
                 m_itemsFiltered.erase(m_itemsFiltered.begin(), it);
-            }
         }
 
         if (discardAll)

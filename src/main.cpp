@@ -21,21 +21,15 @@ path_t init_app_data_dir()
     #endif
 
     if (const char* homePath = ::getenv(HomePathVariable); homePath == nullptr)
-    {
         return std::filesystem::current_path();
-    }
     else
     {
         path_t appDataPath = std::filesystem::canonical(homePath) / fmt::format(".{}", AppName);
 
         if (exists(appDataPath) || create_directory(appDataPath))
-        {
             return appDataPath;
-        }
         else
-        {
             return std::filesystem::current_path();
-        }
     }
 }
 

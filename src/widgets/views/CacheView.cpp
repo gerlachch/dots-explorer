@@ -51,9 +51,7 @@ void CacheView::initFilterSettings()
         dots::vector_t<Filter>& filters = *m_filterSettings.storedFilters;
 
         if (auto& selectedFilter = m_filterSettings.selectedFilter; *selectedFilter >= filters.size())
-        {
             selectedFilter = NoFilterSelected;
-        }
     }
 }
 
@@ -88,9 +86,7 @@ void CacheView::renderFilterArea()
             ImGui::TextUnformatted("Filter");
 
             if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_F, false))
-            {
                 ImGui::SetKeyboardFocusHere();
-            }
 
             ImGui::SameLine();
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f - 19);
@@ -112,9 +108,7 @@ void CacheView::renderFilterArea()
             if (ImGui::BeginCombo("##Filters", "", ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft))
             {
                 if (ImGui::Selectable("<New>"))
-                {
                     openFilterSettingsEdit = true;
-                }
 
                 if (selectedFilter == NoFilterSelected)
                 {
@@ -129,13 +123,9 @@ void CacheView::renderFilterArea()
                         filters.erase(filters.begin() + selectedFilter);
 
                         if (selectedFilter > filters.size())
-                        {
                             --selectedFilter;
-                        }
                         else
-                        {
                             selectedFilter = NoFilterSelected;
-                        }
                     }
                 }
 
@@ -211,35 +201,25 @@ void CacheView::renderFilterArea()
 
         // apply filters to type list
         if (m_typesChanged)
-        {
             applyFilters();
-        }
 
         // render filtered types hint label
         {
             ImGui::SameLine();
             if (m_cacheListFiltered.size() == 1)
-            {
                 ImGui::TextDisabled("(showing 1 type)");
-            }
             else
-            {
                 ImGui::TextDisabled("(showing %zu types)", m_cacheListFiltered.size());
-            }
         }
     }
 
     // render filter settings edit
     {
         if (openFilterSettingsEdit)
-        {
             m_filterSettingsEdit.emplace(m_filterSettings, editFilter);
-        }
 
         if (m_filterSettingsEdit != std::nullopt && !m_filterSettingsEdit->render())
-        {
             m_filterSettingsEdit = std::nullopt;
-        }
     }
 }
 
@@ -283,19 +263,13 @@ void CacheView::renderCacheList()
             bool structListOpen = structList->renderBegin();
 
             if (ImGui::TableNextColumn())
-            {
                 structList->renderActivity();
-            }
 
             if (ImGui::TableNextColumn())
-            {
                 structList->renderActivityDot();
-            }
 
             if (ImGui::TableNextColumn())
-            {
                 ImGui::Text("%zu", structList->size());
-            }
 
             if (structListOpen)
             {

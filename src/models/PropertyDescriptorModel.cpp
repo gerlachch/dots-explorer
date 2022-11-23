@@ -17,9 +17,7 @@ PropertyDescriptorModel::PropertyDescriptorModel(const dots::type::PropertyPath&
         );
 
         if (descriptor.isKey())
-        {
             m_data->declarationText.emplace_back("[key]", ColorThemeActive.Keyword);
-        }
 
         m_data->declarationText.emplace_back(
             descriptor.valueDescriptor().name(),

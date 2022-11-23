@@ -12,9 +12,7 @@ HostSettingsEdit::HostSettingsEdit(HostSettings& settings, Host* editHost/* = nu
     m_editHost(editHost)
 {
     if (m_editHost == nullptr)
-    {
         m_headerText = "Add Host Info";
-    }
     else
     {
         m_headerText = "Edit Host Info";
@@ -83,13 +81,9 @@ bool HostSettingsEdit::render()
                     };
 
                     if (m_editHost == nullptr)
-                    {
                         m_settings.hosts->emplace_back(std::move(host));
-                    }
                     else
-                    {
                         *m_editHost = host;
-                    }
 
                     ImGui::CloseCurrentPopup();
                 }
@@ -103,16 +97,12 @@ bool HostSettingsEdit::render()
 
             ImGui::SameLine();
             if (ImGui::Button("Cancel"))
-            {
                 ImGui::CloseCurrentPopup();
-            }
         }
 
         ImGui::EndPopup();
         return true;
     }
     else
-    {
         return false;
-    }
 }

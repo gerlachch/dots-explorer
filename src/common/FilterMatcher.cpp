@@ -8,18 +8,14 @@ FilterMatcher::FilterMatcher(const Filter& filter) :
     std::string expression{ *filter.expression };
 
     if (!*filter.matchCase)
-    {
         std::transform(expression.begin(), expression.end(), expression.begin(), [](unsigned char c){ return std::tolower(c); });
-    }
 
     if (*filter.regex)
     {
         m_regex = std::make_unique<RE2>(expression, RE2::Options{ RE2::Quiet });
 
         if (!m_regex->ok())
-        {
             throw std::runtime_error{ "invalid regex input: " + m_regex->error() };
-        }
     }
     else
     {
@@ -38,35 +34,26 @@ FilterMatcher::FilterMatcher(const Filter& filter) :
                 m_quickFilter.emplace_back(sub, inverted);
             }
             else
-            {
                 whitelist.emplace_back(sub, inverted);
-            }
         }
 
         m_quickFilter.insert(m_quickFilter.end(), whitelist.begin(), whitelist.end());
 
         if (!m_quickFilter.empty())
-        {
             m_quickFilterDefault = m_quickFilter.back().second;
-        }
     }
 }
 
 bool FilterMatcher::match(std::string_view str) const
 {
     if (m_regex)
-    {
         return RE2::PartialMatch(str, *m_regex);
-
-    }
     else
     {
         for (const auto& [sub, inverted] : m_quickFilter)
         {
             if (str.find(sub) != std::string::npos)
-            {
                 return !inverted;
-            }
         }
 
         return m_quickFilterDefault;

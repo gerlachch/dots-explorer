@@ -42,7 +42,23 @@ void TransceiverModel::handleNewType(const dots::type::StructDescriptor& descrip
 
         m_subscriptions.emplace_back(dots::subscribe(descriptor, [this, &descriptorModel](const dots::Event<>& event)
         {
-            EventModel eventModel{ ++m_eventIndex, { m_publisherModel, event }, descriptorModel, event };
+            size_t eventIndex = ++m_eventIndex;
+            size_t updateIndex;
+
+            if (auto it = m_updateIndices.find(&event.updated()); it == m_updateIndices.end())
+            {
+                updateIndex = eventIndex;
+                if (!event.isRemove())
+                    m_updateIndices.emplace(&event.updated(), updateIndex);
+            }
+            else
+            {
+                updateIndex = it->second;
+                if (event.isRemove())
+                    m_updateIndices.erase(it);
+            }
+
+            EventModel eventModel{ eventIndex, updateIndex, { m_publisherModel, event }, descriptorModel, event };
 
             for (auto& handler : m_eventHandlers)
             {
@@ -67,13 +83,9 @@ void TransceiverModel::handleDotsClient(const dots::Event<DotsClient>& event)
         auto& publisherNameText = [this](dots::uint32_t id) -> auto&
         {
             if (auto it = m_publisherNameTexts->find(id); it == m_publisherNameTexts->end())
-            {
                 return m_publisherNameTexts->try_emplace(id, fmt::format("\"<unknown> [{}]\"", id), ColorThemeActive.StringType).first->second;
-            }
             else
-            {
                 return it->second;
-            }
         }(*client.id);
 
         publisherNameText.first = fmt::format("\"{}\"", *client.name);

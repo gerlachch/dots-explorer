@@ -94,13 +94,9 @@ ImGuiExt::ColoredTextView PropertyModel::valueText() const
     }
 
     if (m_property.isValid())
-    {
         return { m_valueStr, descriptorModel().valueColor() };
-    }
     else
-    {
         return { m_valueStr, ColorThemeActive.Disabled };
-    }
 }
 
 bool PropertyModel::less(const ImGuiTableColumnSortSpecs& sortSpec, const PropertyModel& other) const
@@ -108,13 +104,9 @@ bool PropertyModel::less(const ImGuiTableColumnSortSpecs& sortSpec, const Proper
     auto compare = [&sortSpec](const auto& lhs, const auto& rhs)
     {
         if (sortSpec.SortDirection == ImGuiSortDirection_Ascending)
-        {
             return std::less{}(lhs, rhs);
-        }
         else
-        {
             return std::greater{}(lhs, rhs);
-        }
     };
 
     return compare(m_property, other.m_property);

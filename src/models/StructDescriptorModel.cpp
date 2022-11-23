@@ -14,34 +14,22 @@ StructDescriptorModel::StructDescriptorModel(const dots::type::StructDescriptor&
         std::string part = "[";
 
         if (!descriptor.cached())
-        {
             part += "cached=false, ";
-        }
 
         if (descriptor.cleanup())
-        {
             part += "cleanup, ";
-        }
 
         if (descriptor.local())
-        {
             part += "local, ";
-        }
 
         if (descriptor.persistent())
-        {
             part += "persistent, ";
-        }
 
         if (descriptor.internal())
-        {
             part += "internal, ";
-        }
 
         if (descriptor.substructOnly())
-        {
             part += "substruct_only, ";
-        }
 
         part.erase(part.size() - 2);
         part += ']';
