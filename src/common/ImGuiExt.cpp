@@ -1,4 +1,5 @@
 #include <common/ImGuiExt.h>
+#include <imgui_internal.h>
 #include <fmt/format.h>
 
 namespace ImGuiExt
@@ -77,5 +78,21 @@ namespace ImGuiExt
             TooltipLastHoveredItem(tooltip);
 
         return pressed;
+    }
+
+    bool BeginPopupContextItem(const void* ptr_id, ImGuiPopupFlags popup_flags/* = 1*/)
+    {
+        // this is based on ImGui::BeginPopupContextItem but with a pointer
+        // based widget id instead of a string
+        ImGuiContext& g = *GImGui;
+        ImGuiWindow* window = g.CurrentWindow;
+        if (window->SkipItems)
+            return false;
+        IM_ASSERT(ptr_id);
+        ImGuiID id = ImGui::GetID(ptr_id);
+        int mouse_button = (popup_flags & ImGuiPopupFlags_MouseButtonMask_);
+        if (ImGui::IsMouseReleased(mouse_button) && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup))
+            ImGui::OpenPopupEx(id, popup_flags);
+        return ImGui::BeginPopupEx(id, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings);
     }
 }

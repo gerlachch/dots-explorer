@@ -12,14 +12,6 @@ StructItem::StructItem(EventModel model) :
     setModel(std::move(model));
 }
 
-const char* StructItem::widgetId() const
-{
-    if (m_widgetId.empty())
-        m_widgetId = fmt::format("StructItem-{}", M_nextWidgetId++);
-
-    return m_widgetId.data();
-}
-
 const EventModel& StructItem::model() const
 {
     return *m_model;

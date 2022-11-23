@@ -19,4 +19,6 @@ namespace ImGuiExt
     void Hyperlink(const std::string& uri);
 
     bool ToggleButton(std::string_view label, bool& b, std::string_view tooltip = {});
+
+    bool BeginPopupContextItem(const void* ptr_id, ImGuiPopupFlags popup_flags = 1);
 }

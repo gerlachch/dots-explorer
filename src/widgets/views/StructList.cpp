@@ -301,7 +301,7 @@ void StructList::renderEnd()
                 {
                     const StructItem& item = m_items[itemIndex];
 
-                    if (ImGui::BeginPopupContextItem(item.widgetId()))
+                    if (ImGuiExt::BeginPopupContextItem(&item))
                     {
                         ImGuiExt::TextColored(m_structDescriptorModel->declarationText());
                         ImGui::Separator();

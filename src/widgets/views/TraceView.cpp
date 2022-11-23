@@ -328,7 +328,7 @@ void TraceView::renderEventList()
                 {
                     const TraceItem& item = *m_itemsFiltered[itemIndex];
 
-                    if (ImGui::BeginPopupContextItem(item.widgetId()))
+                    if (ImGuiExt::BeginPopupContextItem(&item))
                     {
                         const StructDescriptorModel& descriptorModel = item.model().descriptorModel();
 

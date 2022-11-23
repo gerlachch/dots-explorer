@@ -9,7 +9,6 @@ struct TraceItem
 {
     TraceItem(EventModel model);
 
-    const char* widgetId() const;
     const EventModel& model() const;
 
     bool isSelected() const;
@@ -23,9 +22,6 @@ struct TraceItem
 
 private:
 
-    inline static uint64_t M_nextWidgetId = 0;
-
-    mutable std::string m_widgetId;
     std::string m_filterText;
     std::string m_filterTextLower;
     bool m_isSelected;

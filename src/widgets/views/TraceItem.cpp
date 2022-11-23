@@ -11,14 +11,6 @@ TraceItem::TraceItem(EventModel model) :
     /* do nothing */
 }
 
-const char* TraceItem::widgetId() const
-{
-    if (m_widgetId.empty())
-        m_widgetId = fmt::format("TraceItem-{}", M_nextWidgetId++);
-
-    return m_widgetId.data();
-}
-
 const EventModel& TraceItem::model() const
 {
     return m_model;
