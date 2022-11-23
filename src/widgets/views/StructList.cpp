@@ -72,7 +72,7 @@ bool StructList::less(const ImGuiTableSortSpecs& sortSpecs, const StructList& ot
 
         switch (sortSpec.ColumnIndex)
         {
-            case 0:  less = compare(m_structDescriptorModel->descriptor().name(), m_structDescriptorModel->descriptor().name()); break;
+            case 0:  less = compare(m_structDescriptorModel->descriptor().name(), other.m_structDescriptorModel->descriptor().name()); break;
             case 1:  less = compare(m_lastUpdateDelta, other.m_lastUpdateDelta); break;
             case 2:  less = compare(m_lastUpdateDelta, other.m_lastUpdateDelta); break;
             case 3:  less = compare(size(), other.size()); break;
