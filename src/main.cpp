@@ -2,6 +2,7 @@
 #include <optional>
 #include <filesystem>
 #include <fmt/format.h>
+#include <dots/tools/logging.h>
 #include <backends/Backend.h>
 #include <widgets/MainWindow.h>
 #include <common/Settings.h>
@@ -65,6 +66,10 @@ int main()
     ImGui::GetIO().LogFilename = appLogPath.data();
 
     dots::type::chrono::experimental::set_time_zone_override();
+
+    #ifdef NDEBUG
+    dots::tools::loggingFrontend().setLogLevel(dots::tools::Level::crit);
+    #endif
 
     Settings::Init();
     MainWindow mainWindow{ AppName };
