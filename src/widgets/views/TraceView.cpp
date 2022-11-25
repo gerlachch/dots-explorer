@@ -114,7 +114,7 @@ void TraceView::renderFilterArea()
                 if (ImGui::Selectable("<New>"))
                     openFilterSettingsEdit = true;
 
-                if (selectedFilter == NoFilterSelected)
+                if (selectedFilter != NoFilterSelected)
                 {
                     if (ImGui::Selectable("<Edit>"))
                     {
