@@ -177,6 +177,10 @@ target_compile_features(${TARGET_NAME}
     PRIVATE
         cxx_std_20
 )
+target_link_options(${TARGET_NAME}
+    PRIVATE
+        $<$<AND:$<CONFIG:Release>,$<PLATFORM_ID:Windows>>:/SUBSYSTEM:windows /ENTRY:mainCRTStartup>
+)
 target_link_libraries(${TARGET_NAME}
     PRIVATE
         DOTS::DOTS

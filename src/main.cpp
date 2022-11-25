@@ -1,6 +1,3 @@
-#if defined(_MSC_VER) && defined (NDEBUG)
-#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
-#endif
 #include <string>
 #include <optional>
 #include <filesystem>
