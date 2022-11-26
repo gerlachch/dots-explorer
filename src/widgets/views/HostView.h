@@ -4,6 +4,7 @@
 #include <dots/dots.h>
 #include <common/Version.h>
 #include <models/TransceiverModel.h>
+#include <widgets/dialogs/FileDialog.h>
 #include <widgets/dialogs/HelpDialog.h>
 #include <widgets/dialogs/HostSettingsEdit.h>
 #include <widgets/views/CacheView.h>
@@ -39,6 +40,7 @@ private:
     void handleTransceiverTransition(const dots::Connection& connection, std::exception_ptr ePtr);
 
     std::optional<HelpDialog> m_helpDialog;
+    std::optional<FileSaveDialog> m_fileSaveDialog;
     std::optional<HostSettingsEdit> m_hostSettingsEdit;
     std::optional<TransceiverModel> m_transceiverModel;
     std::optional<CacheView> m_cacheView;

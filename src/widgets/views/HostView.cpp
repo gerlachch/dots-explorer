@@ -36,6 +36,8 @@ void HostView::render()
     bool openHostSettingsEdit = false;
     Host* editHost = nullptr;
 
+    bool openSaveTraceDialog = false;
+
     // render panel
     {
         // render host label
@@ -120,6 +122,14 @@ void HostView::render()
                             m_selectedHost = &hosts[*m_hostSettings.selectedHost];
                         }
                     }
+                }
+
+                if (m_transceiverModel)
+                {
+                    ImGui::Separator();
+
+                    if (ImGui::Selectable("<Save Trace>"))
+                        openSaveTraceDialog = true;
                 }
 
                 ImGui::Separator();
@@ -305,6 +315,20 @@ void HostView::render()
 
         if (m_hostSettingsEdit != std::nullopt && !m_hostSettingsEdit->render())
             m_hostSettingsEdit = std::nullopt;
+    }
+
+    // render save trace file dialog
+    {
+        if (openSaveTraceDialog)
+            m_fileSaveDialog.emplace();
+
+        if (m_fileSaveDialog != std::nullopt && !m_fileSaveDialog->render())
+        {
+            if (m_fileSaveDialog->file())
+                m_transceiverModel->writeTraceFile(*m_fileSaveDialog->file());
+
+            m_fileSaveDialog = std::nullopt;
+        }
     }
 }
 

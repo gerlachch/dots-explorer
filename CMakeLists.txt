@@ -130,6 +130,7 @@ target_sources(${TARGET_NAME}
         src/models/StructDescriptorModel.cpp
         src/models/TransceiverModel.cpp
         src/dots_ext/FileInChannel.cpp
+        src/dots_ext/FileOutChannel.cpp
         src/dots_ext/struct_ops.cpp
         src/widgets/views/TraceView.cpp
         src/widgets/views/TraceItem.cpp
