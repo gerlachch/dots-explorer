@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <imgui.h>
 #include <fmt/format.h>
-#include <common/Colors.h>
 
 HostSettingsEdit::HostSettingsEdit(HostSettings& settings, Host* editHost/* = nullptr*/) :
     m_popupId{ fmt::format("HostSettingsEdit-{}_Popup", ++M_id) },
@@ -49,6 +48,26 @@ bool HostSettingsEdit::render()
                 ImGui::AlignTextToFramePadding();
                 ImGui::InputText("##endpointInput", m_endpointBuffer.data(), m_endpointBuffer.size());
                 ImGui::PopItemWidth();
+
+                ImGui::SameLine();
+                if (ImGui::Button("File"))
+                    m_fileOpenDialog.emplace();
+
+                if (m_fileOpenDialog && !m_fileOpenDialog->render())
+                {
+                    if (m_fileOpenDialog->file())
+                    {
+                        std::filesystem::path path = canonical(*m_fileOpenDialog->file());
+                        std::string endpoint = fmt::format("file:{}{}", path.root_name() == "/" ? "" : "/", path.string());
+                        std::string description = path.filename().string();
+                        endpoint += '\0';
+                        description += '\0';
+                        std::copy(endpoint.begin(), endpoint.end(), m_endpointBuffer.begin());
+                        std::copy(description.begin(), description.end(), m_descriptionBuffer.begin());
+                    }
+
+                    m_fileOpenDialog.reset();
+                }
 
                 ImGui::TableNextRow();
 
