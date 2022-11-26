@@ -133,6 +133,7 @@ target_sources(${TARGET_NAME}
         src/dots_ext/struct_ops.cpp
         src/widgets/views/TraceView.cpp
         src/widgets/views/TraceItem.cpp
+        src/widgets/dialogs/FileDialog.cpp
         src/widgets/dialogs/FilterSettingsEdit.cpp
         src/widgets/views/StructList.cpp
         src/widgets/dialogs/HostSettingsEdit.cpp
