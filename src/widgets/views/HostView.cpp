@@ -132,9 +132,6 @@ void HostView::render()
                     {
                         m_hostLabel.clear();
                         m_hostLabel += *host.description;
-                        m_hostLabel += " [";
-                        m_hostLabel += *host.endpoint;
-                        m_hostLabel += "]";
                         return m_hostLabel.data();
                     };
 
@@ -144,6 +141,8 @@ void HostView::render()
                         m_selectedHost = &host;
                         m_state = State::Pending;
                     }
+
+                    ImGuiExt::TooltipLastHoveredItem(*host.endpoint);
 
                     ++i;
                 }
