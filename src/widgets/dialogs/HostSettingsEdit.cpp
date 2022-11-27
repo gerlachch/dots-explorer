@@ -3,21 +3,20 @@
 #include <imgui.h>
 #include <fmt/format.h>
 
-HostSettingsEdit::HostSettingsEdit(HostSettings& settings, Host* editHost/* = nullptr*/) :
+HostSettingsEdit::HostSettingsEdit(HostSettings& settings, const Host& copyHost, Host* editHost) :
     m_popupId{ fmt::format("HostSettingsEdit-{}_Popup", ++M_id) },
-    m_endpointBuffer(256, '\0'),
-    m_descriptionBuffer(256, '\0'),
     m_settings(settings),
     m_editHost(editHost)
 {
     if (m_editHost == nullptr)
         m_headerText = "Add Host Info";
     else
-    {
         m_headerText = "Edit Host Info";
-        std::copy(m_editHost->endpoint->begin(), m_editHost->endpoint->end(), m_endpointBuffer.begin());
-        std::copy(m_editHost->description->begin(), m_editHost->description->end(), m_descriptionBuffer.begin());
-    }
+
+    m_endpointBuffer.assign(std::max(copyHost.endpoint->size(), size_t{ 256 }), '\0');
+    m_descriptionBuffer.assign(std::max(copyHost.endpoint->size(), size_t{ 256 }), '\0');
+    std::copy(copyHost.endpoint->begin(), copyHost.endpoint->end(), m_endpointBuffer.begin());
+    std::copy(copyHost.description->begin(), copyHost.description->end(), m_descriptionBuffer.begin());
 
     ImGui::OpenPopup(m_popupId.data());
 }

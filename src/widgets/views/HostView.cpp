@@ -321,7 +321,7 @@ void HostView::render()
     // render host settings edit
     {
         if (openHostSettingsEdit)
-            m_hostSettingsEdit.emplace(m_hostSettings, editHost);
+            m_hostSettingsEdit.emplace(m_hostSettings, *m_hostSettings.activeHost, editHost);
 
         if (m_hostSettingsEdit != std::nullopt && !m_hostSettingsEdit->render())
             m_hostSettingsEdit = std::nullopt;
