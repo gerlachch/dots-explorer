@@ -103,6 +103,8 @@ bool HostSettingsEdit::render()
                     else
                         *m_editHost = host;
 
+                    m_settings.selectedHost = NoHostSelected;
+
                     ImGui::CloseCurrentPopup();
                 }
             }

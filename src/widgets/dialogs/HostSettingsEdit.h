@@ -17,6 +17,8 @@ struct HostSettingsEdit
 
 private:
 
+    static constexpr uint32_t NoHostSelected = std::numeric_limits<uint32_t>::max();
+
     inline static uint64_t M_id;
 
     std::optional<FileOpenDialog> m_fileOpenDialog;
