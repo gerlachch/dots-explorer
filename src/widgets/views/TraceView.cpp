@@ -114,13 +114,22 @@ void TraceView::renderFilterArea()
                 if (ImGui::Selectable("<New>"))
                     openFilterSettingsEdit = true;
 
-                if (selectedFilter != NoFilterSelected)
+                // edit entry
                 {
+                    ImGui::BeginDisabled(selectedFilter == NoFilterSelected);
+
                     if (ImGui::Selectable("<Edit>"))
                     {
                         openFilterSettingsEdit = true;
                         editFilter = &filters[selectedFilter];
                     }
+
+                    ImGui::EndDisabled();
+                }
+
+                // remove entry
+                {
+                    ImGui::BeginDisabled(selectedFilter == NoFilterSelected);
 
                     if (ImGui::Selectable("<Remove>"))
                     {
@@ -131,6 +140,8 @@ void TraceView::renderFilterArea()
                         else
                             selectedFilter = NoFilterSelected;
                     }
+
+                    ImGui::EndDisabled();
                 }
 
                 ImGui::Separator();

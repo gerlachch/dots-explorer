@@ -106,15 +106,24 @@ void HostView::render()
                 if (ImGui::Selectable("<New>"))
                     openHostSettingsEdit = true;
 
-                if (selectedHost != NoHostSelected)
+                // edit entry
                 {
+                    ImGui::BeginDisabled(selectedHost == NoHostSelected);
+
                     if (ImGui::Selectable("<Edit>"))
                     {
                         openHostSettingsEdit = true;
                         editHost = &hosts[selectedHost];
                     }
 
-                    if (hosts.size() > 1)
+                    ImGui::EndDisabled();
+
+                }
+
+                // remove entry
+                {
+                    ImGui::BeginDisabled(hosts.size() <= 1 || selectedHost == NoHostSelected);
+
                     {
                         if (ImGui::Selectable("<Remove>"))
                         {
@@ -126,15 +135,24 @@ void HostView::render()
                                 selectedHost = NoHostSelected;
                         }
                     }
+
+                    ImGui::EndDisabled();
                 }
 
-                if (ImGui::Selectable("<Open Trace>"))
-                        openOpenTraceDialog = true;
-
-                if (m_transceiverModel)
+                // open trace entry
                 {
+                    if (ImGui::Selectable("<Open Trace>"))
+                        openOpenTraceDialog = true;
+                }
+
+                // save trace entry
+                {
+                    ImGui::BeginDisabled(!m_transceiverModel);
+
                     if (ImGui::Selectable("<Save Trace>"))
                         openSaveTraceDialog = true;
+
+                    ImGui::EndDisabled();
                 }
 
                 ImGui::Separator();
