@@ -42,6 +42,7 @@ private:
     void handleTransceiverTransition(const dots::Connection& connection, std::exception_ptr ePtr);
 
     std::optional<HelpDialog> m_helpDialog;
+    std::optional<FileOpenDialog> m_fileOpenDialog;
     std::optional<FileSaveDialog> m_fileSaveDialog;
     std::optional<HostSettingsEdit> m_hostSettingsEdit;
     std::optional<TransceiverModel> m_transceiverModel;

@@ -35,6 +35,7 @@ void HostView::render()
     bool openHostSettingsEdit = false;
     Host* editHost = nullptr;
 
+    bool openOpenTraceDialog = false;
     bool openSaveTraceDialog = false;
 
     // render panel
@@ -144,6 +145,9 @@ void HostView::render()
                         }
                     }
                 }
+
+                if (ImGui::Selectable("<Open Trace>"))
+                        openOpenTraceDialog = true;
 
                 if (m_transceiverModel)
                 {
@@ -330,6 +334,32 @@ void HostView::render()
 
         if (m_hostSettingsEdit != std::nullopt && !m_hostSettingsEdit->render())
             m_hostSettingsEdit = std::nullopt;
+    }
+
+    // render open trace file dialog
+    {
+        if (openOpenTraceDialog)
+            m_fileOpenDialog.emplace();
+
+        if (m_fileOpenDialog != std::nullopt && !m_fileOpenDialog->render())
+        {
+            if (m_fileOpenDialog->file())
+            {
+                std::filesystem::path path = *m_fileOpenDialog->file();
+                *m_hostSettings.activeHost->endpoint = fmt::format("file:{}{}", path.root_name() == "/" ? "" : "/", path.string());
+                *m_hostSettings.activeHost->description = path.filename().string();
+                m_hostSettings.selectedHost = NoHostSelected;
+
+                std::string description = *m_hostSettings.activeHost->description;
+                description += '\0';
+                m_endpointBuffer->assign(std::max(description.size(), m_endpointBuffer->size()), '\0');
+                std::copy(description.begin(), description.end(), m_endpointBuffer->begin());
+
+                m_state = State::Pending;
+            }
+
+            m_fileOpenDialog = std::nullopt;
+        }
     }
 
     // render save trace file dialog
