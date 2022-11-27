@@ -69,26 +69,17 @@ void HostView::render()
         // check dropped files
         if (!System::DroppedFiles.empty())
         {
-            size_t hostsAdded = 0;
-
-            for (const auto& path : System::DroppedFiles)
+            if (std::filesystem::path path = System::DroppedFiles.front(); is_regular_file(path))
             {
-                if (exists(path))
-                {
-                    if (is_regular_file(path))
-                    {
-                        hosts.emplace_back(Host{
-                            .endpoint = fmt::format("file:{}{}", path.root_name() == "/" ? "" : "/", path.string() ),
-                            .description = path.filename().string()
-                        });
-                        ++hostsAdded;
-                    }
-                }
-            }
+                *m_hostSettings.activeHost->endpoint = fmt::format("file:{}{}", path.root_name() == "/" ? "" : "/", path.string());
+                *m_hostSettings.activeHost->description = path.filename().string();
+                m_hostSettings.selectedHost = NoHostSelected;
 
-            if (hostsAdded == 1 && m_state == State::Disconnected)
-            {
-                selectedHost = static_cast<uint32_t>(hosts.size() - 1);
+                std::string description = *m_hostSettings.activeHost->description;
+                description += '\0';
+                m_endpointBuffer->assign(std::max(description.size(), m_endpointBuffer->size()), '\0');
+                std::copy(description.begin(), description.end(), m_endpointBuffer->begin());
+
                 m_state = State::Pending;
             }
 
