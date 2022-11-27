@@ -4,6 +4,7 @@
 #include <dots/dots.h>
 #include <common/Version.h>
 #include <models/TransceiverModel.h>
+#include <widgets/input/HostEndpointEdit.h>
 #include <widgets/dialogs/FileDialog.h>
 #include <widgets/dialogs/HelpDialog.h>
 #include <widgets/dialogs/HostSettingsEdit.h>
@@ -49,7 +50,7 @@ private:
     std::optional<CacheView> m_cacheView;
     std::optional<TraceView> m_traceView;
     std::optional<std::future<void>> m_connectTask;
-    std::optional<std::string> m_endpointBuffer;
+    std::optional<HostEndpointEdit> m_hostEndpointEdit;
     std::exception_ptr m_connectionError;
     State m_state;
     float m_deltaSinceError;

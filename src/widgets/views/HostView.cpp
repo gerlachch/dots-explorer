@@ -58,12 +58,9 @@ void HostView::render()
         }
 
         // init endpoint buffer
-        if (!m_endpointBuffer)
+        if (!m_hostEndpointEdit)
         {
-            std::string description = *m_hostSettings.activeHost->description;
-            description += '\0';
-            m_endpointBuffer.emplace(std::max(description.size(), size_t{ 1024 }), '\0');
-            std::copy(description.begin(), description.end(), m_endpointBuffer->begin());
+            m_hostEndpointEdit.emplace(*m_hostSettings.activeHost);
         }
 
         // check dropped files
@@ -74,11 +71,7 @@ void HostView::render()
                 *m_hostSettings.activeHost->endpoint = fmt::format("file:{}{}", path.root_name() == "/" ? "" : "/", path.string());
                 *m_hostSettings.activeHost->description = path.filename().string();
                 m_hostSettings.selectedHost = NoHostSelected;
-
-                std::string description = *m_hostSettings.activeHost->description;
-                description += '\0';
-                m_endpointBuffer->assign(std::max(description.size(), m_endpointBuffer->size()), '\0');
-                std::copy(description.begin(), description.end(), m_endpointBuffer->begin());
+                m_hostEndpointEdit.emplace(*m_hostSettings.activeHost);
 
                 m_state = State::Pending;
             }
@@ -94,10 +87,8 @@ void HostView::render()
             ImGui::SameLine();
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f - 19);
 
-            if (ImGui::InputTextWithHint("##HostEdit", "<host-endpoint>", m_endpointBuffer->data(), m_endpointBuffer->size(), ImGuiInputTextFlags_AutoSelectAll))
+            if (m_hostEndpointEdit->render())
             {
-                *m_hostSettings.activeHost->endpoint = m_endpointBuffer->data();
-                *m_hostSettings.activeHost->description = m_endpointBuffer->data();
                 selectedHost = NoHostSelected;
             }
             ImGui::PopItemWidth();
@@ -157,10 +148,7 @@ void HostView::render()
                     {
                         selectedHost = i;
                         m_hostSettings.activeHost = hosts[selectedHost];
-                        std::string description = *m_hostSettings.activeHost->description;
-                        description += '\0';
-                        m_endpointBuffer->assign(std::max(description.size(), m_endpointBuffer->size()), '\0');
-                        std::copy(description.begin(), description.end(), m_endpointBuffer->begin());
+                        m_hostEndpointEdit.emplace(*m_hostSettings.activeHost);
                         m_state = State::Pending;
                     }
 
@@ -340,11 +328,7 @@ void HostView::render()
                 *m_hostSettings.activeHost->endpoint = fmt::format("file:{}{}", path.root_name() == "/" ? "" : "/", path.string());
                 *m_hostSettings.activeHost->description = path.filename().string();
                 m_hostSettings.selectedHost = NoHostSelected;
-
-                std::string description = *m_hostSettings.activeHost->description;
-                description += '\0';
-                m_endpointBuffer->assign(std::max(description.size(), m_endpointBuffer->size()), '\0');
-                std::copy(description.begin(), description.end(), m_endpointBuffer->begin());
+                m_hostEndpointEdit.emplace(*m_hostSettings.activeHost);
 
                 m_state = State::Pending;
             }
