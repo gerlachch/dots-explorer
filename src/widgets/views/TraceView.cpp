@@ -111,10 +111,13 @@ void TraceView::renderFilterArea()
 
             if (ImGui::BeginCombo("##Filters", "", ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge))
             {
-                if (ImGui::Selectable("<New>"))
-                    openFilterSettingsEdit = true;
+                // render new filter entry
+                {
+                    if (ImGui::Selectable("<New>"))
+                        openFilterSettingsEdit = true;
+                }
 
-                // edit entry
+                // render edit filter entry
                 {
                     ImGui::BeginDisabled(selectedFilter == NoFilterSelected);
 
@@ -127,7 +130,7 @@ void TraceView::renderFilterArea()
                     ImGui::EndDisabled();
                 }
 
-                // remove entry
+                // render remove filter entry
                 {
                     ImGui::BeginDisabled(selectedFilter == NoFilterSelected);
 
@@ -186,23 +189,26 @@ void TraceView::renderFilterArea()
 
                 ImGui::Separator();
 
-                ImGui::TextUnformatted("Filters:");
-                uint32_t i = 0;
-
-                for (Filter& filter : filters)
+                // render stored filters
                 {
-                    if (ImGui::Selectable(filter.description->data(), selectedFilter == i) && selectedFilter != i)
+                    ImGui::TextUnformatted("Filters:");
+                    uint32_t i = 0;
+
+                    for (Filter& filter : filters)
                     {
-                        selectedFilter = i;
-                        m_filterSettings.activeFilter = filters[selectedFilter];
-                        m_filterExpressionEdit = FilterExpressionEdit{ *m_filterSettings.activeFilter };
-                        m_filtersChanged = true;
+                        if (ImGui::Selectable(filter.description->data(), selectedFilter == i) && selectedFilter != i)
+                        {
+                            selectedFilter = i;
+                            m_filterSettings.activeFilter = filters[selectedFilter];
+                            m_filterExpressionEdit = FilterExpressionEdit{ *m_filterSettings.activeFilter };
+                            m_filtersChanged = true;
+                        }
+
+                        ++i;
                     }
 
-                    ++i;
+                    ImGui::EndCombo();
                 }
-
-                ImGui::EndCombo();
             }
         }
 

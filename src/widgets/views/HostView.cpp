@@ -103,10 +103,13 @@ void HostView::render()
 
             if (ImGui::BeginCombo("##Hosts", "", ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge))
             {
-                if (ImGui::Selectable("<New>"))
-                    openHostSettingsEdit = true;
+                // render new host entry
+                {
+                    if (ImGui::Selectable("<New>"))
+                        openHostSettingsEdit = true;
+                }
 
-                // edit entry
+                // render edit host entry
                 {
                     ImGui::BeginDisabled(selectedHost == NoHostSelected);
 
@@ -120,32 +123,30 @@ void HostView::render()
 
                 }
 
-                // remove entry
+                // render remove host entry
                 {
                     ImGui::BeginDisabled(hosts.size() <= 1 || selectedHost == NoHostSelected);
 
+                    if (ImGui::Selectable("<Remove>"))
                     {
-                        if (ImGui::Selectable("<Remove>"))
-                        {
-                            hosts.erase(hosts.begin() + selectedHost);
+                        hosts.erase(hosts.begin() + selectedHost);
 
-                            if (selectedHost > hosts.size())
-                                --selectedHost;
-                            else
-                                selectedHost = NoHostSelected;
-                        }
+                        if (selectedHost > hosts.size())
+                            --selectedHost;
+                        else
+                            selectedHost = NoHostSelected;
                     }
 
                     ImGui::EndDisabled();
                 }
 
-                // open trace entry
+                // render open trace entry
                 {
                     if (ImGui::Selectable("<Open Trace>"))
                         openOpenTraceDialog = true;
                 }
 
-                // save trace entry
+                // render save trace entry
                 {
                     ImGui::BeginDisabled(!m_transceiverModel);
 
@@ -157,25 +158,28 @@ void HostView::render()
 
                 ImGui::Separator();
 
-                ImGui::TextUnformatted("Connections:");
-                uint32_t i = 0;
-
-                for (Host& host : hosts)
+                // render stored connections
                 {
-                    if (ImGui::Selectable(host.description->data(), selectedHost == i) && selectedHost != i)
+                    ImGui::TextUnformatted("Connections:");
+                    uint32_t i = 0;
+
+                    for (Host& host : hosts)
                     {
-                        selectedHost = i;
-                        m_hostSettings.activeHost = hosts[selectedHost];
-                        m_hostEndpointEdit.emplace(*m_hostSettings.activeHost);
-                        m_state = State::Pending;
+                        if (ImGui::Selectable(host.description->data(), selectedHost == i) && selectedHost != i)
+                        {
+                            selectedHost = i;
+                            m_hostSettings.activeHost = hosts[selectedHost];
+                            m_hostEndpointEdit.emplace(*m_hostSettings.activeHost);
+                            m_state = State::Pending;
+                        }
+
+                        ImGuiExt::TooltipLastHoveredItem(*host.endpoint);
+
+                        ++i;
                     }
 
-                    ImGuiExt::TooltipLastHoveredItem(*host.endpoint);
-
-                    ++i;
+                    ImGui::EndCombo();
                 }
-
-                ImGui::EndCombo();
             }
         }
 
@@ -208,6 +212,7 @@ void HostView::render()
                     m_state = State::Pending;
             }
         }
+
         ImGui::EndDisabled();
 
         // render connection state
