@@ -8,6 +8,7 @@ struct HostSettings {
     1: vector<Host> hosts;
     2: uint32 selectedHost;
     3: bool autoConnect;
+    4: Host activeHost;
 }
 
 enum View {

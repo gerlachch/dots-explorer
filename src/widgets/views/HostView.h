@@ -26,6 +26,8 @@ struct HostView
 
 private:
 
+    static constexpr uint32_t NoHostSelected = std::numeric_limits<uint32_t>::max();
+
     enum struct State : uint8_t
     {
         Disconnected,
@@ -46,15 +48,14 @@ private:
     std::optional<CacheView> m_cacheView;
     std::optional<TraceView> m_traceView;
     std::optional<std::future<void>> m_connectTask;
+    std::optional<std::string> m_endpointBuffer;
     std::exception_ptr m_connectionError;
     State m_state;
-    Host* m_selectedHost;
     float m_deltaSinceError;
     float m_helpHintWidth;
     HostSettings& m_hostSettings;
     ViewSettings& m_viewSettings;
     std::optional<std::future<GitHubReleaseInfo>> m_releaseInfoTask;
     std::optional<GitHubReleaseInfo> m_releaseInfo;
-    std::string m_hostLabel;
     std::string m_appName;
 };

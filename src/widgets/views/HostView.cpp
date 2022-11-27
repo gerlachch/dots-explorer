@@ -12,7 +12,6 @@
 
 HostView::HostView(std::string appName) :
     m_state(State::Disconnected),
-    m_selectedHost(nullptr),
     m_deltaSinceError(0.0f),
     m_helpHintWidth(100.0f),
     m_hostSettings{ Settings::Register<HostSettings>() },
@@ -40,13 +39,8 @@ void HostView::render()
 
     // render panel
     {
-        // render host label
-        {
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Host  ");
-        }
-
         dots::vector_t<Host>& hosts = *m_hostSettings.hosts;
+        uint32_t& selectedHost = *m_hostSettings.selectedHost;
 
         // ensure hosts are valid
         {
@@ -58,8 +52,17 @@ void HostView::render()
                 });
             }
 
-            if (*m_hostSettings.selectedHost >= hosts.size())
-                m_hostSettings.selectedHost = 0;
+            if (selectedHost >= hosts.size() && selectedHost != NoHostSelected)
+                selectedHost = 0;
+        }
+
+        // init endpoint buffer
+        if (!m_endpointBuffer)
+        {
+            std::string description = *m_hostSettings.activeHost->description;
+            description += '\0';
+            m_endpointBuffer.emplace(std::max(description.size(), size_t{ 1024 }), '\0');
+            std::copy(description.begin(), description.end(), m_endpointBuffer->begin());
         }
 
         // check dropped files
@@ -84,71 +87,85 @@ void HostView::render()
 
             if (hostsAdded == 1 && m_state == State::Disconnected)
             {
-                m_hostSettings.selectedHost = static_cast<uint32_t>(hosts.size() - 1);
-                m_selectedHost = &hosts.back();
+                selectedHost = static_cast<uint32_t>(hosts.size() - 1);
                 m_state = State::Pending;
             }
 
             System::DroppedFiles.clear();
         }
 
+        // render host input
+        {
+            ImGui::AlignTextToFramePadding();
+            ImGui::TextUnformatted("Hosts ");
+
+            ImGui::SameLine();
+            ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f - 19);
+
+            if (ImGui::InputTextWithHint("##HostEdit", "<host-endpoint>", m_endpointBuffer->data(), m_endpointBuffer->size(), ImGuiInputTextFlags_AutoSelectAll))
+            {
+                *m_hostSettings.activeHost->endpoint = m_endpointBuffer->data();
+                *m_hostSettings.activeHost->description = m_endpointBuffer->data();
+                selectedHost = NoHostSelected;
+            }
+            ImGui::PopItemWidth();
+            ImGuiExt::TooltipLastHoveredItem(m_hostSettings.activeHost->endpoint->data());
+        }
+
         ImGui::BeginDisabled(m_state == State::Connecting);
-        m_selectedHost = &hosts[*m_hostSettings.selectedHost];
 
         // render hosts list
         {
-            ImGui::SameLine();
-            ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f);
-            if (ImGui::BeginCombo("##Hosts", m_selectedHost->description->data(), ImGuiComboFlags_HeightLarge))
+            ImGui::SameLine(0, 0);
+
+            if (ImGui::BeginCombo("##Hosts", "", ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge))
             {
                 if (ImGui::Selectable("<New>"))
                     openHostSettingsEdit = true;
 
-                if (ImGui::Selectable("<Edit>"))
+                if (selectedHost != NoHostSelected)
                 {
-                    openHostSettingsEdit = true;
-                    editHost = m_selectedHost;
-                }
-
-                if (hosts.size() > 1)
-                {
-                    if (ImGui::Selectable("<Remove>"))
+                    if (ImGui::Selectable("<Edit>"))
                     {
-                        hosts.erase(hosts.begin() + *m_hostSettings.selectedHost);
+                        openHostSettingsEdit = true;
+                        editHost = &hosts[selectedHost];
+                    }
 
-                        if (*m_hostSettings.selectedHost >= hosts.size())
+                    if (hosts.size() > 1)
+                    {
+                        if (ImGui::Selectable("<Remove>"))
                         {
-                            --*m_hostSettings.selectedHost;
-                            m_selectedHost = &hosts[*m_hostSettings.selectedHost];
+                            hosts.erase(hosts.begin() + selectedHost);
+
+                            if (selectedHost > hosts.size())
+                                --selectedHost;
+                            else
+                                selectedHost = NoHostSelected;
                         }
                     }
                 }
 
                 if (m_transceiverModel)
                 {
-                    ImGui::Separator();
-
                     if (ImGui::Selectable("<Save Trace>"))
                         openSaveTraceDialog = true;
                 }
 
                 ImGui::Separator();
 
+                ImGui::TextUnformatted("Connections:");
                 uint32_t i = 0;
 
                 for (Host& host : hosts)
                 {
-                    auto create_host_label = [this](const Host& host)
+                    if (ImGui::Selectable(host.description->data(), selectedHost == i) && selectedHost != i)
                     {
-                        m_hostLabel.clear();
-                        m_hostLabel += *host.description;
-                        return m_hostLabel.data();
-                    };
-
-                    if (ImGui::Selectable(create_host_label(host), i == m_hostSettings.selectedHost) && i != m_hostSettings.selectedHost)
-                    {
-                        m_hostSettings.selectedHost = i;
-                        m_selectedHost = &host;
+                        selectedHost = i;
+                        m_hostSettings.activeHost = hosts[selectedHost];
+                        std::string description = *m_hostSettings.activeHost->description;
+                        description += '\0';
+                        m_endpointBuffer->assign(std::max(description.size(), m_endpointBuffer->size()), '\0');
+                        std::copy(description.begin(), description.end(), m_endpointBuffer->begin());
                         m_state = State::Pending;
                     }
 
@@ -159,8 +176,6 @@ void HostView::render()
 
                 ImGui::EndCombo();
             }
-            ImGui::PopItemWidth();
-            ImGuiExt::TooltipLastHoveredItem(m_selectedHost->endpoint->data());
         }
 
         // render auto connect option
@@ -372,7 +387,7 @@ void HostView::update()
                     transition_handler_t{ &HostView::handleTransceiverTransition, this }
                 );
 
-                dots::io::Endpoint endpoint{ *m_selectedHost->endpoint };
+                dots::io::Endpoint endpoint{ *m_hostSettings.activeHost->endpoint };
 
                 if (endpoint.scheme() == "file" || endpoint.scheme() == "file-v1")
                 {
