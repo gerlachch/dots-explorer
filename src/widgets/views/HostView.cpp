@@ -68,7 +68,7 @@ void HostView::render()
         {
             if (std::filesystem::path path = System::DroppedFiles.front(); is_regular_file(path))
             {
-                *m_hostSettings.activeHost->endpoint = fmt::format("file:{}{}", path.root_name() == "/" ? "" : "/", path.string());
+                *m_hostSettings.activeHost->endpoint = fmt::format("file:{}{}", path.root_path() == "/" ? "" : "/", path.string());
                 *m_hostSettings.activeHost->description = path.filename().string();
                 m_hostSettings.selectedHost = NoHostSelected;
                 m_hostEndpointEdit.emplace(*m_hostSettings.activeHost);
@@ -348,7 +348,7 @@ void HostView::render()
             if (m_fileOpenDialog->file())
             {
                 std::filesystem::path path = *m_fileOpenDialog->file();
-                *m_hostSettings.activeHost->endpoint = fmt::format("file:{}{}", path.root_name() == "/" ? "" : "/", path.string());
+                *m_hostSettings.activeHost->endpoint = fmt::format("file:{}{}", path.root_path() == "/" ? "" : "/", path.string());
                 *m_hostSettings.activeHost->description = path.filename().string();
                 m_hostSettings.selectedHost = NoHostSelected;
                 m_hostEndpointEdit.emplace(*m_hostSettings.activeHost);

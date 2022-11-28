@@ -57,7 +57,7 @@ bool HostSettingsEdit::render()
                     if (m_fileOpenDialog->file())
                     {
                         std::filesystem::path path = canonical(*m_fileOpenDialog->file());
-                        m_host.endpoint = fmt::format("file:{}{}", path.root_name() == "/" ? "" : "/", path.string());
+                        m_host.endpoint = fmt::format("file:{}{}", path.root_path() == "/" ? "" : "/", path.string());
                         m_host.description = path.filename().string();
 
                         m_endpointEdit = HostEndpointEdit{ m_host, false };
