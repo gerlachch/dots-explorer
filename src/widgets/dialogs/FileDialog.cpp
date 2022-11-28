@@ -3,8 +3,10 @@
 #include <sstream>
 #include <fmt/format.h>
 #include <imgui.h>
+#include <common/Settings.h>
 
 FileDialog::FileDialog(std::string_view headerLabel, std::string confirmButtonLabel, bool fileMustExist) :
+    m_widgetSettings(Settings::Register<WidgetSettings>()),
     m_sortCurrentFiles(false),
     m_highlightedSubdir(None),
     m_highlightedFile(None),
@@ -14,7 +16,8 @@ FileDialog::FileDialog(std::string_view headerLabel, std::string confirmButtonLa
     m_confirmButtonLabel{ std::move(confirmButtonLabel) },
     m_fileMustExist(fileMustExist)
 {
-    changeDirectory(std::filesystem::current_path());
+    std::filesystem::path storedDialogDir{ *m_widgetSettings.get().fileDialogDir };
+    changeDirectory(exists(storedDialogDir) ? storedDialogDir : std::filesystem::current_path());
     selectPath(m_currentDirectory);
     ImGui::OpenPopup(m_headerLabel.data());
 }
@@ -253,6 +256,7 @@ void FileDialog::changeDirectory(std::filesystem::path path)
     m_currentSubdirectories.clear();
     m_currentFiles.clear();
     m_currentDirectory = std::move(path);
+    *m_widgetSettings.get().fileDialogDir = m_currentDirectory.string();
 
     try
     {

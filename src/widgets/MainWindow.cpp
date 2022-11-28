@@ -3,6 +3,7 @@
 #include <imgui.h>
 #include <fmt/format.h>
 #include <common/Settings.h>
+#include <WidgetSettings.dots.h>
 #include <HostSettings.dots.h>
 #include <FilterSettings.dots.h>
 
@@ -10,6 +11,7 @@ MainWindow::MainWindow(std::string appName) :
     m_hostView{ std::move(appName) }
 {
     // register settings
+    Settings::Register<WidgetSettings>();
     Settings::Register<HostSettings>();
     Settings::Register<FilterSettings>();
 }

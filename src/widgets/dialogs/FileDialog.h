@@ -3,6 +3,7 @@
 #include <vector>
 #include <optional>
 #include <filesystem>
+#include <WidgetSettings.dots.h>
 
 struct FileDialog
 {
@@ -23,6 +24,7 @@ private:
     std::filesystem::path m_currentDirectory;
     std::vector<std::filesystem::directory_entry> m_currentSubdirectories;
     std::vector<std::filesystem::directory_entry> m_currentFiles;
+    std::reference_wrapper<WidgetSettings> m_widgetSettings;
     bool m_sortCurrentFiles;
     size_t m_highlightedSubdir;
     size_t m_highlightedFile;
