@@ -130,9 +130,11 @@ target_sources(${TARGET_NAME}
         src/models/StructDescriptorModel.cpp
         src/models/TransceiverModel.cpp
         src/dots_ext/FileInChannel.cpp
+        src/dots_ext/FileOutChannel.cpp
         src/dots_ext/struct_ops.cpp
         src/widgets/views/TraceView.cpp
         src/widgets/views/TraceItem.cpp
+        src/widgets/dialogs/FileDialog.cpp
         src/widgets/dialogs/FilterSettingsEdit.cpp
         src/widgets/views/StructList.cpp
         src/widgets/dialogs/HostSettingsEdit.cpp
@@ -141,6 +143,7 @@ target_sources(${TARGET_NAME}
         src/widgets/views/StructItem.cpp
         src/widgets/views/CacheView.cpp
         src/widgets/dialogs/PropertyEdit.cpp
+        src/widgets/input/HostEndpointEdit.cpp
         src/widgets/input/FilterExpressionEdit.cpp
         $<$<OR:$<BOOL:${DOTS_EXPLORER_USE_OPENGL_BACKEND}>,$<BOOL:${DOTS_EXPLORER_USE_VULKAN_BACKEND}>>:${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp>
         $<$<BOOL:${DOTS_EXPLORER_USE_VULKAN_BACKEND}>:${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp>
@@ -176,6 +179,10 @@ target_compile_definitions(${TARGET_NAME}
 target_compile_features(${TARGET_NAME}
     PRIVATE
         cxx_std_20
+)
+target_link_options(${TARGET_NAME}
+    PRIVATE
+        $<$<AND:$<CONFIG:Release>,$<PLATFORM_ID:Windows>>:/SUBSYSTEM:windows /ENTRY:mainCRTStartup>
 )
 target_link_libraries(${TARGET_NAME}
     PRIVATE

@@ -2,6 +2,7 @@
 #include <StructDescriptorData.dots.h>
 #include <EnumDescriptorData.dots.h>
 #include <fmt/format.h>
+#include <dots_ext/FileOutChannel.h>
 
 TransceiverModel::TransceiverModel() :
     m_publisherNameTexts{ std::make_shared<std::map<uint32_t, ImGuiExt::ColoredText>>() },
@@ -27,6 +28,16 @@ void TransceiverModel::subscribe(event_handler_t handler)
 void TransceiverModel::subscribe(struct_type_handler_t handler)
 {
     m_structTypeHandlers.emplace_back(std::move(handler));
+}
+
+void TransceiverModel::writeTraceFile(std::filesystem::path path)
+{
+    dots::type::Registry registry{ std::nullopt, dots::type::Registry::StaticTypePolicy::InternalOnly };
+    auto outChannel = dots::io::make_channel<dots::io::FileOutChannel>(dots::global_transceiver()->ioContext(), std::move(path));
+    outChannel->init(registry);
+
+    for (const auto& [header, model] : m_eventData)
+        outChannel->transmit(header, model.publishedInstanceModel().instance());
 }
 
 void TransceiverModel::handleNewType(const dots::type::StructDescriptor& descriptor)
@@ -58,7 +69,10 @@ void TransceiverModel::handleNewType(const dots::type::StructDescriptor& descrip
                     m_updateIndices.erase(it);
             }
 
-            EventModel eventModel{ eventIndex, updateIndex, { m_publisherModel, event }, descriptorModel, event };
+            const EventModel& eventModel = m_eventData.emplace_back(
+                event.header(),
+                EventModel{ eventIndex, updateIndex, MetadataModel{ m_publisherModel, event }, descriptorModel, event }
+            ).second;
 
             for (auto& handler : m_eventHandlers)
             {

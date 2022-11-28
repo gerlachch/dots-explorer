@@ -111,16 +111,28 @@ void TraceView::renderFilterArea()
 
             if (ImGui::BeginCombo("##Filters", "", ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge))
             {
-                if (ImGui::Selectable("<New>"))
-                    openFilterSettingsEdit = true;
-
-                if (selectedFilter == NoFilterSelected)
+                // render new filter entry
                 {
+                    if (ImGui::Selectable("<New>"))
+                        openFilterSettingsEdit = true;
+                }
+
+                // render edit filter entry
+                {
+                    ImGui::BeginDisabled(selectedFilter == NoFilterSelected);
+
                     if (ImGui::Selectable("<Edit>"))
                     {
                         openFilterSettingsEdit = true;
                         editFilter = &filters[selectedFilter];
                     }
+
+                    ImGui::EndDisabled();
+                }
+
+                // render remove filter entry
+                {
+                    ImGui::BeginDisabled(selectedFilter == NoFilterSelected);
 
                     if (ImGui::Selectable("<Remove>"))
                     {
@@ -131,6 +143,8 @@ void TraceView::renderFilterArea()
                         else
                             selectedFilter = NoFilterSelected;
                     }
+
+                    ImGui::EndDisabled();
                 }
 
                 ImGui::Separator();
@@ -175,23 +189,26 @@ void TraceView::renderFilterArea()
 
                 ImGui::Separator();
 
-                ImGui::TextUnformatted("Filters:");
-                uint32_t i = 0;
-
-                for (Filter& filter : filters)
+                // render stored filters
                 {
-                    if (ImGui::Selectable(filter.description->data(), selectedFilter == i) && selectedFilter != i)
+                    ImGui::TextUnformatted("Filters:");
+                    uint32_t i = 0;
+
+                    for (Filter& filter : filters)
                     {
-                        selectedFilter = i;
-                        m_filterSettings.activeFilter = filters[selectedFilter];
-                        m_filterExpressionEdit = FilterExpressionEdit{ *m_filterSettings.activeFilter };
-                        m_filtersChanged = true;
+                        if (ImGui::Selectable(filter.description->data(), selectedFilter == i) && selectedFilter != i)
+                        {
+                            selectedFilter = i;
+                            m_filterSettings.activeFilter = filters[selectedFilter];
+                            m_filterExpressionEdit = FilterExpressionEdit{ *m_filterSettings.activeFilter };
+                            m_filtersChanged = true;
+                        }
+
+                        ++i;
                     }
 
-                    ++i;
+                    ImGui::EndCombo();
                 }
-
-                ImGui::EndCombo();
             }
         }
 

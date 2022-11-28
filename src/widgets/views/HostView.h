@@ -4,6 +4,8 @@
 #include <dots/dots.h>
 #include <common/Version.h>
 #include <models/TransceiverModel.h>
+#include <widgets/input/HostEndpointEdit.h>
+#include <widgets/dialogs/FileDialog.h>
 #include <widgets/dialogs/HelpDialog.h>
 #include <widgets/dialogs/HostSettingsEdit.h>
 #include <widgets/views/CacheView.h>
@@ -25,6 +27,8 @@ struct HostView
 
 private:
 
+    static constexpr uint32_t NoHostSelected = std::numeric_limits<uint32_t>::max();
+
     enum struct State : uint8_t
     {
         Disconnected,
@@ -39,20 +43,21 @@ private:
     void handleTransceiverTransition(const dots::Connection& connection, std::exception_ptr ePtr);
 
     std::optional<HelpDialog> m_helpDialog;
+    std::optional<FileOpenDialog> m_fileOpenDialog;
+    std::optional<FileSaveDialog> m_fileSaveDialog;
     std::optional<HostSettingsEdit> m_hostSettingsEdit;
     std::optional<TransceiverModel> m_transceiverModel;
     std::optional<CacheView> m_cacheView;
     std::optional<TraceView> m_traceView;
     std::optional<std::future<void>> m_connectTask;
+    std::optional<HostEndpointEdit> m_hostEndpointEdit;
     std::exception_ptr m_connectionError;
     State m_state;
-    Host* m_selectedHost;
     float m_deltaSinceError;
     float m_helpHintWidth;
     HostSettings& m_hostSettings;
     ViewSettings& m_viewSettings;
     std::optional<std::future<GitHubReleaseInfo>> m_releaseInfoTask;
     std::optional<GitHubReleaseInfo> m_releaseInfo;
-    std::string m_hostLabel;
     std::string m_appName;
 };

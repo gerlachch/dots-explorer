@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <deque>
+#include <filesystem>
 #include <dots/dots.h>
 #include <models/EventModel.h>
 #include <DotsClient.dots.h>
@@ -22,6 +23,8 @@ struct TransceiverModel
     void subscribe(event_handler_t handler);
     void subscribe(struct_type_handler_t handler);
 
+    void writeTraceFile(std::filesystem::path path);
+
 private:
 
     void handleNewType(const dots::type::StructDescriptor& descriptor);
@@ -29,6 +32,7 @@ private:
 
     std::vector<dots::Subscription> m_subscriptions;
     std::deque<StructDescriptorModel> m_descriptorModels;
+    std::vector<std::pair<DotsHeader, EventModel>> m_eventData;
     std::unordered_map<const StructDescriptorModel*, std::vector<event_handler_t>> m_eventHandlersTyped;
     std::vector<event_handler_t> m_eventHandlers;
     std::vector<struct_type_handler_t> m_structTypeHandlers;

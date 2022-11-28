@@ -12,7 +12,6 @@
 
 HostView::HostView(std::string appName) :
     m_state(State::Disconnected),
-    m_selectedHost(nullptr),
     m_deltaSinceError(0.0f),
     m_helpHintWidth(100.0f),
     m_hostSettings{ Settings::Register<HostSettings>() },
@@ -36,15 +35,13 @@ void HostView::render()
     bool openHostSettingsEdit = false;
     Host* editHost = nullptr;
 
+    bool openOpenTraceDialog = false;
+    bool openSaveTraceDialog = false;
+
     // render panel
     {
-        // render host label
-        {
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Host  ");
-        }
-
         dots::vector_t<Host>& hosts = *m_hostSettings.hosts;
+        uint32_t& selectedHost = *m_hostSettings.selectedHost;
 
         // ensure hosts are valid
         {
@@ -56,102 +53,134 @@ void HostView::render()
                 });
             }
 
-            if (*m_hostSettings.selectedHost >= hosts.size())
-                m_hostSettings.selectedHost = 0;
+            if (selectedHost >= hosts.size() && selectedHost != NoHostSelected)
+                selectedHost = 0;
+        }
+
+        // init endpoint buffer
+        if (!m_hostEndpointEdit)
+        {
+            m_hostEndpointEdit.emplace(*m_hostSettings.activeHost);
         }
 
         // check dropped files
         if (!System::DroppedFiles.empty())
         {
-            size_t hostsAdded = 0;
-
-            for (const auto& path : System::DroppedFiles)
+            if (std::filesystem::path path = System::DroppedFiles.front(); is_regular_file(path))
             {
-                if (exists(path))
-                {
-                    if (is_regular_file(path))
-                    {
-                        hosts.emplace_back(Host{
-                            .endpoint = fmt::format("file:{}{}", path.root_name() == "/" ? "" : "/", path.string() ),
-                            .description = path.filename().string()
-                        });
-                        ++hostsAdded;
-                    }
-                }
-            }
+                *m_hostSettings.activeHost->endpoint = fmt::format("file:{}{}", path.root_path() == "/" ? "" : "/", path.string());
+                *m_hostSettings.activeHost->description = path.filename().string();
+                m_hostSettings.selectedHost = NoHostSelected;
+                m_hostEndpointEdit.emplace(*m_hostSettings.activeHost);
 
-            if (hostsAdded == 1 && m_state == State::Disconnected)
-            {
-                m_hostSettings.selectedHost = static_cast<uint32_t>(hosts.size() - 1);
-                m_selectedHost = &hosts.back();
                 m_state = State::Pending;
             }
 
             System::DroppedFiles.clear();
         }
 
+        // render host input
+        {
+            ImGui::AlignTextToFramePadding();
+            ImGui::TextUnformatted("Hosts ");
+
+            ImGui::SameLine();
+            ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f - 19);
+
+            if (m_hostEndpointEdit->render())
+            {
+                selectedHost = NoHostSelected;
+            }
+            ImGui::PopItemWidth();
+            ImGuiExt::TooltipLastHoveredItem(m_hostSettings.activeHost->endpoint->data());
+        }
+
         ImGui::BeginDisabled(m_state == State::Connecting);
-        m_selectedHost = &hosts[*m_hostSettings.selectedHost];
 
         // render hosts list
         {
-            ImGui::SameLine();
-            ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.3f);
-            if (ImGui::BeginCombo("##Hosts", m_selectedHost->description->data(), ImGuiComboFlags_HeightLarge))
-            {
-                if (ImGui::Selectable("<New>"))
-                    openHostSettingsEdit = true;
+            ImGui::SameLine(0, 0);
 
-                if (ImGui::Selectable("<Edit>"))
+            if (ImGui::BeginCombo("##Hosts", "", ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge))
+            {
+                // render new host entry
                 {
-                    openHostSettingsEdit = true;
-                    editHost = m_selectedHost;
+                    if (ImGui::Selectable("<New>"))
+                        openHostSettingsEdit = true;
                 }
 
-                if (hosts.size() > 1)
+                // render edit host entry
                 {
+                    ImGui::BeginDisabled(selectedHost == NoHostSelected);
+
+                    if (ImGui::Selectable("<Edit>"))
+                    {
+                        openHostSettingsEdit = true;
+                        editHost = &hosts[selectedHost];
+                    }
+
+                    ImGui::EndDisabled();
+
+                }
+
+                // render remove host entry
+                {
+                    ImGui::BeginDisabled(hosts.size() <= 1 || selectedHost == NoHostSelected);
+
                     if (ImGui::Selectable("<Remove>"))
                     {
-                        hosts.erase(hosts.begin() + *m_hostSettings.selectedHost);
+                        hosts.erase(hosts.begin() + selectedHost);
 
-                        if (*m_hostSettings.selectedHost >= hosts.size())
-                        {
-                            --*m_hostSettings.selectedHost;
-                            m_selectedHost = &hosts[*m_hostSettings.selectedHost];
-                        }
+                        if (selectedHost > hosts.size())
+                            --selectedHost;
+                        else
+                            selectedHost = NoHostSelected;
                     }
+
+                    ImGui::EndDisabled();
+                }
+
+                // render open trace entry
+                {
+                    if (ImGui::Selectable("<Open Trace>"))
+                        openOpenTraceDialog = true;
+                }
+
+                // render save trace entry
+                {
+                    ImGui::BeginDisabled(!m_transceiverModel);
+
+                    if (ImGui::Selectable("<Save Trace>"))
+                        openSaveTraceDialog = true;
+
+                    ImGui::EndDisabled();
                 }
 
                 ImGui::Separator();
 
-                uint32_t i = 0;
-
-                for (Host& host : hosts)
+                // render stored connections
                 {
-                    auto create_host_label = [this](const Host& host)
-                    {
-                        m_hostLabel.clear();
-                        m_hostLabel += *host.description;
-                        m_hostLabel += " [";
-                        m_hostLabel += *host.endpoint;
-                        m_hostLabel += "]";
-                        return m_hostLabel.data();
-                    };
+                    ImGui::TextUnformatted("Connections:");
+                    uint32_t i = 0;
 
-                    if (ImGui::Selectable(create_host_label(host), i == m_hostSettings.selectedHost) && i != m_hostSettings.selectedHost)
+                    for (Host& host : hosts)
                     {
-                        m_hostSettings.selectedHost = i;
-                        m_selectedHost = &host;
-                        m_state = State::Pending;
+                        if (ImGui::Selectable(host.description->data(), selectedHost == i) && selectedHost != i)
+                        {
+                            selectedHost = i;
+                            m_hostSettings.activeHost = hosts[selectedHost];
+                            m_hostEndpointEdit.emplace(*m_hostSettings.activeHost);
+                            m_state = State::Pending;
+                        }
+
+                        ImGuiExt::TooltipLastHoveredItem(*host.endpoint);
+
+                        ++i;
                     }
 
-                    ++i;
+                    ImGui::EndCombo();
                 }
-
-                ImGui::EndCombo();
             }
-            ImGui::PopItemWidth();
-            ImGuiExt::TooltipLastHoveredItem(m_selectedHost->endpoint->data());
         }
 
         // render auto connect option
@@ -183,6 +212,7 @@ void HostView::render()
                     m_state = State::Pending;
             }
         }
+
         ImGui::EndDisabled();
 
         // render connection state
@@ -302,10 +332,46 @@ void HostView::render()
     // render host settings edit
     {
         if (openHostSettingsEdit)
-            m_hostSettingsEdit.emplace(m_hostSettings, editHost);
+            m_hostSettingsEdit.emplace(m_hostSettings, *m_hostSettings.activeHost, editHost);
 
         if (m_hostSettingsEdit != std::nullopt && !m_hostSettingsEdit->render())
             m_hostSettingsEdit = std::nullopt;
+    }
+
+    // render open trace file dialog
+    {
+        if (openOpenTraceDialog)
+            m_fileOpenDialog.emplace();
+
+        if (m_fileOpenDialog != std::nullopt && !m_fileOpenDialog->render())
+        {
+            if (m_fileOpenDialog->file())
+            {
+                std::filesystem::path path = *m_fileOpenDialog->file();
+                *m_hostSettings.activeHost->endpoint = fmt::format("file:{}{}", path.root_path() == "/" ? "" : "/", path.string());
+                *m_hostSettings.activeHost->description = path.filename().string();
+                m_hostSettings.selectedHost = NoHostSelected;
+                m_hostEndpointEdit.emplace(*m_hostSettings.activeHost);
+
+                m_state = State::Pending;
+            }
+
+            m_fileOpenDialog = std::nullopt;
+        }
+    }
+
+    // render save trace file dialog
+    {
+        if (openSaveTraceDialog)
+            m_fileSaveDialog.emplace();
+
+        if (m_fileSaveDialog != std::nullopt && !m_fileSaveDialog->render())
+        {
+            if (m_fileSaveDialog->file())
+                m_transceiverModel->writeTraceFile(*m_fileSaveDialog->file());
+
+            m_fileSaveDialog = std::nullopt;
+        }
     }
 }
 
@@ -349,7 +415,7 @@ void HostView::update()
                     transition_handler_t{ &HostView::handleTransceiverTransition, this }
                 );
 
-                dots::io::Endpoint endpoint{ *m_selectedHost->endpoint };
+                dots::io::Endpoint endpoint{ *m_hostSettings.activeHost->endpoint };
 
                 if (endpoint.scheme() == "file" || endpoint.scheme() == "file-v1")
                 {

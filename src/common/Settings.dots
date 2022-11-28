@@ -1,4 +1,8 @@
 
+struct WidgetSettings {
+    1: string fileDialogDir;
+}
+
 struct Host [substruct_only] {
     1: string endpoint;
     2: string description;
@@ -8,6 +12,7 @@ struct HostSettings {
     1: vector<Host> hosts;
     2: uint32 selectedHost;
     3: bool autoConnect;
+    4: Host activeHost;
 }
 
 enum View {

@@ -32,13 +32,19 @@ std::future<GitHubReleaseInfo> Version::GetReleaseInfo(std::string_view release/
     {
         constexpr std::string_view ReleasesUri = "https://api.github.com/repos/gerlachch/dots-explorer/releases";
 
+        #ifdef NDEBUG
+        constexpr std::string_view Args = "--silent";
+        #else
+        constexpr std::string_view Args = "";
+        #endif
+
         boost::process::ipstream pipeStream;
         auto redirectStdout = boost::process::std_out > pipeStream;
 
         #ifdef _WIN32
-        boost::process::child curl{ fmt::format("curl.exe {}/{}", ReleasesUri, release), redirectStdout, ::boost::process::windows::create_no_window };
+        boost::process::child curl{ fmt::format("curl.exe {} {}/{}", Args, ReleasesUri, release), redirectStdout, ::boost::process::windows::create_no_window };
         #else
-        boost::process::child curl{ fmt::format("curl {}/{}", ReleasesUri, release), redirectStdout };
+        boost::process::child curl{ fmt::format("curl {} {}/{}", Args, ReleasesUri, release), redirectStdout };
         #endif
 
         std::string body;
