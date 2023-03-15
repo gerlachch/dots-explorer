@@ -31,7 +31,7 @@ The dots-explorer can be used to inspect and manipulate objects of a DOTS enviro
 * All dependencies of [dots-cpp](https://github.com/pnxs/dots-cpp#dependencies) (but not dots-cpp itself!).
 * Boost Filesystem (required by Boost Process).
 * Windows SDK (Windows builds), OpenGL SDK (Linux builds) or the Vulkan SDK (when targeting Vulkan).
-* C++ compiler supporting at least C++17 (such as GCC 9 or MSVC 19.14).
+* C++ compiler supporting at least C++20 (such as GCC 9 or MSVC 19.14).
 
 # Build and Run
 
