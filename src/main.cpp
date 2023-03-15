@@ -68,7 +68,14 @@ int main()
         ImGui::GetIO().IniFilename = appConfigPath.data();
         ImGui::GetIO().LogFilename = appLogPath.data();
 
-        dots::type::chrono::experimental::set_time_zone_override();
+        try
+        {
+            dots::type::chrono::experimental::set_time_zone_override();
+        }
+        catch (...)
+        {
+            // do nothing and implicitly use UTC as a fallback
+        }
 
         #ifdef NDEBUG
         dots::tools::loggingFrontend().setLogLevel(dots::tools::Level::crit);
