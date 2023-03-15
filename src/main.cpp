@@ -1,6 +1,7 @@
 #include <string>
 #include <optional>
 #include <filesystem>
+#include <fstream>
 #include <fmt/format.h>
 #include <dots/tools/logging.h>
 #include <backends/Backend.h>
@@ -59,26 +60,46 @@ auto init_app_data() -> std::pair<std::string, std::string>
 
 int main()
 {
-    std::optional<Backend> backend{ std::in_place, 1600, 900, AppName };
-
-    auto [appConfigPath, appLogPath] = init_app_data();
-    ImGui::GetIO().IniFilename = appConfigPath.data();
-    ImGui::GetIO().LogFilename = appLogPath.data();
-
-    dots::type::chrono::experimental::set_time_zone_override();
-
-    #ifdef NDEBUG
-    dots::tools::loggingFrontend().setLogLevel(dots::tools::Level::crit);
-    #endif
-
-    Settings::Init();
-    MainWindow mainWindow{ AppName };
-
-    backend->run([&]
+    try
     {
-        mainWindow.render();
-    });
+        std::optional<Backend> backend{ std::in_place, 1600, 900, AppName };
 
-    backend.reset();
-    Settings::Clear();
+        auto [appConfigPath, appLogPath] = init_app_data();
+        ImGui::GetIO().IniFilename = appConfigPath.data();
+        ImGui::GetIO().LogFilename = appLogPath.data();
+
+        try
+        {
+            dots::type::chrono::experimental::set_time_zone_override();
+        }
+        catch (...)
+        {
+            // do nothing and implicitly use UTC as a fallback
+        }
+
+        #ifdef NDEBUG
+        dots::tools::loggingFrontend().setLogLevel(dots::tools::Level::crit);
+        #endif
+
+        Settings::Init();
+        MainWindow mainWindow{ AppName };
+
+        backend->run([&]
+        {
+            mainWindow.render();
+        });
+
+        backend.reset();
+        Settings::Clear();
+    }
+    catch (const std::exception& e)
+    {
+        std::ofstream ofstream{ "dots-explorer.crash", std::ios_base::app };
+        ofstream << fmt::format("[{}] ERROR running dots-explorer -> '{}'\n", dots::timepoint_t::Now().toString(), e.what());
+    }
+    catch (...)
+    {
+        std::ofstream ofstream{ "dots-explorer.crash", std::ios_base::app };
+        ofstream << fmt::format("[{}] ERROR running dots-explorer -> '<unknown-exception>'\n", dots::timepoint_t::Now().toString());
+    }
 }
