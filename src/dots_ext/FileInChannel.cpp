@@ -3,6 +3,7 @@
 #include <fstream>
 #include <dots/asio.h>
 #include <dots/HostTransceiver.h>
+#include <DotsRecordHeader.dots.h>
 
 namespace dots::io::details
 {
@@ -13,6 +14,10 @@ namespace dots::io::details
         m_ioContext{ ioContext },
         m_path{ std::move(path) }
     {
+        if (m_fileRegistry.findType("DotsRecordHeader") == nullptr)
+        {
+            m_fileRegistry.registerType(dots::type::Descriptor<DotsRecordHeader>::Instance());
+        }
         loadFile();
     }
 

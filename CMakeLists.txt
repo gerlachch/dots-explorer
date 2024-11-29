@@ -108,6 +108,7 @@ add_executable(${TARGET_NAME})
 target_dots_model(${TARGET_NAME}
     src/common/Settings.dots
     src/common/Version.dots
+    src/dots_ext/dots_record.dots
 )
 target_sources(${TARGET_NAME}
     PRIVATE
