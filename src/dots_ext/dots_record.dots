@@ -1,0 +1,7 @@
+
+struct DotsRecordHeader [cached=false] {
+    1: [key] string name;
+    2: timepoint startTime;
+    3: vector<string> whitelist;
+}
+

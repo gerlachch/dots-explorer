@@ -6,13 +6,17 @@
 
 namespace dots::io::details
 {
-    GenericFileInChannel::GenericFileInChannel(key_t key, asio::io_context& ioContext, std::filesystem::path path) :
+    GenericFileInChannel::GenericFileInChannel(key_t key, asio::io_context& ioContext, std::filesystem::path path, const std::vector<type::Descriptor<>*>& preregister_descriptors) :
         LocalChannel(key, ioContext),
         m_fileRegistry{ std::nullopt, type::Registry::StaticTypePolicy::InternalOnly },
         m_transmissionsRead(0),
         m_ioContext{ ioContext },
         m_path{ std::move(path) }
     {
+        for (auto* descriptor : preregister_descriptors)
+        {
+            m_fileRegistry.registerType(*descriptor, false);
+        }
         loadFile();
     }
 

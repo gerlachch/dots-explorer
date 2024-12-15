@@ -4,3 +4,5 @@ build*/
 .vs/
 CMakeSettings.json
 CppProperties.json
+.cache
+compile_commands.json

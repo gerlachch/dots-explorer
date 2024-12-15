@@ -10,7 +10,7 @@ namespace dots::io::details
 {
     struct GenericFileInChannel : LocalChannel
     {
-        GenericFileInChannel(key_t key, asio::io_context& ioContext, std::filesystem::path path);
+        GenericFileInChannel(key_t key, asio::io_context& ioContext, std::filesystem::path path, const std::vector<type::Descriptor<>*> &preregister_descriptors = {});
         GenericFileInChannel(const GenericFileInChannel& other) = delete;
         GenericFileInChannel(GenericFileInChannel&& other) = delete;
         ~GenericFileInChannel() override = default;

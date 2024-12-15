@@ -9,6 +9,8 @@
 #include <common/Settings.h>
 #include <common/System.h>
 #include <DotsDescriptorRequest.dots.h>
+#include <DotsCacheInfo.dots.h>
+#include "DotsRecordHeader.dots.h"
 
 HostView::HostView(std::string appName) :
     m_state(State::Disconnected),
@@ -415,6 +417,11 @@ void HostView::update()
                     transition_handler_t{ &HostView::handleTransceiverTransition, this }
                 );
 
+                if (transceiver.registry().findType("DotsCacheInfo") == nullptr)
+                {
+                    transceiver.registry().registerType(dots::type::Descriptor<DotsCacheInfo>::Instance());
+                }
+
                 dots::io::Endpoint endpoint{ *m_hostSettings.activeHost->endpoint };
 
                 if (endpoint.scheme() == "file" || endpoint.scheme() == "file-v1")
@@ -424,7 +431,25 @@ void HostView::update()
                     if (path.front() == '/')
                         path.remove_prefix(1);
                     #endif
-                    transceiver.open<dots::io::FileInChannel>(path);
+
+
+                    /*
+                     * Pre-register DotsRecordHeader as workaround for broken dots-record files.
+                     *
+                     * In the past, DotsRecordHeader was an 'internal'-flagged DOTS-type. Later the
+                     * definition moved from DOTS library to the dots-record tool, but without
+                     * removing the 'internal'-flag.
+                     * The consequence is, that applications like this, do not know DotsRecordHeader,
+                     * but it is also not exported to the record-file because of the 'internal'-flag.
+                     * Without preregistering the DOTS type 'DotsRecordHeader', this application
+                     * cannot resolve the missing type.
+                     */
+                    std::vector<dots::type::Descriptor<>*> preregister_descriptors {
+                        &dots::type::Descriptor<DotsRecordHeader>::Instance()
+                    };
+
+                    transceiver.open<dots::io::FileInChannel>(path, preregister_descriptors);
+
                 }
                 else
                     transceiver.open(endpoint);
@@ -437,7 +462,7 @@ void HostView::update()
                     if (transceiver.connected())
                         break;
                     else
-                        dots::global_transceiver()->ioContext().run_one();
+                        transceiver.ioContext().run_one();
                 }
             });
             m_state = State::Connecting;
