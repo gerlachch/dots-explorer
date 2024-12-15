@@ -417,9 +417,9 @@ void HostView::update()
                     transition_handler_t{ &HostView::handleTransceiverTransition, this }
                 );
 
-                if (dots::global_transceiver()->registry().findType("DotsCacheInfo") == nullptr)
+                if (transceiver.registry().findType("DotsCacheInfo") == nullptr)
                 {
-                    dots::global_transceiver()->registry().registerType(dots::type::Descriptor<DotsCacheInfo>::Instance());
+                    transceiver.registry().registerType(dots::type::Descriptor<DotsCacheInfo>::Instance());
                 }
 
                 dots::io::Endpoint endpoint{ *m_hostSettings.activeHost->endpoint };
@@ -462,7 +462,7 @@ void HostView::update()
                     if (transceiver.connected())
                         break;
                     else
-                        dots::global_transceiver()->ioContext().run_one();
+                        transceiver.ioContext().run_one();
                 }
             });
             m_state = State::Connecting;
